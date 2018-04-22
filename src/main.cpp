@@ -1,7 +1,7 @@
 #include <iostream>
-#include <cstdint>
 #include <chrono>
 #include <mutex>
+#include <array>
 
 #include <ScreenCapture.h>
 

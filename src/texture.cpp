@@ -1,6 +1,12 @@
 #include "texture.hpp"
 
+#ifdef WIN32
+#define GL_BGRA 0x80E1
+#include <Windows.h>
+#endif
+
 #include <GL/gl.h>
+
 
 namespace shar {
 
@@ -39,18 +45,18 @@ void Texture::unbind() {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::set(std::size_t width, std::size_t height, const uint8_t* bytes) {
+void Texture::set(std::size_t width, std::size_t height, const uint8_t* data) {
   glTexSubImage2D(GL_TEXTURE_2D, 0, 
     0, 0, width, height, 
-    GL_BGRA, GL_UNSIGNED_BYTE, bytes);
+    GL_BGRA, GL_UNSIGNED_BYTE, data);
 }
 
 void Texture::update(std::size_t x_offset, std::size_t y_offset,
                      std::size_t width,    std::size_t height,
-                     const uint8_t* bytes) {
+                     const uint8_t* data) {
   glTexSubImage2D(GL_TEXTURE_2D, 0, 
     x_offset, y_offset, width, height, 
-    GL_BGRA, GL_UNSIGNED_BYTE, bytes);
+    GL_BGRA, GL_UNSIGNED_BYTE, data);
 }
 
 }

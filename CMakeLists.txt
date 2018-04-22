@@ -4,9 +4,6 @@ project(shar)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# to get nice debug info
-set(CMAKE_CXX_FLAGS "-g -fno-omit-frame-pointer")
-
 file(GLOB_RECURSE HEADERS "src/*.hpp")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -40,8 +37,16 @@ else()
     ${CMAKE_THREAD_LIBS_INIT}
   )
 endif()
+  
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
 
-# enable LTO
-set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+IF(!WIN32)
+  # to get nice debug info
+  set(CMAKE_CXX_FLAGS "-g -fno-omit-frame-pointer")
+  # enable LTO
+  set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+endif()
 
-target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw GL)
+target_include_directories(shar PRIVATE glfw)
+target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})
