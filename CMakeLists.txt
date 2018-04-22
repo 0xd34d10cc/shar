@@ -12,7 +12,7 @@ add_subdirectory(3rdparty/screen_capture_lite)
 add_subdirectory(3rdparty/libde265)
 
 add_executable(shar ${SOURCES} ${HEADERS})
-target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include")
+target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include" "3rdparty/libde265")
 
 # platfor specific libraries for screen_capture_lite
 if(WIN32)
@@ -49,5 +49,5 @@ IF(!WIN32)
   set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 
-target_include_directories(shar PRIVATE glfw)
+target_include_directories(shar PRIVATE glfw )
 target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})

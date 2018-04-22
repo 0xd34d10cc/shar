@@ -6,6 +6,8 @@
 #include <ScreenCapture.h>
 
 #include "image.hpp"
+#include "encoder.hpp"
+#include "decoder.hpp"
 #include "window.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
