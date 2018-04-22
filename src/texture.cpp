@@ -2,10 +2,11 @@
 
 #ifdef WIN32
 #define GL_BGRA 0x80E1
-#include "Windows.h"
+#include <Windows.h>
 #endif
 
-#include "gl/GL.h"
+#include <GL/gl.h>
+
 
 namespace shar {
 
