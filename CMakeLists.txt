@@ -37,10 +37,9 @@ else()
     ${CMAKE_THREAD_LIBS_INIT}
   )
 endif()
-
-find_package(glfw3 REQUIRED)
+  
 find_package(OpenGL REQUIRED)
-
+find_package(glfw3 REQUIRED)
 
 IF(!WIN32)
   # to get nice debug info
@@ -50,4 +49,4 @@ IF(!WIN32)
 endif()
 
 target_include_directories(shar PRIVATE glfw)
-target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw OpenGL32)
+target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})
