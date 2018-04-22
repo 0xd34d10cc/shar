@@ -9,6 +9,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # build 3rdparty
 add_subdirectory(3rdparty/screen_capture_lite)
+add_subdirectory(3rdparty/libde265)
 
 add_executable(shar ${SOURCES} ${HEADERS})
 target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include")

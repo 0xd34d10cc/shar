@@ -1,3 +1,6 @@
 [submodule "3rdparty/screen_capture_lite"]
 	path = 3rdparty/screen_capture_lite
 	url = https://github.com/smasherprog/screen_capture_lite
+[submodule "3rdparty/libde265"]
+	path = 3rdparty/libde265
+	url = https://github.com/strukturag/libde265
