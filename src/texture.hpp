@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace shar {
 
@@ -11,7 +12,7 @@ public:
 
   // TODO: texture storage
 
-  void set(std::size_t width, std::size_t height, const uint8_t* bytes);
+  void set(std::size_t width, std::size_t height, const uint8_t* data);
   void bind();
   void unbind();
 
