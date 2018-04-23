@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mutex>
 #include <array>
+#include <condition_variable>
 
 #include <ScreenCapture.h>
 
@@ -29,11 +30,10 @@ public:
   {}
 
   void push(const SL::Screen_Capture::Image& frame) {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
 
-    // FIXME
-    if ((m_to + 1) % LIMIT == m_from) {
-      throw std::runtime_error("Frame pipeline overflow");
+    while ((m_to + 1) % LIMIT == m_from) {
+      m_condvar.wait(lock);
     }
 
     m_frames[m_to].x_offset = frame.Bounds.left;
@@ -43,7 +43,9 @@ public:
   }
 
   FrameUpdate* next_frame() {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
+   
+    // TODO: provide function for consumer thread to wait till next frame arrives
     if (m_to == m_from) {
       return nullptr;
     }
@@ -52,12 +54,15 @@ public:
   }
 
   void consume(std::size_t amount) {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_from = (m_from + amount) % LIMIT;
+    m_condvar.notify_all();
   }
 
 private:
   std::mutex m_mutex;
+  std::condition_variable m_condvar;
+
   std::size_t m_from;
   std::size_t m_to;
   std::array<FrameUpdate, LIMIT> m_frames;
@@ -103,18 +108,20 @@ int main() {
   shar::Texture texture;
   texture.bind();
 
-  // consumer should be faster
-  shar::Timer timer{interval / 2};
+  shar::Timer timer{std::chrono::milliseconds(1)};
   while (!window.should_close()) {
     timer.wait();
     timer.restart();
     
-    if (auto frame = pipeline.next_frame()) {
-      texture.update(frame->x_offset,        frame->y_offset, 
-                     frame->m_image.width(), frame->m_image.height(), 
-                     frame->m_image.bytes());
-      pipeline.consume(1);      
-
+    if (auto* frame = pipeline.next_frame()) {
+      do {
+        texture.update(frame->x_offset, frame->y_offset,
+                       frame->m_image.width(), frame->m_image.height(),
+                       frame->m_image.bytes());
+        pipeline.consume(1);
+        frame = pipeline.next_frame();
+      } while (frame);
+      
       window.draw_texture(texture);
       window.swap_buffers();
     }

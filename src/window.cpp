@@ -51,6 +51,7 @@ Window::SystemWindow* Window::create_window() {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     return window;
 }
