@@ -10,7 +10,7 @@
 
 namespace shar {
 
-Texture::Texture()
+Texture::Texture(std::size_t width, std::size_t height)
   : m_id(0)
 {
   GLuint id;
@@ -26,7 +26,7 @@ Texture::Texture()
   
   // allocate memory for texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-    1920, 1080, 0, // fixme: hardcoded width\height 
+    width, height, 0,
     GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 
   unbind();
@@ -45,15 +45,15 @@ void Texture::unbind() {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::set(std::size_t width, std::size_t height, const uint8_t* data) {
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 
-    0, 0, width, height, 
+void Texture::set(std::size_t width, std::size_t height, const std::uint8_t* data) {
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    width, height, 0,
     GL_BGRA, GL_UNSIGNED_BYTE, data);
 }
 
 void Texture::update(std::size_t x_offset, std::size_t y_offset,
                      std::size_t width,    std::size_t height,
-                     const uint8_t* data) {
+                     const std::uint8_t* data) {
   glTexSubImage2D(GL_TEXTURE_2D, 0, 
     x_offset, y_offset, width, height, 
     GL_BGRA, GL_UNSIGNED_BYTE, data);

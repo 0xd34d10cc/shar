@@ -79,9 +79,13 @@ int main() {
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   glEnable(GL_TEXTURE_2D);
 
+  // TODO: make it configurable
+  auto monitor = SL::Screen_Capture::GetMonitors().front();
+  std::size_t width = static_cast<std::size_t>(monitor.Width);
+  std::size_t height = static_cast<std::size_t>(monitor.Height);
+  std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
+
   auto config = SL::Screen_Capture::CreateCaptureConfiguration([=](){
-    // TODO: make it configurable
-    auto monitor = SL::Screen_Capture::GetMonitors().front();
     return std::vector<Monitor>{monitor};
   });
  
@@ -105,14 +109,14 @@ int main() {
   auto interval = std::chrono::milliseconds(std::chrono::seconds(1)) / fps;
   capture->setFrameChangeInterval(interval);
 
-  shar::Texture texture;
+  shar::Texture texture { width, height };
   texture.bind();
 
   shar::Timer timer{std::chrono::milliseconds(1)};
   while (!window.should_close()) {
     timer.wait();
     timer.restart();
-    
+
     if (auto* frame = pipeline.next_frame()) {
       do {
         texture.update(frame->x_offset, frame->y_offset,
