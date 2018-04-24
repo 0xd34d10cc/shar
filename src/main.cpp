@@ -70,9 +70,7 @@ private:
 
 
 int main() {
-
   // initializes opengl context
-  // TODO: decouple OpenGL context initialization from window initialization
   shar::Window window;
   FramePipeline<120> pipeline;
 
@@ -112,19 +110,21 @@ int main() {
   shar::Texture texture { width, height };
   texture.bind();
 
-  shar::Timer timer{std::chrono::milliseconds(1)};
+  shar::Timer timer { std::chrono::milliseconds(1) };
   while (!window.should_close()) {
     timer.wait();
     timer.restart();
 
-    if (auto* frame = pipeline.next_frame()) {
+    if (auto* frame_update = pipeline.next_frame()) {
+
+      // FIXME: this loop can apply updates from different frames
       do {
-        texture.update(frame->x_offset, frame->y_offset,
-                       frame->m_image.width(), frame->m_image.height(),
-                       frame->m_image.bytes());
+        texture.update(frame_update->x_offset, frame_update->y_offset,
+                       frame_update->m_image.width(), frame_update->m_image.height(),
+                       frame_update->m_image.bytes());
         pipeline.consume(1);
-        frame = pipeline.next_frame();
-      } while (frame);
+        frame_update = pipeline.next_frame();
+      } while (frame_update);
       
       window.draw_texture(texture);
       window.swap_buffers();
