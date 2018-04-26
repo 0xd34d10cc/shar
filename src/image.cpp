@@ -2,13 +2,13 @@
 
 namespace shar {
 
-Image::Image()
+Image::Image() noexcept
   : m_width(0)
   , m_height(0)
   , m_bytes(nullptr)
 {}
 
-Image::Image(Image&& from)
+Image::Image(Image&& from) noexcept
   : m_width(from.m_width)
   , m_height(from.m_height)
   , m_bytes(std::move(from.m_bytes))
@@ -17,7 +17,7 @@ Image::Image(Image&& from)
   from.m_height = 0;
 }
 
-void Image::assign(const SL::Screen_Capture::Image& image) {
+void Image::assign(const SL::Screen_Capture::Image& image) noexcept {
   std::size_t width = Width(image);
   std::size_t height = Height(image);
   std::size_t pixels = width * height;

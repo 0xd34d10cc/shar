@@ -1,7 +1,5 @@
 #include <stdexcept>
 
-#include <iostream> // DEBUG
-
 #include "window.hpp"
 
 
@@ -9,55 +7,54 @@ namespace shar {
 
 std::atomic<std::size_t> Window::instances{ 0 };
 
-Window::Window()
-  : m_window(create_window()) {
+Window::Window(std::size_t width, std::size_t height)
+  : m_window(create_window(width, height)) {
   ++instances;
 }
 
-Window::~Window() {
+Window::~Window() noexcept {
   --instances;
   
-  // not sure if glfw can work with multiple window instances
   if (instances == 0) {
     glfwTerminate();
   }
 }
 
-bool Window::should_close() {
+bool Window::should_close() noexcept {
   return glfwWindowShouldClose(m_window);
 }
 
-void Window::poll_events() {
+void Window::poll_events() noexcept {
   glfwPollEvents();
 }
 
-void Window::swap_buffers() {
+void Window::swap_buffers() noexcept {
   glfwSwapBuffers(m_window);
 }
 
-void Window::clear() {
+void Window::clear() noexcept {
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Window::SystemWindow* Window::create_window() {
+Window::SystemWindow* Window::create_window(std::size_t width, std::size_t height) {
   static int init_code = glfwInit();
-    if (!init_code) {
-      throw std::runtime_error("Failed to initialize GLFW");
-    }
+  if (!init_code) {
+    throw std::runtime_error("Failed to initialize GLFW");
+  }
 
-    SystemWindow* window = glfwCreateWindow(1920, 1080, "shar", NULL, NULL);
-    if (!window) {
-      throw std::runtime_error("Failed to create GLFW window");
-    }
+  SystemWindow* window = glfwCreateWindow(width, height, "shar", NULL, NULL);
+  if (!window) {
+    throw std::runtime_error("Failed to create GLFW window");
+  }
 
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
-    return window;
+  return window;
 }
 
 
-void Window::draw_texture(const Texture& texture) {
+void Window::draw_texture(const Texture& texture) noexcept {
   glBegin(GL_QUADS);
 
   glTexCoord2f(0, 0);

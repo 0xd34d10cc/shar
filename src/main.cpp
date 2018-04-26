@@ -68,49 +68,60 @@ private:
   std::array<FrameUpdate, LIMIT> m_frames;
 };
 
+struct FrameProvider {
+  FrameProvider(FramePipeline<120>& pipeline)
+    : m_pipeline(pipeline)
+    , m_timer(std::chrono::seconds(1))
+    , m_ups(0)
+  {}
+
+  void operator()(const Image& image, const Monitor&) {
+    if (m_timer.expired()) {
+      std::cout << "ups: " << m_ups << std::endl;
+      m_ups = 0;
+      m_timer.restart();
+    }
+    ++m_ups;
+
+    m_pipeline.push(image);
+  }
+
+  FramePipeline<120>& m_pipeline;
+  shar::Timer m_timer;
+  std::size_t m_ups;
+};
+
 
 int main() {
-  // initializes opengl context
-  shar::Window window;
-  FramePipeline<120> pipeline;
-
-  std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
-  glEnable(GL_TEXTURE_2D);
-
   // TODO: make it configurable
   auto monitor = SL::Screen_Capture::GetMonitors().front();
   std::size_t width = static_cast<std::size_t>(monitor.Width);
   std::size_t height = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
+
+  // initializes opengl context
+  shar::Window window{ width, height };
+  FramePipeline<120> pipeline;
+
+  std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+  glEnable(GL_TEXTURE_2D);
+
   auto config = SL::Screen_Capture::CreateCaptureConfiguration([=](){
     return std::vector<Monitor>{monitor};
   });
  
-  config->onFrameChanged(
-    [&pipeline, timer = shar::Timer{ std::chrono::seconds(1) }, fps = 0]
-    (const Image& image, const Monitor& monitor) mutable {
-    
-    if (timer.expired()) {
-      std::cout << "ups: " << fps << std::endl;
-      fps = 0;
-      timer.restart();
-    }
-    ++fps;
-
-    pipeline.push(image);
-  });
-
+  config->onFrameChanged(FrameProvider(pipeline));
   auto capture = config->start_capturing();
   
   const int fps = 60;
   auto interval = std::chrono::milliseconds(std::chrono::seconds(1)) / fps;
   capture->setFrameChangeInterval(interval);
 
-  shar::Texture texture { width, height };
+  shar::Texture texture{ width, height };
   texture.bind();
 
-  shar::Timer timer { std::chrono::milliseconds(1) };
+  shar::Timer timer{ std::chrono::milliseconds(1) };
   while (!window.should_close()) {
     timer.wait();
     timer.restart();
