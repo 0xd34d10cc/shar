@@ -2,6 +2,7 @@
 #include <chrono>
 #include <mutex>
 #include <array>
+#include <condition_variable>
 
 #include <ScreenCapture.h>
 
@@ -31,11 +32,10 @@ public:
   {}
 
   void push(const SL::Screen_Capture::Image& frame) {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
 
-    // FIXME
-    if ((m_to + 1) % LIMIT == m_from) {
-      throw std::runtime_error("Frame pipeline overflow");
+    while ((m_to + 1) % LIMIT == m_from) {
+      m_condvar.wait(lock);
     }
 
     m_frames[m_to].x_offset = frame.Bounds.left;
@@ -45,7 +45,9 @@ public:
   }
 
   FrameUpdate* next_frame() {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
+   
+    // TODO: provide function for consumer thread to wait till next frame arrives
     if (m_to == m_from) {
       return nullptr;
     }
@@ -54,69 +56,89 @@ public:
   }
 
   void consume(std::size_t amount) {
-    std::lock_guard<std::mutex> guard(m_mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_from = (m_from + amount) % LIMIT;
+    m_condvar.notify_all();
   }
 
 private:
   std::mutex m_mutex;
+  std::condition_variable m_condvar;
+
   std::size_t m_from;
   std::size_t m_to;
   std::array<FrameUpdate, LIMIT> m_frames;
 };
 
+struct FrameProvider {
+  FrameProvider(FramePipeline<120>& pipeline)
+    : m_pipeline(pipeline)
+    , m_timer(std::chrono::seconds(1))
+    , m_ups(0)
+  {}
+
+  void operator()(const Image& image, const Monitor&) {
+    if (m_timer.expired()) {
+      std::cout << "ups: " << m_ups << std::endl;
+      m_ups = 0;
+      m_timer.restart();
+    }
+    ++m_ups;
+
+    m_pipeline.push(image);
+  }
+
+  FramePipeline<120>& m_pipeline;
+  shar::Timer m_timer;
+  std::size_t m_ups;
+};
+
 
 int main() {
+  // TODO: make it configurable
+  auto monitor = SL::Screen_Capture::GetMonitors().front();
+  std::size_t width = static_cast<std::size_t>(monitor.Width);
+  std::size_t height = static_cast<std::size_t>(monitor.Height);
+  std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
+
 
   // initializes opengl context
-  // TODO: decouple OpenGL context initialization from window initialization
-  shar::Window window;
+  shar::Window window{ width, height };
   FramePipeline<120> pipeline;
 
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   glEnable(GL_TEXTURE_2D);
 
   auto config = SL::Screen_Capture::CreateCaptureConfiguration([=](){
-    // TODO: make it configurable
-    auto monitor = SL::Screen_Capture::GetMonitors().front();
     return std::vector<Monitor>{monitor};
   });
  
-  config->onFrameChanged(
-    [&pipeline, timer = shar::Timer{ std::chrono::seconds(1) }, fps = 0]
-    (const Image& image, const Monitor& monitor) mutable {
-    
-    if (timer.expired()) {
-      std::cout << "ups: " << fps << std::endl;
-      fps = 0;
-      timer.restart();
-    }
-    ++fps;
-
-    pipeline.push(image);
-  });
-
+  config->onFrameChanged(FrameProvider(pipeline));
   auto capture = config->start_capturing();
   
   const int fps = 60;
   auto interval = std::chrono::milliseconds(std::chrono::seconds(1)) / fps;
   capture->setFrameChangeInterval(interval);
 
-  shar::Texture texture;
+  shar::Texture texture{ width, height };
   texture.bind();
 
-  // consumer should be faster
-  shar::Timer timer{interval / 2};
+  shar::Timer timer{ std::chrono::milliseconds(1) };
   while (!window.should_close()) {
     timer.wait();
     timer.restart();
-    
-    if (auto frame = pipeline.next_frame()) {
-      texture.update(frame->x_offset,        frame->y_offset, 
-                     frame->m_image.width(), frame->m_image.height(), 
-                     frame->m_image.bytes());
-      pipeline.consume(1);      
 
+    if (auto* frame_update = pipeline.next_frame()) {
+
+      // FIXME: this loop can apply updates from different frames
+      do {
+        texture.update(frame_update->x_offset, frame_update->y_offset,
+                       frame_update->m_image.width(), frame_update->m_image.height(),
+                       frame_update->m_image.bytes());
+        pipeline.consume(1);
+        frame_update = pipeline.next_frame();
+      } while (frame_update);
+      
       window.draw_texture(texture);
       window.swap_buffers();
     }
