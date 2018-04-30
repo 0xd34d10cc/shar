@@ -15,7 +15,7 @@ public:
     std::unique_ptr<Image> pop_image();
 
 private:
-    de265_decoder_context* context;
+    de265_decoder_context* m_context;
 };
 
 

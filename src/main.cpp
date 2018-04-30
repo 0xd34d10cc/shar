@@ -109,11 +109,19 @@ int main() {
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   glEnable(GL_TEXTURE_2D);
 
-  auto config = SL::Screen_Capture::CreateCaptureConfiguration([=](){
+  shar::Encoder encoder{};
+  auto header = encoder.gen_header();
+
+  auto config = SL::Screen_Capture::CreateCaptureConfiguration([=]() {
     return std::vector<Monitor>{monitor};
   });
- 
+
   config->onFrameChanged(FrameProvider(pipeline));
+  config->onNewFrame([&encoder](const Image& image, const Monitor&) {
+    shar::Image shara{};
+    shara.assign(image);
+    auto data = encoder.encode(shara);
+  });
   auto capture = config->start_capturing();
   
   const int fps = 60;

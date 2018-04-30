@@ -1,22 +1,21 @@
 #pragma once
-
-#include "libde265/en265.h"
-
+#include "x265.h"
 #include "image.hpp"
+#include "encoder/encoder.h"
 
-namespace shar{
+namespace shar {
 
 class Encoder {
 public:
-    Encoder();
-    ~Encoder();
-    void push_image(const Image& image);
-    en265_packet* pop_packet(std::chrono::milliseconds timeout);
-    bool encode();
+  Encoder();
+  ~Encoder();
+  std::vector<x265_nal*> encode(Image& image);
+  std::vector<x265_nal*> gen_header();
+
 
 private:
-    en265_encoder_context* context;
-
+  x265_param* m_params;
+  x265_encoder* m_encoder;
 };
 
 } // shar
