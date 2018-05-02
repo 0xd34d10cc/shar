@@ -5,12 +5,14 @@
 
 namespace shar {
 
+using NalPacket = std::pair<std::unique_ptr<uint8_t[]>, size_t>;
+
 class Encoder {
 public:
   Encoder();
   ~Encoder();
-  std::vector<x265_nal*> encode(Image& image);
-  std::vector<x265_nal*> gen_header();
+  std::vector<NalPacket> encode(Image& image);
+  std::vector<NalPacket> gen_header();
 
 
 private:

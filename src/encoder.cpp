@@ -3,7 +3,17 @@
 #include <iostream>
 #include <array>
 
-namespace utils {
+namespace {
+
+  shar::NalPacket encode_nal(const x265_nal& nal, const uint8_t temporal_id) {
+    auto buf = std::make_unique<uint8_t[]>(nal.sizeBytes);
+
+
+    std::memcpy(buf.get(), nal.payload, nal.sizeBytes);
+    return {std::move(buf), nal.sizeBytes};
+  }
+
+
   std::array<std::vector<uint8_t>, 3> bgra_to_yuv420p(const shar::Image& image) {
     std::array<std::vector<uint8_t>, 3> result;
     std::vector<uint8_t>* y_chns = &result[0];
@@ -15,8 +25,6 @@ namespace utils {
     v_chns->reserve(image.size() / 4);
 
     const auto raw_image = image.bytes();
-    size_t upos = image.size();
-    size_t vpos = upos + upos / 4;
     size_t i = 0;
 
     for (auto line = 0; line < image.height(); ++line) {
@@ -67,15 +75,19 @@ namespace shar {
 
   Encoder::Encoder() {
     m_params = x265_param_alloc();
-    auto result = x265_param_default_preset(m_params, "ultrafast", "zerolatency");
-    assert(result == 0);
-    result = x265_param_apply_profile(m_params, "main-intra"); // voobshe ne ebu
-    assert(result == 0);
+    x265_param_default(m_params);
+    //auto result = x265_param_default_preset(m_params, "ultrafast", "zerolatency");
+    //assert(result == 0);
+    //result = x265_param_apply_profile(m_params, "main"); // voobshe ne ebu
+    //assert(result == 0);
+    m_params->internalCsp = X265_CSP_I420;
+   //m_params->bRepeatHeaders = 1;
     m_params->fpsNum = 60;
     m_params->fpsDenom = 1;
     m_params->sourceHeight = 1080;
     m_params->sourceWidth = 1920;
     m_encoder = x265_encoder_open(m_params);
+    assert(m_encoder);
     x265_encoder_parameters(m_encoder, m_params);
 
   }
@@ -89,45 +101,47 @@ namespace shar {
     //x265_cleanup();
   }
 
-  std::vector<x265_nal*> Encoder::encode(Image& input) {
+  std::vector<NalPacket> Encoder::encode(Image& input) {
     auto picture = x265_picture_alloc();
     x265_picture_init(m_params, picture);
     picture->colorSpace = X265_CSP_I420;
-    picture->height = input.height();
-    picture->framesize = input.size();
-    auto yuv420_image = utils::bgra_to_yuv420p(input);
+    //picture->height = input.height();
+    //picture->framesize = input.size();
+    auto yuv420_image = bgra_to_yuv420p(input);
 
     for (auto i = 0; i < yuv420_image.size(); i++) {
       picture->planes[i] = yuv420_image[i].data();
+      picture->stride[i] = i ? input.width() / 2 : input.width();
     }
 
-    x265_nal *out[512];
+    x265_nal *out;
     uint32_t pi_nal = 512;
-    x265_encoder_encode(m_encoder, out, &pi_nal, picture, nullptr);
+    x265_encoder_encode(m_encoder, &out, &pi_nal, picture, nullptr);
 
-    std::vector<x265_nal*> result;
+    std::vector<NalPacket> result;
     result.reserve(pi_nal);
     for (auto i = 0; i < pi_nal; i++) {
-      result.push_back(out[i]);
+      NalPacket curr_packet = encode_nal(out[i], 1);
+      result.push_back(std::move(curr_packet));
     }
-    x265_picture_free(picture);
-    return result;
 
+    return result;
   }
 
-  std::vector<x265_nal*> Encoder::gen_header() {
+  std::vector<NalPacket> Encoder::gen_header() {
     uint32_t pi_nal = 16;
-    x265_nal *out[16];
-    auto lol = x265_encoder_headers(m_encoder, out, &pi_nal);
-    assert(lol != 0);
+    x265_nal *out;
+    const auto ret = x265_encoder_headers(m_encoder, &out, &pi_nal);
+    assert(ret >= 0);
 
-    std::vector<x265_nal*> result;
+    std::vector<NalPacket> result;
     result.reserve(pi_nal);
     for (auto i = 0; i < pi_nal; i++) {
-      result.push_back(out[i]);
+      NalPacket curr_packet = encode_nal(out[i], 1);
+      result.push_back(std::move(curr_packet));
     }
+
     return result;
   }
-
 
 } // shar

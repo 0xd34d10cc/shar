@@ -12,6 +12,7 @@
 #include "window.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
+#include "nal_encoder.hpp"
 
 using SL::Screen_Capture::Image;
 using SL::Screen_Capture::Monitor;
@@ -101,6 +102,7 @@ int main() {
   std::size_t height = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
+  size_t count_packet = 0;
 
   // initializes opengl context
   shar::Window window{ width, height };
@@ -110,17 +112,58 @@ int main() {
   glEnable(GL_TEXTURE_2D);
 
   shar::Encoder encoder{};
+  bool is_head_sended = true;
   auto header = encoder.gen_header();
+  shar::Decoder decoder{};
+  shar::Image shara{};
+
 
   auto config = SL::Screen_Capture::CreateCaptureConfiguration([=]() {
     return std::vector<Monitor>{monitor};
   });
 
   config->onFrameChanged(FrameProvider(pipeline));
-  config->onNewFrame([&encoder](const Image& image, const Monitor&) {
-    shar::Image shara{};
+  config->onNewFrame([&](const Image& image, const Monitor&) {
     shara.assign(image);
     auto data = encoder.encode(shara);
+    if (!data.empty()){
+      size_t sum_size = 0;
+      count_packet += data.size();
+      for (auto& xui: data) {
+        sum_size += xui.second;
+      }
+      std::cout << data.size() <<  " size: " << sum_size << std::endl;
+    if (!is_head_sended) {
+      for (auto& head: header) {
+        decoder.push_packets(std::move(head));
+      }
+      is_head_sended = true;
+    }
+
+    for (auto& packet: data) {
+      decoder.push_packets(std::move(packet));
+    }
+    size_t more = 1;
+    bool suck_sex = true;
+    while (more && suck_sex) {
+      suck_sex = decoder.decode(more);
+      auto image = decoder.pop_image();
+      if (image != nullptr) {
+        std::cout << "sucksex" << std::endl;
+      }
+      for (;;) {
+        de265_error warning = de265_get_warning(decoder.m_context);
+        if (warning == DE265_OK) {
+          break;
+        }
+
+        std::cerr << "WARNING: " << de265_get_error_text(warning) << std::endl;
+      }
+
+    }
+    
+
+    }
   });
   auto capture = config->start_capturing();
   
