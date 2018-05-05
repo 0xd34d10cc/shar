@@ -10,6 +10,7 @@ namespace shar {
 class Image { // in BGRA format
 public:
   Image() noexcept;
+  Image(std::unique_ptr<uint8_t[]> raw_image, size_t height, size_t width);
   Image(Image&&) noexcept;
   ~Image() = default;
 

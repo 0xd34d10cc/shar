@@ -10,9 +10,10 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # build 3rdparty
 add_subdirectory(3rdparty/screen_capture_lite)
 add_subdirectory(3rdparty/libde265)
+add_subdirectory(3rdparty/x265/source)
 
 add_executable(shar ${SOURCES} ${HEADERS})
-target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include")
+target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include" "3rdparty/libde265" "3rdparty/x265/source" "3rdparty/x265/source/common")
 
 # platfor specific libraries for screen_capture_lite
 if(WIN32)
@@ -50,4 +51,4 @@ IF(!WIN32)
 endif()
 
 target_include_directories(shar PRIVATE glfw)
-target_link_libraries(shar screen_capture_lite ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})
+target_link_libraries(shar screen_capture_lite libde265 x265-static ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})
