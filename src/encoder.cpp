@@ -76,12 +76,8 @@ namespace shar {
   Encoder::Encoder() {
     m_params = x265_param_alloc();
     x265_param_default(m_params);
-    //auto result = x265_param_default_preset(m_params, "ultrafast", "zerolatency");
-    //assert(result == 0);
-    //result = x265_param_apply_profile(m_params, "main"); // voobshe ne ebu
-    //assert(result == 0);
     m_params->internalCsp = X265_CSP_I420;
-   //m_params->bRepeatHeaders = 1;
+    m_params->bRepeatHeaders = 1;
     m_params->fpsNum = 60;
     m_params->fpsDenom = 1;
     m_params->sourceHeight = 1080;
@@ -105,8 +101,6 @@ namespace shar {
     auto picture = x265_picture_alloc();
     x265_picture_init(m_params, picture);
     picture->colorSpace = X265_CSP_I420;
-    //picture->height = input.height();
-    //picture->framesize = input.size();
     auto yuv420_image = bgra_to_yuv420p(input);
 
     for (auto i = 0; i < yuv420_image.size(); i++) {

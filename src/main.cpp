@@ -12,7 +12,6 @@
 #include "window.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
-#include "nal_encoder.hpp"
 
 using SL::Screen_Capture::Image;
 using SL::Screen_Capture::Monitor;
@@ -47,7 +46,7 @@ public:
 
   FrameUpdate* next_frame() {
     std::unique_lock<std::mutex> lock(m_mutex);
-   
+
     // TODO: provide function for consumer thread to wait till next frame arrives
     if (m_to == m_from) {
       return nullptr;
@@ -102,8 +101,6 @@ int main() {
   std::size_t height = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
-  size_t count_packet = 0;
-
   // initializes opengl context
   shar::Window window{ width, height };
   FramePipeline<120> pipeline;
@@ -126,47 +123,34 @@ int main() {
   config->onNewFrame([&](const Image& image, const Monitor&) {
     shara.assign(image);
     auto data = encoder.encode(shara);
-    if (!data.empty()){
-      size_t sum_size = 0;
-      count_packet += data.size();
-      for (auto& xui: data) {
-        sum_size += xui.second;
-      }
-      std::cout << data.size() <<  " size: " << sum_size << std::endl;
-    if (!is_head_sended) {
-      for (auto& head: header) {
-        decoder.push_packets(std::move(head));
-      }
-      is_head_sended = true;
-    }
-
-    for (auto& packet: data) {
-      decoder.push_packets(std::move(packet));
-    }
-    size_t more = 1;
-    bool suck_sex = true;
-    while (more && suck_sex) {
-      suck_sex = decoder.decode(more);
-      auto image = decoder.pop_image();
-      if (image != nullptr) {
-        std::cout << "sucksex" << std::endl;
-      }
-      for (;;) {
-        de265_error warning = de265_get_warning(decoder.m_context);
-        if (warning == DE265_OK) {
-          break;
+    if (!data.empty()) {
+      if (!is_head_sended) {
+        for (auto& head : header) {
+          decoder.push_packets(std::move(head));
         }
-
-        std::cerr << "WARNING: " << de265_get_error_text(warning) << std::endl;
+        is_head_sended = true;
       }
 
-    }
-    
-
+      for (auto& packet : data) {
+        decoder.push_packets(std::move(packet));
+      }
+      size_t more = 1;
+      bool success = true;
+      while (more && success) {
+        success = decoder.decode(more);
+        auto image = decoder.pop_image();
+        for (;;) {
+          de265_error warning = de265_get_warning(decoder.m_context);
+          if (warning == DE265_OK) {
+            break;
+          }
+          std::cerr << "WARNING: " << de265_get_error_text(warning) << std::endl;
+        }
+      }
     }
   });
   auto capture = config->start_capturing();
-  
+
   const int fps = 60;
   auto interval = std::chrono::milliseconds(std::chrono::seconds(1)) / fps;
   capture->setFrameChangeInterval(interval);
@@ -184,12 +168,12 @@ int main() {
       // FIXME: this loop can apply updates from different frames
       do {
         texture.update(frame_update->x_offset, frame_update->y_offset,
-                       frame_update->m_image.width(), frame_update->m_image.height(),
-                       frame_update->m_image.bytes());
+          frame_update->m_image.width(), frame_update->m_image.height(),
+          frame_update->m_image.bytes());
         pipeline.consume(1);
         frame_update = pipeline.next_frame();
       } while (frame_update);
-      
+
       window.draw_texture(texture);
       window.swap_buffers();
     }
