@@ -3,8 +3,8 @@
 #include "libde265/de265.h"
 
 #include "image.hpp"
-#include "encoder.hpp"
-#include "x265.h"
+#include "packet.hpp"
+
 
 namespace shar {
 
@@ -12,12 +12,15 @@ class Decoder {
 public:
     Decoder();
     ~Decoder();
-    void push_packets(const NalPacket packet);
-    bool decode(size_t& more);
+
+    void push_packet(const Packet packet);
+    bool decode(bool& more);
     std::unique_ptr<Image> pop_image();
-    de265_decoder_context* m_context;
+
+    void print_warnings() const;
+
 private:
-    
+    de265_decoder_context* m_context;
 };
 
 }

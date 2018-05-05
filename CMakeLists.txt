@@ -13,7 +13,15 @@ add_subdirectory(3rdparty/libde265)
 add_subdirectory(3rdparty/x265/source)
 
 add_executable(shar ${SOURCES} ${HEADERS})
-target_include_directories(shar PRIVATE "3rdparty/screen_capture_lite/include" "3rdparty/libde265" "3rdparty/x265/source" "3rdparty/x265/source/common")
+target_include_directories(shar PRIVATE 
+  "3rdparty/screen_capture_lite/include" 
+  "3rdparty/libde265" 
+  "3rdparty/x265/source" 
+  "3rdparty/x265/source/common"
+)
+
+# set(X265_BUILD 158)
+add_definitions(-DHIGH_BIT_DEPTH=0 -DX265_DEPTH=8)
 
 # platfor specific libraries for screen_capture_lite
 if(WIN32)
@@ -51,4 +59,14 @@ IF(!WIN32)
 endif()
 
 target_include_directories(shar PRIVATE glfw)
-target_link_libraries(shar screen_capture_lite libde265 x265-static ${SHAR_PLATFORM_LIBS} glfw ${OPENGL_gl_LIBRARY})
+target_link_libraries(shar 
+  screen_capture_lite 
+  de265 
+  x265-static
+  ${SHAR_PLATFORM_LIBS} 
+  glfw 
+  ${OPENGL_gl_LIBRARY}
+  dl
+  numa
+  # pthread
+)

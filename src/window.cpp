@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 
+#include <iostream>
 
 namespace shar {
 
@@ -36,8 +37,14 @@ void Window::clear() noexcept {
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+static void on_error(int code, const char* description) {
+  std::cerr << "GLFW Error [" << code << "]: " << description << std::endl;
+}
+
 Window::SystemWindow* Window::create_window(std::size_t width, std::size_t height) {
   static int init_code = glfwInit();
+  glfwSetErrorCallback(on_error);
+
   if (!init_code) {
     throw std::runtime_error("Failed to initialize GLFW");
   }

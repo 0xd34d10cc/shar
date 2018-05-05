@@ -1,19 +1,19 @@
 #pragma once
-#include "x265.h"
+
+#include <x265.h>
+
 #include "image.hpp"
-#include "encoder/encoder.h"
+#include "packet.hpp"
 
 namespace shar {
-
-using NalPacket = std::pair<std::unique_ptr<uint8_t[]>, size_t>;
 
 class Encoder {
 public:
   Encoder();
   ~Encoder();
-  std::vector<NalPacket> encode(Image& image);
-  std::vector<NalPacket> gen_header();
 
+  std::vector<Packet> encode(const Image& image);
+  std::vector<Packet> gen_header();
 
 private:
   x265_param* m_params;

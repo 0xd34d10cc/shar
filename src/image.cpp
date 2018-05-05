@@ -23,11 +23,23 @@ Image::Image(Image&& from) noexcept
   from.m_height = 0;
 }
 
+Image& Image::operator=(Image&& from) noexcept {
+  if (this != &from) {
+    m_bytes = std::move(from.m_bytes);
+    m_height = from.m_height;
+    m_width = from.m_width;
+
+    from.m_width = 0;
+    from.m_height = 0;
+  }
+  return *this;
+}
+
 void Image::assign(const SL::Screen_Capture::Image& image) noexcept {
   std::size_t width = Width(image);
   std::size_t height = Height(image);
   std::size_t pixels = width * height;
-  auto image_size = RowStride(image) * height;
+  int image_size = RowStride(image) * height;
 
   if (size() < pixels) {
     m_bytes = std::make_unique<uint8_t[]>(image_size);

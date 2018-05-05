@@ -1,14 +1,12 @@
 #include "encoder.hpp"
-#include "libde265/en265.h"
-#include <iostream>
+
 #include <array>
+
 
 namespace {
 
-  shar::NalPacket encode_nal(const x265_nal& nal, const uint8_t temporal_id) {
+  shar::Packet encode_nal(const x265_nal& nal, const uint8_t temporal_id) {
     auto buf = std::make_unique<uint8_t[]>(nal.sizeBytes);
-
-
     std::memcpy(buf.get(), nal.payload, nal.sizeBytes);
     return {std::move(buf), nal.sizeBytes};
   }
@@ -24,7 +22,11 @@ namespace {
     u_chns->reserve(image.size() / 4);
     v_chns->reserve(image.size() / 4);
 
-    const auto raw_image = image.bytes();
+    const auto luma = [](uint8_t r, uint8_t g, uint8_t b) {
+      return ((66 * r + 129 * g + 25 * b) >> 8) + 16;
+    };
+
+    const uint8_t* raw_image = image.bytes();
     size_t i = 0;
 
     for (auto line = 0; line < image.height(); ++line) {
@@ -34,7 +36,7 @@ namespace {
           uint8_t g = raw_image[4 * i + 1];
           uint8_t b = raw_image[4 * i];
 
-          uint8_t y_chn = ((66 * r + 129 * g + 25 * b) >> 8) + 16;
+          uint8_t y_chn = luma(r, g, b);
           uint8_t u_chn = ((-38 * r + -74 * g + 112 * b) >> 8) + 128;
           uint8_t v_chn = ((112 * r + -94 * g + -18 * b) >> 8) + 128;
 
@@ -48,9 +50,9 @@ namespace {
           g = raw_image[4 * i + 1];
           b = raw_image[4 * i];
 
-          y_chn = ((66 * r + 129 * g + 25 * b) >> 8) + 16;
-
+          y_chn = luma(r, g, b);
           y_chns->push_back(y_chn);
+          i++;
         }
       }
       else {
@@ -60,22 +62,26 @@ namespace {
           uint8_t g = raw_image[4 * i + 1];
           uint8_t b = raw_image[4 * i];
 
-          uint8_t y_chn = ((66 * r + 129 * g + 25 * b) >> 8) + 16;
+          uint8_t y_chn = luma(r, g, b);
 
           y_chns->push_back(y_chn);
+          i++;
         }
       }  
     }
     return result;
   }
-
-} // utils
+}
 
 namespace shar {
 
   Encoder::Encoder() {
     m_params = x265_param_alloc();
     x265_param_default(m_params);
+    //auto result = x265_param_default_preset(m_params, "ultrafast", "zerolatency");
+    //assert(result == 0);
+    //result = x265_param_apply_profile(m_params, "main"); // voobshe ne ebu
+    //assert(result == 0);
     m_params->internalCsp = X265_CSP_I420;
     m_params->bRepeatHeaders = 1;
     m_params->fpsNum = 60;
@@ -85,22 +91,23 @@ namespace shar {
     m_encoder = x265_encoder_open(m_params);
     assert(m_encoder);
     x265_encoder_parameters(m_encoder, m_params);
-
   }
 
   Encoder::~Encoder() {
-    x265_nal *out[512];
+    x265_nal *out;
     uint32_t pi_nal = 512;
-    x265_encoder_encode(m_encoder, out, &pi_nal, nullptr, nullptr);
+    x265_encoder_encode(m_encoder, &out, &pi_nal, nullptr, nullptr);
     x265_encoder_close(m_encoder);
     x265_param_free(m_params);
-    //x265_cleanup();
+    x265_cleanup();
   }
 
-  std::vector<NalPacket> Encoder::encode(Image& input) {
+  std::vector<Packet> Encoder::encode(const Image& input) {
     auto picture = x265_picture_alloc();
     x265_picture_init(m_params, picture);
     picture->colorSpace = X265_CSP_I420;
+    picture->height = input.height();
+    picture->framesize = input.size();
     auto yuv420_image = bgra_to_yuv420p(input);
 
     for (auto i = 0; i < yuv420_image.size(); i++) {
@@ -112,26 +119,26 @@ namespace shar {
     uint32_t pi_nal = 512;
     x265_encoder_encode(m_encoder, &out, &pi_nal, picture, nullptr);
 
-    std::vector<NalPacket> result;
+    std::vector<Packet> result;
     result.reserve(pi_nal);
     for (auto i = 0; i < pi_nal; i++) {
-      NalPacket curr_packet = encode_nal(out[i], 1);
+      Packet curr_packet { encode_nal(out[i], 1) };
       result.push_back(std::move(curr_packet));
     }
 
     return result;
   }
 
-  std::vector<NalPacket> Encoder::gen_header() {
+  std::vector<Packet> Encoder::gen_header() {
     uint32_t pi_nal = 16;
     x265_nal *out;
     const auto ret = x265_encoder_headers(m_encoder, &out, &pi_nal);
     assert(ret >= 0);
 
-    std::vector<NalPacket> result;
+    std::vector<Packet> result;
     result.reserve(pi_nal);
     for (auto i = 0; i < pi_nal; i++) {
-      NalPacket curr_packet = encode_nal(out[i], 1);
+      Packet curr_packet = encode_nal(out[i], 1);
       result.push_back(std::move(curr_packet));
     }
 
