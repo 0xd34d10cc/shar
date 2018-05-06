@@ -35,7 +35,7 @@ Image& Image::operator=(Image&& from) noexcept {
   return *this;
 }
 
-void Image::assign(const SL::Screen_Capture::Image& image) noexcept {
+Image& Image::operator=(const SL::Screen_Capture::Image& image) noexcept {
   std::size_t width = Width(image);
   std::size_t height = Height(image);
   std::size_t pixels = width * height;
@@ -48,7 +48,10 @@ void Image::assign(const SL::Screen_Capture::Image& image) noexcept {
   m_width = width;
   m_height = height;
 
+  assert(m_bytes.get() != nullptr);
   SL::Screen_Capture::Extract(image, m_bytes.get(), image_size);
+
+  return *this;
 }
 
 }

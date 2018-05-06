@@ -14,9 +14,9 @@ public:
   Image(std::unique_ptr<std::uint8_t[]> raw_image, std::size_t height, std::size_t width);
   Image(Image&&) noexcept;
   Image& operator=(Image&&) noexcept;
+  Image& operator=(const SL::Screen_Capture::Image& image) noexcept;
   ~Image() = default;
 
-  void assign(const SL::Screen_Capture::Image& image) noexcept;
 
   inline bool empty() const noexcept { return m_bytes.get() == nullptr || size() == 0; }
   inline std::uint8_t* bytes() noexcept { return m_bytes.get(); }
