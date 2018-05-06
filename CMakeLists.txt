@@ -68,5 +68,5 @@ target_link_libraries(shar
   ${OPENGL_gl_LIBRARY}
   dl
   numa
-  # pthread
+  boost_system
 )

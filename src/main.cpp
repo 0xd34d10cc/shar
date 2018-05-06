@@ -10,6 +10,7 @@
 #include "texture.hpp"
 #include "timer.hpp"
 #include "queue.hpp"
+#include "packet_sender.hpp"
 
 using SL::Screen_Capture::Image;
 using SL::Screen_Capture::Monitor;
@@ -65,6 +66,11 @@ int main() {
   // initializes opengl context
   shar::Window window{ width, height };
   shar::FixedSizeQueue<FrameUpdate, 120> pipeline;
+  
+  shar::PacketSender sender;
+  auto network_thread = std::thread([&]{
+    sender.run();
+  });
 
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   glEnable(GL_TEXTURE_2D);
@@ -83,20 +89,20 @@ int main() {
     auto data = encoder.encode(current_frame);
     if (!data.empty()){
       for (auto& packet: data) {
-        decoder.push_packet(std::move(packet));
+        sender.send(std::move(packet));
+        // decoder.push_packet(std::move(packet));
       }
 
-      bool more = true;
-      bool success = true;
-      while (more && success) {
-        success = decoder.decode(more);
+      // bool more = true;
+      // bool success = true;
+      // while (more && success) {
+      //   success = decoder.decode(more);
+      //   if (auto image = decoder.pop_image()) {
+      //     // pipeline.push(*image);
+      //   }
 
-        if (auto image = decoder.pop_image()) {
-          // pipeline.push(*image);
-        }
-
-        decoder.print_warnings();
-      }    
+      //   decoder.print_warnings();
+      // }    
     }
   });
   
@@ -130,6 +136,9 @@ int main() {
 
     window.poll_events();
   }
+
+  sender.stop();
+  network_thread.join();
 
   return 0;
 }
