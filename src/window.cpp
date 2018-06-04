@@ -1,15 +1,16 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "window.hpp"
-
-#include <iostream>
 
 namespace shar {
 
 std::atomic<std::size_t> Window::instances{ 0 };
 
 Window::Window(std::size_t width, std::size_t height)
-  : m_window(create_window(width, height)) {
+  : m_window(create_window(width, height))
+  , m_width(width)
+  , m_height(height) {
   ++instances;
 }
 
@@ -54,10 +55,21 @@ Window::SystemWindow* Window::create_window(std::size_t width, std::size_t heigh
     throw std::runtime_error("Failed to create GLFW window");
   }
 
+
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
+  std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+  glEnable(GL_TEXTURE_2D);
 
   return window;
+}
+
+std::size_t Window::width() const noexcept {
+  return m_width;
+}
+
+std::size_t Window::height() const noexcept {
+  return m_height;
 }
 
 

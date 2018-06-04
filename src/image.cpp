@@ -39,17 +39,17 @@ Image& Image::operator=(const SL::Screen_Capture::Image& image) noexcept {
   std::size_t width = Width(image);
   std::size_t height = Height(image);
   std::size_t pixels = width * height;
-  int image_size = RowStride(image) * height;
+  // int image_size = RowStride(image) * height;
 
   if (size() < pixels) {
-    m_bytes = std::make_unique<uint8_t[]>(image_size);
+    m_bytes = std::make_unique<uint8_t[]>(pixels * 4);
   }
 
   m_width = width;
   m_height = height;
 
   assert(m_bytes.get() != nullptr);
-  SL::Screen_Capture::Extract(image, m_bytes.get(), image_size);
+  SL::Screen_Capture::Extract(image, m_bytes.get(), pixels * 4);
 
   return *this;
 }

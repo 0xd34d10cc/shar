@@ -11,6 +11,8 @@ namespace shar {
 class PacketSender {
 public:
   PacketSender();
+  PacketSender(const PacketSender&) = delete;
+  PacketSender(PacketSender&&) = default;;
   ~PacketSender() = default;
 
   void send(Packet packet);

@@ -21,6 +21,9 @@ public:
   void poll_events() noexcept;
   void clear() noexcept;
 
+  std::size_t width() const noexcept;
+  std::size_t height() const noexcept;
+
   void draw_texture(const Texture& texture) noexcept;
 
 private:
@@ -28,6 +31,8 @@ private:
   static SystemWindow* create_window(std::size_t width, std::size_t height);
 
   SystemWindow* m_window;
+  std::size_t m_width;
+  std::size_t m_height;
 };
 
 }

@@ -53,7 +53,7 @@ find_package(glfw3 REQUIRED)
 
 IF(!WIN32)
   # to get nice debug info
-  set(CMAKE_CXX_FLAGS "-g -fno-omit-frame-pointer")
+  set(CMAKE_CXX_FLAGS "-g3 -fno-omit-frame-pointer")
   # enable LTO
   set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 endif()

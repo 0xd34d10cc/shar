@@ -10,6 +10,8 @@ namespace shar {
 class Encoder {
 public:
   Encoder();
+  Encoder(const Encoder&) = delete;
+  Encoder(Encoder&&) noexcept;
   ~Encoder();
 
   std::vector<Packet> encode(const Image& image);
