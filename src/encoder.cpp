@@ -5,24 +5,23 @@
 
 namespace {
 
-shar::Packet encode_nal(const x265_nal& nal) {
+shar::Packet packet_from_nal(const x265_nal& nal) {
   auto buf = std::make_unique<uint8_t[]>(nal.sizeBytes);
   std::memcpy(buf.get(), nal.payload, nal.sizeBytes);
   return {std::move(buf), nal.sizeBytes};
 }
 
-std::vector<shar::Packet> convert_packets(const x265_nal* nals, std::size_t npackets) {
+std::vector<shar::Packet> convert_packets(const x265_nal* nals, std::size_t n) {
   std::vector<shar::Packet> packets;
-  packets.reserve(npackets);
+  packets.reserve(n);
 
-  for (std::size_t i = 0; i < npackets; i++) {
-    auto packet = encode_nal(nals[i]);
+  for (std::size_t i = 0; i < n; i++) {
+    auto packet = packet_from_nal(nals[i]);
     packets.emplace_back(std::move(packet));
   }
 
   return packets;
 }
-
 
 using ChannelData = std::vector<uint8_t>;
 
@@ -141,12 +140,14 @@ std::vector<Packet> Encoder::encode(const Image& input) {
   picture->height     = static_cast<int>(input.height());
   picture->framesize  = input.size();
 
-  auto yuv420_image = bgra_to_yuv420p(input);
+  auto yuv = bgra_to_yuv420p(input);
 
   // set picture data
-  for (auto i = 0; i < yuv420_image.size(); i++) {
-    picture->planes[i] = yuv420_image[i].data();
-    picture->stride[i] = static_cast<int>(i ? input.width() / 2 : input.width());
+  std::size_t i = 0;
+  for (auto& channel: yuv) {
+    picture->planes[i] = channel.data();
+    picture->stride[i] = static_cast<int>(channel.size() / (input.height() * 4));
+    i++;
   }
 
   // encode frame

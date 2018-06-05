@@ -5,45 +5,43 @@
 
 namespace {
 
-template <typename T>
+template<typename T>
 const T& clamp(const T& v, const T& lo, const T& hi) {
   return v > hi ? hi :
          v < lo ? lo :
          v;
 }
 
-std::unique_ptr<uint8_t[]> yuv420p_to_bgra(const uint8_t* y_chn, 
-                                           const uint8_t* u_chn, 
-                                           const uint8_t* v_chn, 
+std::unique_ptr<uint8_t[]> yuv420p_to_bgra(const uint8_t* ys,
+                                           const uint8_t* us,
+                                           const uint8_t* vs,
                                            size_t height, size_t width) {
   size_t u_width = width / 2;
-  size_t i = 0;
+  size_t i       = 0;
 
   auto bgra = std::make_unique<uint8_t[]>(height * width * 4);
 
   for (int line = 0; line < height; ++line) {
     for (int coll = 0; coll < width; ++coll) {
-      
-      uint8_t y = y_chn[line * width + coll];
-      uint8_t u = u_chn[(line / 2) * u_width + (coll / 2)];
-      uint8_t v = v_chn[(line / 2) * u_width + (coll / 2)];
+
+      uint8_t y = ys[line * width + coll];
+      uint8_t u = us[(line / 2) * u_width + (coll / 2)];
+      uint8_t v = vs[(line / 2) * u_width + (coll / 2)];
 
       int c = y - 16;
       int d = u - 128;
       int e = v - 128;
 
-      uint8_t r = clamp((298 * c +           409 * e + 128) >> 8, 0, 255);
-      uint8_t g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255);
-      uint8_t b = clamp((298 * c + 516 * d           + 128) >> 8, 0, 255);
+      uint8_t r = static_cast<uint8_t>(clamp((298 * c + 409 * e + 128)           >> 8, 0, 255));
+      uint8_t g = static_cast<uint8_t>(clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255));
+      uint8_t b = static_cast<uint8_t>(clamp((298 * c + 516 * d + 128)           >> 8, 0, 255));
 
-      bgra[i] = b;
-      i++;
-      bgra[i] = g;
-      i++;
-      bgra[i] = r;
-      i++;
-      bgra[i] = 0;
-      i++;
+      bgra[i + 0] = b;
+      bgra[i + 1] = g;
+      bgra[i + 2] = r;
+      bgra[i + 3] = 0;
+
+      i += 4;
     }
   }
 
@@ -70,19 +68,19 @@ Decoder::~Decoder() {
 }
 
 void Decoder::push_packet(const Packet packet) {
-  de265_error err = de265_push_data(m_context, packet.data(), packet.size(), 0, nullptr);
-  bool ok = de265_isOK(err);
+  de265_error err = de265_push_data(m_context, packet.data(), static_cast<int>(packet.size()), 0, nullptr);
+  bool        ok  = static_cast<bool>(de265_isOK(err));
   if (!ok) {
     std::cerr << "de265[" << err << "]: " << de265_get_error_text(err) << std::endl;
   }
 }
 
 bool Decoder::decode(bool& more) {
-  int need_next = 0;
-  de265_error err = de265_decode(m_context, &need_next);
-  more = (need_next != 0);
+  int         need_more = 0;
+  de265_error err       = de265_decode(m_context, &need_more);
+  more = (need_more != 0);
 
-  bool ok = de265_isOK(err);
+  bool ok = static_cast<bool>(de265_isOK(err));
   if (!ok && err != DE265_ERROR_WAITING_FOR_INPUT_DATA) {
     std::cerr << "de265[" << err << "]: " << de265_get_error_text(err) << std::endl;
   }
@@ -96,22 +94,21 @@ std::unique_ptr<Image> Decoder::pop_image() {
     return nullptr;
   }
 
-  auto width = de265_get_image_width(decoded_image, 0);
-  auto height = de265_get_image_height(decoded_image, 0);
+  std::size_t width  = static_cast<std::size_t>(de265_get_image_width(decoded_image, 0));
+  std::size_t height = static_cast<std::size_t>(de265_get_image_height(decoded_image, 0));
 
-  auto chn_y_raw = de265_get_image_plane(decoded_image, 0, nullptr);
-  auto chn_u_raw = de265_get_image_plane(decoded_image, 1, nullptr);
-  auto chn_v_raw = de265_get_image_plane(decoded_image, 2, nullptr);
+  auto y = de265_get_image_plane(decoded_image, 0, nullptr);
+  auto u = de265_get_image_plane(decoded_image, 1, nullptr);
+  auto v = de265_get_image_plane(decoded_image, 2, nullptr);
 
-  auto rgb_image = yuv420p_to_bgra(chn_y_raw, chn_u_raw, chn_v_raw, height, width);
-  
-  return std::make_unique<Image>(std::move(rgb_image), height, width);
+  auto bgra = yuv420p_to_bgra(y, u, v, height, width);
+  return std::make_unique<Image>(std::move(bgra), height, width);
 }
 
 void Decoder::print_warnings() const {
   de265_error warning = de265_get_warning(m_context);
   while (warning != DE265_OK) {
-    std::cerr << "WARNING: " << de265_get_error_text(warning) << std::endl;
+    std::cerr << "de265[" << warning << "]: " << de265_get_error_text(warning) << std::endl;
     warning = de265_get_warning(m_context);
   }
 }
