@@ -9,17 +9,18 @@
 
 namespace shar {
 
-template <typename T, std::size_t SIZE>
+template<typename T, std::size_t SIZE>
 class FixedSizeQueue {
 public:
   FixedSizeQueue()
-          : m_from(0)
-          , m_to(0)
-  {}
+      : m_from(0)
+        , m_to(0) {}
+
   ~FixedSizeQueue() = default;
 
+  // TODO: replace with push(T* values, std::size_t size)
   void push(T&& value) {
-    std::unique_lock<std::mutex> lock(m_mutex);    
+    std::unique_lock<std::mutex> lock(m_mutex);
 
     while ((m_to + 1) % SIZE == m_from) {
       m_not_full.wait(lock);
@@ -31,18 +32,15 @@ public:
   }
 
   std::size_t size() {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return size_unlocked();
+    return m_to > m_from ? m_to - m_from : m_from - m_to;
   }
 
   bool empty() {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return empty_unlocked();
+    return m_from == m_to;
   }
 
   T* get(std::size_t offset) {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    assert(offset <= size_unlocked());
+    assert(offset <= size());
     return &m_buffer[m_from + offset];
   }
 
@@ -52,13 +50,14 @@ public:
   }
 
   void wait() {
-    std::unique_lock<std::mutex> lock(m_mutex);    
-    m_not_empty.wait(lock, [this]{ return !empty_unlocked(); });
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_not_empty.wait(lock, [this] { return !empty(); });
   }
 
+  // TODO: replace with consume(T* values, std::size_t* size)
   void consume(std::size_t count) {
     std::unique_lock<std::mutex> lock(m_mutex);
-    assert(size_unlocked() >= count);
+    assert(size() >= count);
     m_from = (m_from + count) % SIZE;
     m_not_full.notify_one();
   }
@@ -72,13 +71,13 @@ private:
     return m_from == m_to;
   }
 
-  std::mutex m_mutex;
+  std::mutex              m_mutex;
   std::condition_variable m_not_full;
   std::condition_variable m_not_empty;
 
   std::atomic<std::size_t> m_from;
   std::atomic<std::size_t> m_to;
-  std::array<T, SIZE> m_buffer;
+  std::array<T, SIZE>      m_buffer;
 };
 
 }

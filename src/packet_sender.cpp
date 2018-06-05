@@ -5,10 +5,10 @@
 namespace shar {
 
 PacketSender::PacketSender()
-  : m_running(false) 
-  , m_packets()
-  , m_context()
-  , m_socket(m_context) // ???
+    : m_running(false)
+    , m_packets()
+    , m_context()
+    , m_socket(m_context) // ???
 {}
 
 void PacketSender::send(Packet packet) {
@@ -16,9 +16,11 @@ void PacketSender::send(Packet packet) {
 }
 
 void PacketSender::run() {
-  auto localhost = boost::asio::ip::address_v4{{127, 0, 0, 1}};
-  boost::asio::ip::address address{localhost};
-  boost::asio::ip::tcp::endpoint endpoint{address, 1337};
+  namespace ip = boost::asio::ip;
+
+  ip::address_v4    localhost {{127, 0, 0, 1}};
+  ip::address       address {localhost};
+  ip::tcp::endpoint endpoint {address, 1337};
   m_socket.connect(endpoint);
 
   m_running = true;
@@ -28,8 +30,8 @@ void PacketSender::run() {
     }
 
     assert(!m_packets.empty());
-    std::size_t size = m_packets.size();
-    for (std::size_t i = 0; i < size; ++i) {
+    std::size_t      size = m_packets.size();
+    for (std::size_t i    = 0; i < size; ++i) {
       Packet* packet = m_packets.get(i);
       send_packet(*packet);
     }

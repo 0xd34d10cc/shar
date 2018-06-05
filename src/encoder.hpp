@@ -18,7 +18,7 @@ public:
   std::vector<Packet> gen_header();
 
 private:
-  x265_param* m_params;
+  x265_param  * m_params;
   x265_encoder* m_encoder;
 };
 
