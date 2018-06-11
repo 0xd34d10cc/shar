@@ -5,8 +5,6 @@
 #include <internal/SCCommon.h>
 
 #include "image.hpp"
-#include "encoder.hpp"
-#include "decoder.hpp"
 #include "window.hpp"
 #include "texture.hpp"
 #include "timer.hpp"
@@ -54,8 +52,8 @@ struct FrameProvider {
     shar::Image img {};
     img = image;
     m_pipeline.push(FrameUpdate {
-        static_cast<std::size_t>(OffsetX(image)),
-        static_cast<std::size_t>(OffsetY(image)),
+        static_cast<std::size_t>(Rect(image).left),
+        static_cast<std::size_t>(Rect(image).top),
         std::move(img)
     });
   }
@@ -63,44 +61,6 @@ struct FrameProvider {
   FramePipeline& m_pipeline;
   shar::Timer m_timer;
   std::size_t m_ups;
-};
-
-
-struct FrameEncoder {
-  FrameEncoder(shar::PacketSender& sender)
-      : m_sender(sender)
-        , m_current_frame()
-        , m_encoder() {}
-
-  FrameEncoder(const FrameEncoder&) = delete;
-
-  FrameEncoder(FrameEncoder&& from) = default;
-
-  void operator()(const Image& image, const Monitor&) {
-    m_current_frame = image;
-    auto data = m_encoder.encode(m_current_frame);
-    if (!data.empty()) {
-      for (auto& packet: data) {
-        m_sender.send(std::move(packet));
-        // decoder.push_packet(std::move(packet));
-      }
-
-      // bool more = true;
-      // bool success = true;
-      // while (more && success) {
-      //   success = decoder.decode(more);
-      //   if (auto image = decoder.pop_image()) {
-      //     // pipeline.push(*image);
-      //   }
-
-      //   decoder.print_warnings();
-      // }
-    }
-  }
-
-  shar::PacketSender& m_sender;
-  shar::Image   m_current_frame;
-  shar::Encoder m_encoder;
 };
 
 template<typename H>
@@ -125,7 +85,7 @@ static void event_loop(shar::Window& window, FramePipeline& pipeline) {
       // FIXME: this loop can apply updates from different frames
       do {
         FrameUpdate* frame_update = pipeline.get_next();
-        texture.update(frame_update->x_offset, frame_update->y_offset,
+        texture.update(frame_update->x_offset,        frame_update->y_offset,
                        frame_update->m_image.width(), frame_update->m_image.height(),
                        frame_update->m_image.bytes());
         pipeline.consume(1);
@@ -169,10 +129,10 @@ int main() {
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
-  auto               window = create_window(width, height);
+  auto window = create_window(width, height);
   shar::PacketSender sender;
   // auto network_thread = std::thread([&]{
-  // sender.run();
+  //  sender.run();
   // });
 
   auto config  = create_capture_configuration(monitor, pipeline, sender);

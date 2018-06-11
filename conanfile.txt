@@ -1,0 +1,5 @@
+[requires]
+ScreenCaptureLite/16.1.0@0xd34d10cc/testing
+
+[generators]
+cmake
