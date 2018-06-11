@@ -39,12 +39,18 @@ endif()
   
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(Boost 1.67 REQUIRED COMPONENTS system)
+if(!Boost_FOUND)
+  message(FATAL_ERROR "Boost not found!")
+endif()
 
 IF(!WIN32)
   # to get nice debug info
   set(CMAKE_CXX_FLAGS "-g3 -fno-omit-frame-pointer")
   # enable LTO
   set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+
+  target_link_libraries(shar dl)
 endif()
 
 target_include_directories(shar PRIVATE glfw)
@@ -53,6 +59,5 @@ target_link_libraries(shar
   ${SC_PLATFORM_LIBS} 
   glfw 
   ${OPENGL_gl_LIBRARY}
-  dl
-  boost_system
+  ${Boost_LIBRARIES}
 )
