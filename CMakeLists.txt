@@ -38,11 +38,6 @@ else()
 endif()
   
 find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(Boost 1.67 REQUIRED COMPONENTS system)
-if(!Boost_FOUND)
-  message(FATAL_ERROR "Boost not found!")
-endif()
 
 IF(!WIN32)
   # to get nice debug info
@@ -53,11 +48,11 @@ IF(!WIN32)
   target_link_libraries(shar dl)
 endif()
 
-target_include_directories(shar PRIVATE glfw)
+target_include_directories(shar PRIVATE ${CONAN_INCLUDE_DIRS_GLFW} ${CONAN_INCLUDE_DIRS_BOOST})
 target_link_libraries(shar
   screen_capture_lite 
-  ${SC_PLATFORM_LIBS} 
-  glfw 
+  ${SC_PLATFORM_LIBS}
+  ${CONAN_LIBS_GLFW}  
   ${OPENGL_gl_LIBRARY}
-  ${Boost_LIBRARIES}
+  ${CONAN_LIBS_BOOST}
 )
