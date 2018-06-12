@@ -9,7 +9,7 @@ namespace shar {
   
 class Encoder {
 public:
-  Encoder(uint16_t fps, uint16_t width, uint16_t height, uint16_t bitrate);
+  Encoder(uint16_t fps, uint16_t width, uint16_t height, int bitrate);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder &&) noexcept;
   ~Encoder();

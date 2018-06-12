@@ -70,7 +70,7 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
 
 namespace shar {
 
-Encoder::Encoder(uint16_t fps, uint16_t width, uint16_t height, uint16_t bitrate) {
+Encoder::Encoder(uint16_t fps, uint16_t width, uint16_t height, int bitrate) {
   m_frame_ind = 0;
   int rv = WelsCreateSVCEncoder(&m_encoder);
   assert(rv == 0);
@@ -86,7 +86,7 @@ Encoder::Encoder(uint16_t fps, uint16_t width, uint16_t height, uint16_t bitrate
   int YUV_dataformat = videoFormatI420;
   int log_lvl = WELS_LOG_DEBUG;
   m_encoder->SetOption(ENCODER_OPTION_DATAFORMAT, &YUV_dataformat);
-  m_encoder->SetOption(ENCODER_OPTION_TRACE_LEVEL, &log_lvl);
+  //m_encoder->SetOption(ENCODER_OPTION_TRACE_LEVEL, &log_lvl);
 }
 
 Encoder::~Encoder() {
@@ -118,8 +118,6 @@ std::vector<Packet> Encoder::encode(const Image& image) {
   assert(rv == cmResultSuccess);
   std::vector<Packet> result;
   if (info.eFrameType != videoFrameTypeSkip) {
-    std::cout << info.eFrameType << std::endl;
-    std::cout << "INSIDE UR MOMA" << std::endl;
     for (auto lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl ++) {
       size_t current_offset = 0;
       for (auto i = 0; i < info.sLayerInfo[lvl].iNalCount; i ++) {
