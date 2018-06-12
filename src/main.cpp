@@ -37,7 +37,7 @@ struct FrameProvider {
       : m_pipeline(pipeline)
         , m_timer(std::chrono::seconds(1))
         , m_ups(0)
-        , m_encoder(20, 1920, 1080, 9000000){}
+        , m_encoder(20, 1920, 1080, 5000000){}
 
   FrameProvider(const FrameProvider&) = delete;
 
