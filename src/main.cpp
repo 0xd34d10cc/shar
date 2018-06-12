@@ -10,6 +10,7 @@
 #include "timer.hpp"
 #include "queue.hpp"
 #include "packet_sender.hpp"
+#include "encoder.hpp"
 
 
 using SL::Screen_Capture::Image;
@@ -35,7 +36,8 @@ struct FrameProvider {
   FrameProvider(FramePipeline& pipeline)
       : m_pipeline(pipeline)
         , m_timer(std::chrono::seconds(1))
-        , m_ups(0) {}
+        , m_ups(0)
+        , m_encoder(20, 1920, 1080, 9000000){}
 
   FrameProvider(const FrameProvider&) = delete;
 
@@ -51,6 +53,7 @@ struct FrameProvider {
 
     shar::Image img {};
     img = image;
+    auto packets = m_encoder.encode(img);
     m_pipeline.push(FrameUpdate {
         static_cast<std::size_t>(Rect(image).left),
         static_cast<std::size_t>(Rect(image).top),
@@ -61,6 +64,7 @@ struct FrameProvider {
   FramePipeline& m_pipeline;
   shar::Timer m_timer;
   std::size_t m_ups;
+  shar::Encoder m_encoder;
 };
 
 template<typename H>
@@ -115,7 +119,7 @@ static CaptureConfigPtr create_capture_configuration(const Monitor& monitor,
     return std::vector<Monitor> {monitor};
   });
   auto handler = SharedFrameHandler<FrameProvider> {std::make_shared<FrameProvider>(pipeline)};
-  config->onFrameChanged(handler);
+  config->onNewFrame(handler);
   return config;
 }
 
