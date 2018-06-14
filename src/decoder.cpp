@@ -98,7 +98,6 @@ Image Decoder::decode(const Packet& packet) {
 
   const auto rv = m_decoder->DecodeFrameNoDelay(packet.data(), packet.size(), buf_holder.data(), &m_buf_info);
   if (rv != 0) {
-    std::cout << "VCE PO PIZDE" << std::endl;
     assert(!"something went wrong");
   }
   if (m_buf_info.iBufferStatus == 1) {

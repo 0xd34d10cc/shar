@@ -60,7 +60,6 @@ struct FrameProvider {
     for (const auto& packet: packets) {
       auto decoded_frame = m_decoder.decode(packet);
       if (!decoded_frame.empty()) {
-        std::cout << "Zashel" << std::endl;
         m_pipeline.push(FrameUpdate{0, 0, std::move(decoded_frame)});
       }
     }
