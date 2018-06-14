@@ -11,6 +11,7 @@
 #include "queue.hpp"
 #include "packet_sender.hpp"
 #include "encoder.hpp"
+#include "decoder.hpp"
 
 
 using SL::Screen_Capture::Image;
@@ -37,7 +38,9 @@ struct FrameProvider {
       : m_pipeline(pipeline)
         , m_timer(std::chrono::seconds(1))
         , m_ups(0)
-        , m_encoder(20, 1920, 1080, 5000000){}
+        , m_encoder(20, 1920, 1080, 5000000)
+        , m_decoder()
+        {}
 
   FrameProvider(const FrameProvider&) = delete;
 
@@ -54,17 +57,21 @@ struct FrameProvider {
     shar::Image img {};
     img = image;
     auto packets = m_encoder.encode(img);
-    m_pipeline.push(FrameUpdate {
-        static_cast<std::size_t>(Rect(image).left),
-        static_cast<std::size_t>(Rect(image).top),
-        std::move(img)
-    });
+    for (const auto& packet: packets) {
+      auto decoded_frame = m_decoder.decode(packet);
+      if (!decoded_frame.empty()) {
+        std::cout << "Zashel" << std::endl;
+        m_pipeline.push(FrameUpdate{0, 0, std::move(decoded_frame)});
+      }
+    }
+   
   }
 
   FramePipeline& m_pipeline;
   shar::Timer m_timer;
   std::size_t m_ups;
   shar::Encoder m_encoder;
+  shar::Decoder m_decoder;
 };
 
 template<typename H>
