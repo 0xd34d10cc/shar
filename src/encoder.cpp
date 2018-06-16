@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstring>
 #include <array>
+#include <cmath>
 
 namespace {
 
