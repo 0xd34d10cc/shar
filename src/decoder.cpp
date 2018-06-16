@@ -1,5 +1,4 @@
 #include "decoder.hpp"
-#include <iostream>
 
 namespace {
 
