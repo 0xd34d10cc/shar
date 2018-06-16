@@ -1,4 +1,5 @@
 #include "encoder.hpp"
+
 #include <cassert>
 #include <cstring>
 #include <array>
@@ -65,7 +66,7 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
   }
 
   return channels;
-  }
+}
 }
 
 namespace shar {
