@@ -21,7 +21,7 @@ public:
 
   bool empty() const;
   const std::uint8_t* data() const;
-  const std::size_t size() const;
+  std::size_t size() const;
 
 private:
   std::unique_ptr<std::uint8_t[]> m_bytes;

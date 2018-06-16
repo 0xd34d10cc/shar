@@ -41,7 +41,7 @@ const std::uint8_t* Packet::data() const {
   return m_bytes.get();
 }
 
-const std::size_t Packet::size() const {
+std::size_t Packet::size() const {
   return m_size;
 }
 
