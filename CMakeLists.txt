@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 project(shar CXX)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -36,7 +36,7 @@ else()
     ${CMAKE_THREAD_LIBS_INIT}
   )
 endif()
-  
+
 find_package(OpenGL REQUIRED)
 
 IF(!WIN32)
@@ -48,11 +48,17 @@ IF(!WIN32)
   target_link_libraries(shar dl)
 endif()
 
-target_include_directories(shar PRIVATE ${CONAN_INCLUDE_DIRS_GLFW} ${CONAN_INCLUDE_DIRS_BOOST})
+target_include_directories(shar PRIVATE
+  ${CONAN_INCLUDE_DIRS_GLFW}
+  ${CONAN_INCLUDE_DIRS_BOOST}
+  ${CONAN_INCLUDE_DIRS_OPENH264}
+)
+
 target_link_libraries(shar
-  screen_capture_lite 
+  screen_capture_lite
   ${SC_PLATFORM_LIBS}
-  ${CONAN_LIBS_GLFW}  
+  ${CONAN_LIBS_GLFW}
+  ${CONAN_LIBS_OPENH264}
   ${OPENGL_gl_LIBRARY}
   ${CONAN_LIBS_BOOST}
 )

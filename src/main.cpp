@@ -10,6 +10,8 @@
 #include "timer.hpp"
 #include "queue.hpp"
 #include "packet_sender.hpp"
+#include "encoder.hpp"
+#include "decoder.hpp"
 
 
 using SL::Screen_Capture::Image;
@@ -34,8 +36,12 @@ using FramePipeline = shar::FixedSizeQueue<FrameUpdate, 120>;
 struct FrameProvider {
   FrameProvider(FramePipeline& pipeline)
       : m_pipeline(pipeline)
-        , m_timer(std::chrono::seconds(1))
-        , m_ups(0) {}
+      , m_timer(std::chrono::seconds(1))
+      , m_ups(0)
+      , m_bps(0)
+      , m_fps(0)
+      , m_encoder(20, 1920, 1080, 5000000)
+      , m_decoder() {}
 
   FrameProvider(const FrameProvider&) = delete;
 
@@ -44,23 +50,39 @@ struct FrameProvider {
   void operator()(const Image& image, const Monitor&) {
     if (m_timer.expired()) {
       std::cout << "ups: " << m_ups << std::endl;
+      std::cout << "bps: " << m_bps << std::endl;
+      std::cout << "fps: " << m_fps << std::endl;
+
       m_ups = 0;
+      m_bps = 0;
+      m_fps = 0;
       m_timer.restart();
     }
     ++m_ups;
 
     shar::Image img {};
     img = image;
-    m_pipeline.push(FrameUpdate {
-        static_cast<std::size_t>(Rect(image).left),
-        static_cast<std::size_t>(Rect(image).top),
-        std::move(img)
-    });
+
+    auto packets = m_encoder.encode(img);
+    for (const auto& packet: packets) {
+      m_bps += packet.size();
+
+      auto decoded_frame = m_decoder.decode(packet);
+      if (!decoded_frame.empty()) {
+        m_fps += 1;
+        m_pipeline.push(FrameUpdate {0, 0, std::move(decoded_frame)});
+      }
+    }
+
   }
 
   FramePipeline& m_pipeline;
-  shar::Timer m_timer;
-  std::size_t m_ups;
+  shar::Timer   m_timer;
+  std::size_t   m_ups;
+  std::size_t   m_bps;
+  std::size_t   m_fps;
+  shar::Encoder m_encoder;
+  shar::Decoder m_decoder;
 };
 
 template<typename H>
@@ -85,7 +107,7 @@ static void event_loop(shar::Window& window, FramePipeline& pipeline) {
       // FIXME: this loop can apply updates from different frames
       do {
         FrameUpdate* frame_update = pipeline.get_next();
-        texture.update(frame_update->x_offset,        frame_update->y_offset,
+        texture.update(frame_update->x_offset, frame_update->y_offset,
                        frame_update->m_image.width(), frame_update->m_image.height(),
                        frame_update->m_image.bytes());
         pipeline.consume(1);
@@ -115,7 +137,7 @@ static CaptureConfigPtr create_capture_configuration(const Monitor& monitor,
     return std::vector<Monitor> {monitor};
   });
   auto handler = SharedFrameHandler<FrameProvider> {std::make_shared<FrameProvider>(pipeline)};
-  config->onFrameChanged(handler);
+  config->onNewFrame(handler);
   return config;
 }
 
@@ -129,7 +151,7 @@ int main() {
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
-  auto window = create_window(width, height);
+  auto               window = create_window(width, height);
   shar::PacketSender sender;
   // auto network_thread = std::thread([&]{
   //  sender.run();
