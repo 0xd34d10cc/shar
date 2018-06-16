@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <memory>
 
+#include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>
+#include "disable_warnings_pop.hpp"
 
 
 namespace shar {

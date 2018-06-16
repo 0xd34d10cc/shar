@@ -1,8 +1,11 @@
 #include <iostream>
 #include <chrono>
 
+
+#include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>
 #include <internal/SCCommon.h>
+#include "disable_warnings_pop.hpp"
 
 #include "image.hpp"
 #include "window.hpp"
@@ -56,6 +59,7 @@ struct FrameProvider {
       m_ups = 0;
       m_bps = 0;
       m_fps = 0;
+
       m_timer.restart();
     }
     ++m_ups;

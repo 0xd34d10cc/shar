@@ -1,6 +1,8 @@
 #pragma once
 
+#include "disable_warnings_push.hpp"
 #include <boost/asio.hpp>
+#include "disable_warnings_pop.hpp"
 
 #include "queue.hpp"
 #include "packet.hpp"

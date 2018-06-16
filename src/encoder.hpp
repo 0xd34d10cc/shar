@@ -1,7 +1,12 @@
 #pragma once
-#include "wels/codec_api.h"
+
 #include <cstdint>
 #include <vector>
+
+#include "disable_warnings_push.hpp"
+#include "wels/codec_api.h"
+#include "disable_warnings_pop.hpp"
+
 #include "packet.hpp"
 #include "image.hpp"
 

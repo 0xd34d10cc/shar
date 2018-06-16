@@ -3,7 +3,9 @@
 #include <atomic>
 #include <cstddef>
 
+#include "disable_warnings_push.hpp"
 #include <GLFW/glfw3.h>
+#include "disable_warnings_pop.hpp"
 
 #include "texture.hpp"
 
