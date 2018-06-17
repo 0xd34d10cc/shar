@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "point.hpp"
-#include "size.hpp"
+#include "primitives/point.hpp"
+#include "primitives/size.hpp"
 
 namespace shar {
 

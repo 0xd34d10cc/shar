@@ -4,7 +4,7 @@
 #include <cstddef>
 
 #include "texture.hpp"
-#include "size.hpp"
+#include "primitives/size.hpp"
 
 struct GLFWwindow;
 
@@ -15,6 +15,7 @@ public:
   using SystemWindow = GLFWwindow;
 
   Window(Size size);
+  Window(const Window&) = delete;
   ~Window() noexcept;
 
   bool should_close() noexcept;

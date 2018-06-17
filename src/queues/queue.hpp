@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <atomic>
+#include <cassert>
 
 
 namespace shar {
@@ -32,10 +33,12 @@ public:
   }
 
   std::size_t size() {
+    // FIXME: this function is not atomic and thus not thread-safe
     return m_to > m_from ? m_to - m_from : m_from - m_to;
   }
 
   bool empty() {
+    // FIXME: same (?) as in size()
     return m_from == m_to;
   }
 
@@ -54,7 +57,7 @@ public:
     m_not_empty.wait(lock, [this] { return !empty(); });
   }
 
-  // TODO: replace with consume(T* values, std::size_t* size)
+  // TODO: replace with std::size_t /* consumed */ consume(T* values, std::size_t size)
   void consume(std::size_t count) {
     std::unique_lock<std::mutex> lock(m_mutex);
     assert(size() >= count);

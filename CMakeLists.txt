@@ -4,7 +4,7 @@ project(shar CXX)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE HEADERS "src/*.hpp")
@@ -49,6 +49,7 @@ IF (!WIN32)
 endif ()
 
 target_include_directories(shar
+        PRIVATE src
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}

@@ -7,11 +7,11 @@
 #include "wels/codec_api.h"
 #include "disable_warnings_pop.hpp"
 
-#include "image.hpp"
+#include "primitives/image.hpp"
 #include "packet.hpp"
 
 
-namespace shar {
+namespace shar::codecs::h264 {
 
 class Decoder {
 public:

@@ -1,5 +1,6 @@
 #include "image.hpp"
 
+
 namespace shar {
 
 Image::Image() noexcept
@@ -26,7 +27,7 @@ Image& Image::operator=(Image&& from) noexcept {
   return *this;
 }
 
-Image& Image::operator=(const SL::Screen_Capture::Image& image) noexcept {
+Image& Image::operator=(const sc::Image& image) noexcept {
   std::size_t width  = static_cast<std::size_t>(Width(image));
   std::size_t height = static_cast<std::size_t>(Height(image));
   std::size_t pixels = width * height;
@@ -42,7 +43,7 @@ Image& Image::operator=(const SL::Screen_Capture::Image& image) noexcept {
   m_size = Size(height, width);
 
   assert(m_bytes.get() != nullptr);
-  SL::Screen_Capture::Extract(image, m_bytes.get(), pixels * PIXEL_SIZE);
+  sc::Extract(image, m_bytes.get(), pixels * PIXEL_SIZE);
 
   return *this;
 }

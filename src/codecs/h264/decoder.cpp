@@ -1,5 +1,6 @@
 #include "decoder.hpp"
 
+
 namespace {
 
 template<typename T>
@@ -49,7 +50,7 @@ std::unique_ptr<uint8_t[]> yuv420p_to_bgra(const std::uint8_t* ys,
 
 }
 
-namespace shar {
+namespace shar::codecs::h264 {
 
 Decoder::Decoder() {
   WelsCreateDecoder(&m_decoder);

@@ -8,15 +8,15 @@
 #include "disable_warnings_pop.hpp"
 
 #include "packet.hpp"
-#include "image.hpp"
+#include "primitives/image.hpp"
 
-namespace shar {
+namespace shar::codecs::h264 {
   
 class Encoder {
 public:
   Encoder(Size frame_size, std::size_t bitrate);
   Encoder(const Encoder&) = delete;
-  Encoder(Encoder &&) noexcept;
+  Encoder(Encoder &&) = delete; // TODO: implement
   ~Encoder();
 
   std::vector<Packet> encode(const Image& image);
