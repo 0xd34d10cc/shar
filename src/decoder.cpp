@@ -88,7 +88,7 @@ Image Decoder::decode(const Packet& packet) {
     std::size_t y_pad    = m_buf_info.UsrData.sSystemBuffer.iStride[0] - std::size_t {1920};
     std::size_t u_pad    = m_buf_info.UsrData.sSystemBuffer.iStride[1] - std::size_t {1920} / 2;
     auto        bgra_raw = yuv420p_to_bgra(buf_holder[0], buf_holder[1], buf_holder[2], 1080, 1920, y_pad, u_pad);
-    return Image(std::move(bgra_raw), 1080, 1920);
+    return Image(std::move(bgra_raw), Size(1080, 1920));
   }
 
   return Image();

@@ -15,9 +15,9 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
   ChannelData& us = channels[1];
   ChannelData& vs = channels[2];
 
-  ys.reserve(image.size());
-  us.reserve(image.size() / 4);
-  vs.reserve(image.size() / 4);
+  ys.reserve(image.total_pixels());
+  us.reserve(image.total_pixels() / 4);
+  vs.reserve(image.total_pixels() / 4);
 
   const auto luma = [](uint8_t r, uint8_t g, uint8_t b) {
     return static_cast<uint8_t >(((66 * r + 129 * g + 25 * b) >> 8) + 16);
@@ -71,22 +71,22 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
 
 namespace shar {
 
-Encoder::Encoder(uint16_t fps, uint16_t width, uint16_t height, int bitrate) {
+Encoder::Encoder(Size frame_size, std::size_t bit_rate) {
   m_frame_ind = 0;
   int rv = WelsCreateSVCEncoder(&m_encoder);
   assert(rv == 0);
   assert(m_encoder != nullptr);
   memset(&m_params, 0, sizeof(SEncParamBase));
   m_params.iUsageType = SCREEN_CONTENT_REAL_TIME;
-  m_params.fMaxFrameRate = fps;
-  m_params.iPicWidth = width;
-  m_params.iPicHeight = height;
-  m_params.iTargetBitrate = bitrate;
+  m_params.fMaxFrameRate = 30; // FIXME
+  m_params.iPicWidth = static_cast<int>(frame_size.width());
+  m_params.iPicHeight = static_cast<int>(frame_size.height());
+  m_params.iTargetBitrate = static_cast<int>(bit_rate);
   m_encoder->Initialize(&m_params);
 
   int YUV_dataformat = videoFormatI420;
-  int log_lvl = WELS_LOG_DEBUG;
   m_encoder->SetOption(ENCODER_OPTION_DATAFORMAT, &YUV_dataformat);
+  //int log_lvl = WELS_LOG_DEBUG;
   //m_encoder->SetOption(ENCODER_OPTION_TRACE_LEVEL, &log_lvl);
 }
 

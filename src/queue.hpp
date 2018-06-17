@@ -14,7 +14,7 @@ class FixedSizeQueue {
 public:
   FixedSizeQueue()
       : m_from(0)
-        , m_to(0) {}
+      , m_to(0) {}
 
   ~FixedSizeQueue() = default;
 

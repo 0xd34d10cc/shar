@@ -14,7 +14,7 @@ namespace shar {
   
 class Encoder {
 public:
-  Encoder(uint16_t fps, uint16_t width, uint16_t height, int bitrate);
+  Encoder(Size frame_size, std::size_t bitrate);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder &&) noexcept;
   ~Encoder();

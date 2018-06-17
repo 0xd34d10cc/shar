@@ -3,31 +3,25 @@
 namespace shar {
 
 Image::Image() noexcept
-    : m_width(0)
-    , m_height(0)
+    : m_size(Size::empty())
     , m_bytes(nullptr) {}
 
-Image::Image(std::unique_ptr<uint8_t[]> raw_image, size_t height, size_t width)
-    : m_width(width)
-    , m_height(height)
+Image::Image(std::unique_ptr<uint8_t[]> raw_image, Size size)
+    : m_size(size)
     , m_bytes(std::move(raw_image)) {}
 
 Image::Image(Image&& from) noexcept
-    : m_width(from.m_width)
-    , m_height(from.m_height)
+    : m_size(from.m_size)
     , m_bytes(std::move(from.m_bytes)) {
-  from.m_width  = 0;
-  from.m_height = 0;
+  from.m_size = Size::empty();
 }
 
 Image& Image::operator=(Image&& from) noexcept {
   if (this != &from) {
-    m_bytes  = std::move(from.m_bytes);
-    m_height = from.m_height;
-    m_width  = from.m_width;
+    m_bytes = std::move(from.m_bytes);
+    m_size  = from.m_size;
 
-    from.m_width  = 0;
-    from.m_height = 0;
+    from.m_size = Size::empty();
   }
   return *this;
 }
@@ -41,12 +35,11 @@ Image& Image::operator=(const SL::Screen_Capture::Image& image) noexcept {
 
   // FIXME: this reallocates when we assign big picture -> small picture -> big picture
   // TODO: introduce |capacity| member to fix it
-  if (size() < pixels) {
+  if (total_pixels() < pixels) {
     m_bytes = std::make_unique<uint8_t[]>(pixels * PIXEL_SIZE);
   }
 
-  m_width  = width;
-  m_height = height;
+  m_size = Size(height, width);
 
   assert(m_bytes.get() != nullptr);
   SL::Screen_Capture::Extract(image, m_bytes.get(), pixels * PIXEL_SIZE);

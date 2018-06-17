@@ -3,22 +3,24 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "point.hpp"
+#include "size.hpp"
+
 namespace shar {
 
 class Texture {
 public:
-  Texture(std::size_t width, std::size_t height) noexcept;
+  Texture(Size size) noexcept;
   ~Texture() noexcept;
 
   // this method reallocates and resizes texture
-  void set(std::size_t width, std::size_t height, const std::uint8_t* data) noexcept;
+  void set(Size size, const std::uint8_t* data) noexcept;
   
   void bind() noexcept;
   void unbind() noexcept;
 
   // update part of texture
-  void update(std::size_t x_offset, std::size_t y_offset,
-              std::size_t width,    std::size_t height,
+  void update(Point offset, Size size,
               const std::uint8_t* data) noexcept;
 
 private:

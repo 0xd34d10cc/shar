@@ -1,7 +1,6 @@
 #include <iostream>
 #include <chrono>
 
-
 #include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>
 #include <internal/SCCommon.h>
@@ -15,13 +14,20 @@
 #include "packet_sender.hpp"
 #include "encoder.hpp"
 #include "decoder.hpp"
-
+#include "point.hpp"
 
 using SL::Screen_Capture::Image;
 using SL::Screen_Capture::Monitor;
 
-struct FrameUpdate {
-  FrameUpdate() = default;
+class FrameUpdate {
+public:
+  FrameUpdate()
+      : m_offset(shar::Point::origin())
+      , m_image() {}
+
+  FrameUpdate(shar::Point offset, shar::Image image)
+      : m_offset(offset)
+      , m_image(std::move(image)) {}
 
   FrameUpdate(const FrameUpdate&) = delete;
 
@@ -29,8 +35,16 @@ struct FrameUpdate {
 
   FrameUpdate& operator=(FrameUpdate&&) = default;
 
-  std::size_t x_offset;
-  std::size_t y_offset;
+  const shar::Point& offset() const {
+    return m_offset;
+  }
+
+  const shar::Image& image() const {
+    return m_image;
+  }
+
+private:
+  shar::Point m_offset;
   shar::Image m_image;
 };
 
@@ -43,7 +57,7 @@ struct FrameProvider {
       , m_ups(0)
       , m_bps(0)
       , m_fps(0)
-      , m_encoder(20, 1920, 1080, 5000000)
+      , m_encoder(shar::Size{1080, 1920}, 5000000)
       , m_decoder() {}
 
   FrameProvider(const FrameProvider&) = delete;
@@ -67,24 +81,37 @@ struct FrameProvider {
     shar::Image img {};
     img = image;
 
-    auto packets = m_encoder.encode(img);
-    for (const auto& packet: packets) {
-      m_bps += packet.size();
-
-      auto decoded_frame = m_decoder.decode(packet);
-      if (!decoded_frame.empty()) {
-        m_fps += 1;
-        m_pipeline.push(FrameUpdate {0, 0, std::move(decoded_frame)});
-      }
-    }
+    m_pipeline.push(FrameUpdate{
+      shar::Point::origin(),
+      std::move(img)
+    });
+//
+//    auto packets = m_encoder.encode(img);
+//    for (const auto& packet: packets) {
+//      m_bps += packet.size();
+//
+//      auto frame = m_decoder.decode(packet);
+//      if (!frame.empty()) {
+//        m_fps += 1;
+//        m_pipeline.push(FrameUpdate {
+//            shar::Point::origin(), // offset
+//            std::move(frame)
+//        });
+//      }
+//    }
 
   }
 
+  // output channel
   FramePipeline& m_pipeline;
-  shar::Timer   m_timer;
-  std::size_t   m_ups;
-  std::size_t   m_bps;
-  std::size_t   m_fps;
+
+  // metrics
+  shar::Timer m_timer;
+  std::size_t m_ups;
+  std::size_t m_bps;
+  std::size_t m_fps;
+
+  // codec stuff
   shar::Encoder m_encoder;
   shar::Decoder m_decoder;
 };
@@ -99,7 +126,7 @@ struct SharedFrameHandler {
 };
 
 static void event_loop(shar::Window& window, FramePipeline& pipeline) {
-  shar::Texture texture {window.width(), window.height()};
+  shar::Texture texture {window.size()};
   texture.bind();
 
   shar::Timer timer {std::chrono::milliseconds(1)};
@@ -110,10 +137,10 @@ static void event_loop(shar::Window& window, FramePipeline& pipeline) {
     if (!pipeline.empty()) {
       // FIXME: this loop can apply updates from different frames
       do {
-        FrameUpdate* frame_update = pipeline.get_next();
-        texture.update(frame_update->x_offset, frame_update->y_offset,
-                       frame_update->m_image.width(), frame_update->m_image.height(),
-                       frame_update->m_image.bytes());
+        FrameUpdate* update = pipeline.get_next();
+        texture.update(update->offset(),
+                       update->image().size(),
+                       update->image().bytes());
         pipeline.consume(1);
       } while (!pipeline.empty());
 
@@ -123,11 +150,6 @@ static void event_loop(shar::Window& window, FramePipeline& pipeline) {
 
     window.poll_events();
   }
-}
-
-static shar::Window create_window(std::size_t width, std::size_t height) {
-  // initializes opengl context
-  return shar::Window {width, height};
 }
 
 using CaptureConfigPtr = std::shared_ptr<
@@ -155,7 +177,7 @@ int main() {
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
 
-  auto               window = create_window(width, height);
+  auto window = shar::Window {shar::Size {height, width}};;
   shar::PacketSender sender;
   // auto network_thread = std::thread([&]{
   //  sender.run();
