@@ -1,0 +1,35 @@
+sudo: required
+
+language: cpp
+
+compiler: 
+  - clang
+
+os: linux
+addons: &clang5
+  apt:
+    packages:
+      - g++-6
+      - clang-5.0
+    sources: 
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+
+env:
+  global:
+    - PATH="$TRAVIS_BUILD_DIR/cmake-download/bin:$PATH"
+
+before_script:
+  - mkdir cmake-download && cd cmake-download && curl -O https://cmake.org/files/v3.12/cmake-3.12.0-rc1-Linux-x86_64.sh
+    && bash cmake-3.12.0-rc1-Linux-x86_64.sh --skip-license && cd ..
+  - sudo pip install conan
+  - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev
+  - conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
+  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan 
+
+script:
+  - mkdir build
+  - cd build
+  - conan install --build=missing  .. 
+  - cmake ..
+  - make
