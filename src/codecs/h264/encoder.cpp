@@ -5,6 +5,7 @@
 #include <array>
 #include <cmath>
 
+
 namespace {
 
 using ChannelData = std::vector<uint8_t>;
@@ -69,7 +70,7 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
 }
 }
 
-namespace shar {
+namespace shar::codecs::h264 {
 
 Encoder::Encoder(Size frame_size, std::size_t bit_rate) {
   m_frame_ind = 0;
@@ -77,10 +78,10 @@ Encoder::Encoder(Size frame_size, std::size_t bit_rate) {
   assert(rv == 0);
   assert(m_encoder != nullptr);
   memset(&m_params, 0, sizeof(SEncParamBase));
-  m_params.iUsageType = SCREEN_CONTENT_REAL_TIME;
-  m_params.fMaxFrameRate = 30; // FIXME
-  m_params.iPicWidth = static_cast<int>(frame_size.width());
-  m_params.iPicHeight = static_cast<int>(frame_size.height());
+  m_params.iUsageType     = SCREEN_CONTENT_REAL_TIME;
+  m_params.fMaxFrameRate  = 30; // FIXME
+  m_params.iPicWidth      = static_cast<int>(frame_size.width());
+  m_params.iPicHeight     = static_cast<int>(frame_size.height());
   m_params.iTargetBitrate = static_cast<int>(bit_rate);
   m_encoder->Initialize(&m_params);
 
@@ -97,13 +98,13 @@ Encoder::~Encoder() {
 
 std::vector<Packet> Encoder::encode(const Image& image) {
   m_frame_ind++;
-  int frameSize = m_params.iPicWidth * m_params.iPicHeight * 3 / 2;
+  int          frameSize = m_params.iPicWidth * m_params.iPicHeight * 3 / 2;
   SFrameBSInfo info;
   memset(&info, 0, sizeof(SFrameBSInfo));
   SSourcePicture pic;
   memset(&pic, 0, sizeof(SSourcePicture));
-  pic.iPicWidth = m_params.iPicWidth;
-  pic.iPicHeight = m_params.iPicHeight;
+  pic.iPicWidth    = m_params.iPicWidth;
+  pic.iPicHeight   = m_params.iPicHeight;
   pic.iColorFormat = videoFormatI420;
   pic.iStride[0] = pic.iPicWidth;
   pic.iStride[1] = pic.iStride[2] = pic.iPicWidth >> 1;
@@ -119,11 +120,11 @@ std::vector<Packet> Encoder::encode(const Image& image) {
   assert(rv == cmResultSuccess);
   std::vector<Packet> result;
   if (info.eFrameType != videoFrameTypeSkip) {
-    for (auto lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl ++) {
-      size_t current_offset = 0;
-      for (auto i = 0; i < info.sLayerInfo[lvl].iNalCount; i ++) {
+    for (auto lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl++) {
+      size_t    current_offset = 0;
+      for (auto i              = 0; i < info.sLayerInfo[lvl].iNalCount; i++) {
         std::unique_ptr<uint8_t[]> current_packet;
-        size_t current_nal_size = info.sLayerInfo[lvl].pNalLengthInByte[i];
+        size_t                     current_nal_size = info.sLayerInfo[lvl].pNalLengthInByte[i];
         current_packet = std::make_unique<uint8_t[]>(current_nal_size);
         std::memcpy(current_packet.get(), info.sLayerInfo[lvl].pBsBuf + current_offset, current_nal_size);
         current_offset += current_nal_size;

@@ -49,6 +49,7 @@ IF (!WIN32)
 endif ()
 
 target_include_directories(shar
+        PRIVATE src
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}

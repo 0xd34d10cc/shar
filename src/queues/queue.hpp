@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <atomic>
+#include <cassert>
 
 
 namespace shar {

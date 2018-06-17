@@ -4,29 +4,26 @@
 #include <boost/asio.hpp>
 #include "disable_warnings_pop.hpp"
 
-#include "queue.hpp"
 #include "packet.hpp"
-
+#include "processors/processor.hpp"
+#include "queues/packets_queue.hpp"
 
 namespace shar {
 
-class PacketSender {
+
+class PacketSender: public Processor {
 public:
-  PacketSender();
+  PacketSender(PacketsQueue& input);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;;
   ~PacketSender() = default;
 
-  void send(Packet packet);
   void run();
-  void stop();
-  bool is_running() const;
 
 private:
   void send_packet(Packet&);
 
-  std::atomic<bool>           m_running;
-  FixedSizeQueue<Packet, 256> m_packets;
+  PacketsQueue& m_packets;
 
   boost::asio::io_context      m_context;
   boost::asio::ip::tcp::socket m_socket;

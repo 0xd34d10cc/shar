@@ -2,18 +2,14 @@
 
 #include <iostream>
 
+
 namespace shar {
 
-PacketSender::PacketSender()
-    : m_running(false)
-    , m_packets()
+PacketSender::PacketSender(PacketsQueue& packets)
+    : m_packets(packets)
     , m_context()
     , m_socket(m_context) // ???
 {}
-
-void PacketSender::send(Packet packet) {
-  m_packets.push(std::move(packet));
-}
 
 void PacketSender::run() {
   namespace ip = boost::asio::ip;
@@ -23,28 +19,21 @@ void PacketSender::run() {
   ip::tcp::endpoint endpoint {address, 1337};
   m_socket.connect(endpoint);
 
-  m_running = true;
-  while (m_running) {
+  Processor::start();
+
+  while (is_running()) {
     if (m_packets.empty()) {
       m_packets.wait();
     }
 
+    std::size_t size = m_packets.size();
     assert(!m_packets.empty());
-    std::size_t      size = m_packets.size();
-    for (std::size_t i    = 0; i < size; ++i) {
+    for (std::size_t i = 0; i < size; ++i) {
       Packet* packet = m_packets.get(i);
       send_packet(*packet);
     }
     m_packets.consume(size);
   }
-}
-
-void PacketSender::stop() {
-  m_running = false;
-}
-
-bool PacketSender::is_running() const {
-  return m_running;
 }
 
 void PacketSender::send_packet(Packet& packet) {
