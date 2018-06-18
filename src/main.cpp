@@ -27,7 +27,7 @@ int main() {
   shar::FramesQueue pipeline;
 
   // TODO: make it configurable
-  auto        monitor = SL::Screen_Capture::GetMonitors().front();
+  auto        monitor = sc::GetMonitors().front();
   std::size_t width   = static_cast<std::size_t>(monitor.Width);
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
   std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
