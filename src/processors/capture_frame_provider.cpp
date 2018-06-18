@@ -1,10 +1,5 @@
 #include <iostream>
 
-//#include "disable_warnings_push.hpp"
-//#include <ScreenCapture.h>
-//#include <internal/SCCommon.h>
-//#include "disable_warnings_pop.hpp"
-
 #include "processors/capture_frame_provider.hpp"
 
 

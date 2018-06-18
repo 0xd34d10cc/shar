@@ -38,10 +38,12 @@ int main() {
   const int  fps      = 60;
   const auto interval = 1000ms / fps;
 
-  shar::FramesQueue                                frames;
-  shar::NullQueue<shar::Image>                     null;
-  shar::CaptureFrameProvider                       capture {interval, monitor, frames};
-  shar::FrameDisplay<shar::NullQueue<shar::Image>> display {frames, null};
+  shar::FramesQueue frames;
+
+  using Sink = shar::NullQueue<shar::Image>;
+  Sink                       sink;
+  shar::CaptureFrameProvider capture {interval, monitor, frames};
+  shar::FrameDisplay<Sink>   display {frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {
