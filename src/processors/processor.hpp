@@ -2,29 +2,22 @@
 
 #include <atomic>
 
+
 namespace shar {
 
 // TODO: use CRTP for run()
 class Processor {
 public:
-  Processor()
-      : m_running(false)
-  {}
+  Processor(const char* name);
 
-  bool is_running() const noexcept {
-    return m_running;
-  }
-
-  void stop() {
-    m_running = false;
-  }
+  bool is_running() const noexcept;
+  void stop();
 
 protected:
-  void start() {
-    m_running = true;
-  }
+  void start();
 
 private:
+  const char* m_name;
   std::atomic<bool> m_running;
 };
 

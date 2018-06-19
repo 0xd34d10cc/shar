@@ -13,7 +13,7 @@ struct FrameHandler {
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
     if (m_metrics_timer.expired()) {
-      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
+//      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
       m_fps = 0;
       m_metrics_timer.restart();
     }
@@ -37,7 +37,8 @@ namespace shar {
 CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
                                            const sc::Monitor& monitor,
                                            FramesQueue& output)
-    : m_interval(interval)
+    : Processor("CaptureFrameProvider")
+    , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
     , m_capture(nullptr) {
