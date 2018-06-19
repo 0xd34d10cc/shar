@@ -37,7 +37,8 @@ namespace shar {
 CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
                                            const sc::Monitor& monitor,
                                            FramesQueue& output)
-    : m_interval(interval)
+    : Processor("CaptureFrameProvider")
+    , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
     , m_capture(nullptr) {

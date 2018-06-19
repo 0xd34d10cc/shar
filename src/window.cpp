@@ -12,13 +12,13 @@
 
 namespace {
 
-void GLAPIENTRY opengl_error_callback(GLenum source,
+void GLAPIENTRY opengl_error_callback(GLenum /* source */,
                                       GLenum type,
-                                      GLuint id,
+                                      GLuint /* id */,
                                       GLenum severity,
-                                      GLsizei length,
+                                      GLsizei /* length */,
                                       const GLchar* message,
-                                      const void* userParam) {
+                                      const void* /* userParam */) {
   std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
             << "type = " << type
             << ", severity = " << severity
@@ -92,7 +92,7 @@ Window::SystemWindow* Window::create_window(Size size) {
   // TODO: disable in release
   // enable debug output
   glEnable(GL_DEBUG_OUTPUT);
-  glDebugMessageCallback(opengl_error_callback, 0);
+  glDebugMessageCallback(opengl_error_callback, nullptr);
 
   return window;
 }
@@ -109,7 +109,7 @@ Size Window::size() const noexcept {
   return m_size;
 }
 
-void Window::draw_texture(const Texture& texture) noexcept {
+void Window::draw_texture(const Texture& /* texture */) noexcept {
   glBegin(GL_QUADS);
 
   glTexCoord2f(0, 0);

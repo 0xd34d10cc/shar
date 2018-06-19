@@ -15,7 +15,8 @@ template<typename OutputQueue>
 class FrameDisplay : public Processor {
 public:
   FrameDisplay(FramesQueue& input, OutputQueue& output)
-      : m_frames(input)
+      : Processor("FrameDisplay")
+      , m_frames(input)
       , m_frames_consumer(output) {}
 
   // FIXME: this processor should not (?) depend on window
@@ -48,7 +49,6 @@ public:
     if (is_running()) {
       Processor::stop();
     }
-
   }
 
 private:

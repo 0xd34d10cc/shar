@@ -1,3 +1,3 @@
 #ifdef __clang__
-#pragma clang diagnistic pop
+#pragma clang diagnostic pop
 #endif
