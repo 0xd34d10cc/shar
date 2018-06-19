@@ -45,7 +45,6 @@ int main() {
   const auto interval = 1000ms / fps;
 
   shar::FramesQueue  captured_frames;
-  shar::PacketsQueue encoded_packets;
   shar::PacketsQueue packets_to_send;
   shar::PacketsQueue received_packets;
   shar::FramesQueue  decoded_frames;
