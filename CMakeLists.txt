@@ -67,7 +67,7 @@ target_link_libraries(shar
 # Setup warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using Clang
-    target_compile_options(shar PRIVATE -Werror -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-padded -Wno-newline-eof)
+    target_compile_options(shar PRIVATE -Werror -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-padded -Wno-newline-eof -Wno-missing-braces)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     target_compile_options(shar PRIVATE -Wall -Wextra -pedantic)
