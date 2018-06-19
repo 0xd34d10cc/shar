@@ -77,6 +77,7 @@ Encoder::Encoder(Size frame_size, std::size_t bit_rate) {
   int rv = WelsCreateSVCEncoder(&m_encoder);
   assert(rv == 0);
   assert(m_encoder != nullptr);
+  (void)rv;
   memset(&m_params, 0, sizeof(SEncParamBase));
   m_params.iUsageType     = SCREEN_CONTENT_REAL_TIME;
   m_params.fMaxFrameRate  = 30; // FIXME
@@ -117,6 +118,7 @@ std::vector<Packet> Encoder::encode(const Image& image) {
   pic.uiTimeStamp = static_cast<long long>(std::round(m_frame_ind * (1000 / m_params.fMaxFrameRate)));
   int rv = m_encoder->EncodeFrame(&pic, &info);
   assert(rv == cmResultSuccess);
+  (void)rv;
   std::vector<Packet> result;
   if (info.eFrameType != videoFrameTypeSkip) {
     for (int lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl++) {

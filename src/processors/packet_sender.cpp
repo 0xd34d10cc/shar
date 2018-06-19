@@ -7,6 +7,8 @@ namespace shar {
 
 PacketSender::PacketSender(PacketsQueue& input)
     : Processor("PacketSender")
+    , m_metrics_timer(std::chrono::seconds(1))
+    , m_bps(0)
     , m_packets(input)
     , m_clients()
     , m_context()
@@ -21,13 +23,21 @@ void PacketSender::run() {
   ip::address       address {localhost};
   ip::tcp::endpoint endpoint {address, 1337};
   m_acceptor.open(endpoint.protocol());
-  m_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+  m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
   m_acceptor.listen(100);
   start_accepting();
 
   Processor::start();
   while (is_running()) {
+    // report metrics
+    if (m_metrics_timer.expired()) {
+      std::cout << "bps: " << m_bps << std::endl;
+      m_bps = 0;
+
+      m_metrics_timer.restart();
+    }
+
     // run acceptor for some time
     using namespace std::chrono_literals;
     m_context.run_for(5ms);
@@ -35,6 +45,8 @@ void PacketSender::run() {
     if (!m_packets.empty()) {
       do {
         auto* packet = m_packets.get_next();
+        m_bps += packet->size();
+
         for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
           const auto client_id = it->first;
           auto& client                   = it->second;

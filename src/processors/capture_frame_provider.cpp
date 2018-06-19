@@ -13,7 +13,7 @@ struct FrameHandler {
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
     if (m_metrics_timer.expired()) {
-//      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
+      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
       m_fps = 0;
       m_metrics_timer.restart();
     }

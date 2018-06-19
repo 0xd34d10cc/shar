@@ -47,7 +47,7 @@ struct PacketReader {
 
         case State::ReadingContent:
           std::size_t already_read = m_packet_size - m_remaining;
-          if (already_read + bytes_to_read > m_buffer.size()) {
+          if (already_read + bytes_to_read >= m_buffer.size()) {
             m_buffer.resize(already_read + bytes_to_read, 0);
           }
           std::copy_n(buffer.data() + bytes_read, bytes_to_read,
