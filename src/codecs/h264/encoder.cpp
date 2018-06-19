@@ -27,9 +27,9 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
   const uint8_t* raw_image = image.bytes();
   size_t i = 0;
 
-  for (auto line = 0; line < image.height(); ++line) {
+  for (std::size_t line = 0; line < image.height(); ++line) {
     if (line % 2 == 0) {
-      for (auto x = 0; x < image.width(); x += 2) {
+      for (std::size_t x = 0; x < image.width(); x += 2) {
         uint8_t r = raw_image[4 * i + 2];
         uint8_t g = raw_image[4 * i + 1];
         uint8_t b = raw_image[4 * i];
@@ -98,7 +98,6 @@ Encoder::~Encoder() {
 
 std::vector<Packet> Encoder::encode(const Image& image) {
   m_frame_ind++;
-  int          frameSize = m_params.iPicWidth * m_params.iPicHeight * 3 / 2;
   SFrameBSInfo info;
   memset(&info, 0, sizeof(SFrameBSInfo));
   SSourcePicture pic;
@@ -115,17 +114,17 @@ std::vector<Packet> Encoder::encode(const Image& image) {
   pic.pData[2] = channels[2].data();
 
   //prepare input data
-  pic.uiTimeStamp = std::round(m_frame_ind * (1000 / m_params.fMaxFrameRate));
+  pic.uiTimeStamp = static_cast<long long>(std::round(m_frame_ind * (1000 / m_params.fMaxFrameRate)));
   int rv = m_encoder->EncodeFrame(&pic, &info);
   assert(rv == cmResultSuccess);
   std::vector<Packet> result;
   if (info.eFrameType != videoFrameTypeSkip) {
-    for (auto lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl++) {
-      size_t    current_offset = 0;
-      for (auto i              = 0; i < info.sLayerInfo[lvl].iNalCount; i++) {
-        std::unique_ptr<uint8_t[]> current_packet;
-        size_t                     current_nal_size = info.sLayerInfo[lvl].pNalLengthInByte[i];
-        current_packet = std::make_unique<uint8_t[]>(current_nal_size);
+    for (int lvl = 0; lvl < MAX_LAYER_NUM_OF_FRAME; lvl++) {
+      std::size_t current_offset = 0;
+      for (int    i              = 0; i < info.sLayerInfo[lvl].iNalCount; i++) {
+        size_t current_nal_size = static_cast<std::size_t>(info.sLayerInfo[lvl].pNalLengthInByte[i]);
+        auto   current_packet   = std::make_unique<uint8_t[]>(current_nal_size);
+
         std::memcpy(current_packet.get(), info.sLayerInfo[lvl].pBsBuf + current_offset, current_nal_size);
         current_offset += current_nal_size;
         result.emplace_back(std::move(current_packet), current_nal_size);

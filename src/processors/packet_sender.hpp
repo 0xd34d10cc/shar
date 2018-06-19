@@ -17,7 +17,7 @@ class PacketSender : public Processor {
 public:
   PacketSender(PacketsQueue& input);
   PacketSender(const PacketSender&) = delete;
-  PacketSender(PacketSender&&) = default;;
+  PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
 
   void run();

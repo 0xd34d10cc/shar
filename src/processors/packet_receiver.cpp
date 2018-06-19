@@ -32,7 +32,8 @@ struct PacketReader {
       switch (m_state) {
         case State::ReadingLength:
           for (std::size_t i = 0; i < bytes_to_read; ++i) {
-            m_packet_size |= buffer[bytes_read] << (8 * (4 - static_cast<int>(m_remaining)));
+            std::size_t offset = 8 * (4 - m_remaining);
+            m_packet_size |= static_cast<std::size_t>(buffer[bytes_read] << offset);
             ++bytes_read;
             --m_remaining;
           }
@@ -96,7 +97,7 @@ void PacketReceiver::run() {
   using Endpoint = boost::asio::ip::tcp::endpoint;
 
   PacketReader reader;
-  Buffer       buffer {4096, 0};
+  Buffer       buffer(4096, 0);
   Endpoint     endpoint {m_server_address, 1337};
   m_receiver.connect(endpoint);
 

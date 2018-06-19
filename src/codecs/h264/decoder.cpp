@@ -21,8 +21,8 @@ std::unique_ptr<uint8_t[]> yuv420p_to_bgra(const std::uint8_t* ys,
 
   auto bgra = std::make_unique<uint8_t[]>(height * width * 4);
 
-  for (int line = 0; line < height; ++line) {
-    for (int coll = 0; coll < width; ++coll) {
+  for (std::size_t line = 0; line < height; ++line) {
+    for (std::size_t coll = 0; coll < width; ++coll) {
 
       uint8_t y = ys[line * y_width + coll];
       uint8_t u = us[(line / 2) * u_width + (coll / 2)];
@@ -54,7 +54,7 @@ namespace shar::codecs::h264 {
 
 Decoder::Decoder() {
   WelsCreateDecoder(&m_decoder);
-  m_params = {0};
+  std::fill_n(reinterpret_cast<char*>(&m_params), sizeof(m_params), 0);
   m_params.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_AVC;
   m_decoder->Initialize(&m_params);
   memset(&m_buf_info, 0, sizeof(SBufferInfo));
@@ -67,9 +67,9 @@ Decoder::~Decoder() {
 
 Image Decoder::decode(const Packet& packet) {
   std::array<uint8_t*, 3> buf_holder;
-  memset(&m_buf_info, 0, sizeof(SBufferInfo));
+  std::fill_n(reinterpret_cast<char*>(&m_buf_info), sizeof(m_buf_info), 0);
 
-  for (auto i = 0; i < 3; i++) {
+  for (std::size_t i = 0; i < 3; i++) {
     buf_holder[i] = m_buffer[i].data();
   }
 
@@ -81,13 +81,14 @@ Image Decoder::decode(const Packet& packet) {
   );
 
   if (rv != 0) {
-    assert(!"something went wrong");
+    // most likely packet is ill-formed
+    assert(false);
   }
 
   // 1 means at least one frame is ready
   if (m_buf_info.iBufferStatus == 1) {
-    std::size_t y_pad    = m_buf_info.UsrData.sSystemBuffer.iStride[0] - std::size_t {1920};
-    std::size_t u_pad    = m_buf_info.UsrData.sSystemBuffer.iStride[1] - std::size_t {1920} / 2;
+    std::size_t y_pad    = static_cast<std::size_t>(m_buf_info.UsrData.sSystemBuffer.iStride[0]) - std::size_t {1920};
+    std::size_t u_pad    = static_cast<std::size_t>(m_buf_info.UsrData.sSystemBuffer.iStride[1]) - std::size_t {1920} / 2;
     auto        bgra_raw = yuv420p_to_bgra(buf_holder[0], buf_holder[1], buf_holder[2], 1080, 1920, y_pad, u_pad);
     return Image(std::move(bgra_raw), Size(1080, 1920));
   }
