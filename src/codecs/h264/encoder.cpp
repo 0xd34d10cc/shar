@@ -80,7 +80,7 @@ Encoder::Encoder(Size frame_size, std::size_t bit_rate) {
   (void)rv;
   memset(&m_params, 0, sizeof(SEncParamBase));
   m_params.iUsageType     = SCREEN_CONTENT_REAL_TIME;
-  m_params.fMaxFrameRate  = 30; // FIXME
+  m_params.fMaxFrameRate  = 60; // FIXME
   m_params.iPicWidth      = static_cast<int>(frame_size.width());
   m_params.iPicHeight     = static_cast<int>(frame_size.height());
   m_params.iTargetBitrate = static_cast<int>(bit_rate);

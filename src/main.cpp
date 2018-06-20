@@ -29,8 +29,6 @@ namespace sc = SL::Screen_Capture;
 //           -> PacketsSender
 
 int main() {
-  shar::FramesQueue pipeline;
-
   // TODO: make it configurable
   auto        monitor = sc::GetMonitors().front();
   std::size_t width   = static_cast<std::size_t>(monitor.Width);

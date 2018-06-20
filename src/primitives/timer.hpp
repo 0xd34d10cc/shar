@@ -1,6 +1,8 @@
 #pragma once
 
+#include <thread>
 #include <chrono>
+
 
 namespace shar {
 
@@ -11,9 +13,8 @@ public:
   using Duration = std::chrono::milliseconds;
 
   Timer(const Duration& duration) noexcept
-    : m_duration(duration)
-    , m_deadline(Clock::now() + duration)
-    {}
+      : m_duration(duration)
+      , m_deadline(Clock::now() + duration) {}
 
   void restart() noexcept {
     m_deadline = Clock::now() + m_duration;
@@ -39,7 +40,7 @@ public:
   }
 
 private:
-  Duration m_duration;
+  Duration  m_duration;
   TimePoint m_deadline;
 };
 

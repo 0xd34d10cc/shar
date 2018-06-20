@@ -7,6 +7,7 @@ conan_basic_setup()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 file(GLOB_RECURSE HEADERS "src/*.hpp")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -64,15 +65,28 @@ target_link_libraries(shar
         ${CONAN_LIBS_BOOST}
         )
 
+
 # Setup warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using Clang
-    target_compile_options(shar PRIVATE -Werror -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-padded -Wno-newline-eof -Wno-missing-braces)
+    set(ENABLED_WARNINGS
+        -Werror
+        -Weverything
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-padded
+        -Wno-newline-eof
+        -Wno-missing-braces)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
-    target_compile_options(shar PRIVATE -Wall -Wextra -pedantic)
+    set(ENABLED_WARNINGS -Wall -Wextra -pedantic)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
 endif ()
+
+target_compile_options(shar PRIVATE ${ENABLED_WARNINGS})
+
+add_subdirectory(utils)
+
