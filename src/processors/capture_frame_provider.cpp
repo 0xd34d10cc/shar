@@ -12,8 +12,6 @@ shar::Image convert(const sc::Image& image) noexcept {
 
   const std::size_t PIXEL_SIZE = 4;
 
-  // FIXME: this reallocates when we assign big picture -> small picture -> big picture
-  // TODO: introduce |capacity| member to fix it
   auto bytes = std::make_unique<uint8_t[]>(pixels * PIXEL_SIZE);
   auto size  = shar::Size {height, width};
 

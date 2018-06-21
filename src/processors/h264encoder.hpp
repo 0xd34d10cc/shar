@@ -1,13 +1,10 @@
 #pragma once
 
-#include <cstddef>
-#include <atomic>
-
+#include "processors/processor.hpp"
 #include "primitives/size.hpp"
 #include "codecs/h264/encoder.hpp"
 #include "queues/frames_queue.hpp"
 #include "queues/packets_queue.hpp"
-#include "processors/processor.hpp"
 
 
 namespace shar {
