@@ -12,49 +12,48 @@ namespace shar {
 
 // Note: OutputQueue should be frames queue
 template<typename OutputQueue>
-class FrameDisplay : public Processor {
+class FrameDisplay : public Processor<FrameDisplay<OutputQueue>, FramesQueue, OutputQueue> {
 public:
-  FrameDisplay(FramesQueue& input, OutputQueue& output)
-      : Processor("FrameDisplay")
-      , m_frames(input)
-      , m_frames_consumer(output) {}
+  using BaseProcessor = Processor<FrameDisplay<OutputQueue>, FramesQueue, OutputQueue>;
+
+  // NOTE: |window| should be initialized in same
+  // thread from which run() will be called
+  FrameDisplay(Window& window, FramesQueue& input, OutputQueue& output)
+      : BaseProcessor("FrameDisplay", input, output)
+      , m_window(window)
+      , m_texture(window.size()) {}
+
+  void setup() {
+    m_texture.bind();
+  }
+
+  void teardown() {
+    m_texture.unbind();
+  }
 
   // FIXME: this processor should not (?) depend on window
-  void run(Window& window) {
-    Processor::start();
+  void process(Image* frame) {
+//    std::cerr << "Displaying frame: "
+//              << frame->width() << 'x' << frame->height() << std::endl;
 
-    shar::Texture texture {window.size()};
-    texture.bind();
+    m_texture.update(Point::origin(),
+                     frame->size(),
+                     frame->bytes());
+    m_window.draw_texture(m_texture);
+    m_window.swap_buffers();
+    m_window.poll_events();
 
-    while (is_running() && !window.should_close()) {
-      if (!m_frames.empty()) {
-        do {
-          shar::Image* frame = m_frames.get_next();
-          texture.update(Point::origin(),
-                         frame->size(),
-                         frame->bytes());
-
-          m_frames_consumer.push(std::move(*frame));
-          m_frames.consume(1);
-        } while (!m_frames.empty());
-
-        window.draw_texture(texture);
-        window.swap_buffers();
-      }
-
-      window.poll_events();
-      m_frames.wait();
+    if (m_window.should_close()) {
+      BaseProcessor::stop();
+      return;
     }
 
-    if (is_running()) {
-      Processor::stop();
-    }
+    BaseProcessor::output().push(std::move(*frame));
   }
 
 private:
-  FramesQueue& m_frames;
-  OutputQueue& m_frames_consumer;
-
+  Window& m_window;
+  Texture m_texture;
 };
 
 }

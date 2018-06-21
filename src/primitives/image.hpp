@@ -1,16 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 #include <memory>
-
-#include "disable_warnings_push.hpp"
-#include <ScreenCapture.h>
-#include "disable_warnings_pop.hpp"
 
 #include "size.hpp"
 
-
-namespace sc = SL::Screen_Capture;
 
 namespace shar {
 

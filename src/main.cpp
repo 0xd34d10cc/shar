@@ -39,7 +39,7 @@ int main() {
   shar::Window window {frame_size};;
 
   using namespace std::chrono_literals;
-  const int  fps      = 60;
+  const int  fps      = 30;
   const auto interval = 1000ms / fps;
 
   shar::FramesQueue  captured_frames;
@@ -47,15 +47,17 @@ int main() {
   shar::PacketsQueue received_packets;
   shar::FramesQueue  decoded_frames;
 
-  using Sink = shar::NullQueue<shar::Image>;
-  Sink                       sink;
+  // setup processors pipeline
   shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
   shar::H264Encoder          encoder {frame_size, 5000000 /* bitrate */,
                                       captured_frames, packets_to_send};
   shar::PacketSender         sender {packets_to_send};
   shar::PacketReceiver       receiver {{127, 0, 0, 1}, received_packets};
   shar::H264Decoder          decoder {received_packets, decoded_frames};
-  shar::FrameDisplay<Sink>   display {decoded_frames, sink};
+
+  using Sink = shar::NullQueue<shar::Image>;
+  Sink                     sink;
+  shar::FrameDisplay<Sink> display {window, decoded_frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {
@@ -70,6 +72,10 @@ int main() {
     sender.run();
   }};
 
+  // FIXME: for some reason this sleep breaks pipeline
+  // NOTE: most likely some queue gets overflown
+  // std::this_thread::sleep_for(500ms);
+
   std::thread receiver_thread {[&] {
     receiver.run();
   }};
@@ -79,23 +85,23 @@ int main() {
   }};
 
   // run gui thread
-  display.run(window);
+  display.run();
 
   // stop all processors in reverse order
-   display.stop();
-   decoder.stop();
-   receiver.stop();
-   sender.stop();
-   encoder.stop();
-   capture.stop();
+  display.stop();
+  decoder.stop();
+  receiver.stop();
+  sender.stop();
+  encoder.stop();
+  capture.stop();
 
   // FIXME: replace with join() after we figure out how to
   //        notify processors which are waiting on input in the time of shutdown
-  decoder_thread.detach();
-  receiver_thread.detach();
-  sender_thread.detach();
-  encoder_thread.detach();
-  capture_thread.detach();
+  decoder_thread.join();
+  receiver_thread.join();
+  sender_thread.join();
+  encoder_thread.join();
+  capture_thread.join();
 
   return 0;
 }

@@ -5,28 +5,14 @@ namespace shar {
 
 H264Encoder::H264Encoder(Size frame_size, std::size_t bitrate,
                          FramesQueue& input, PacketsQueue& output)
-    : Processor("H264Encoder")
-    , m_input_frames(input)
-    , m_output_packets(output)
+    : Processor("H264Encoder", input, output)
     , m_encoder(frame_size, bitrate) {}
 
 
-void H264Encoder::run() {
-  Processor::start();
-
-  while (is_running()) {
-    if (!m_input_frames.empty()) {
-      do {
-        shar::Image* update = m_input_frames.get_next();
-        auto packets = m_encoder.encode(*update);
-        for (auto& packet: packets) {
-          m_output_packets.push(std::move(packet));
-        }
-        m_input_frames.consume(1);
-      } while (!m_input_frames.empty());
-    }
-
-    m_input_frames.wait();
+void H264Encoder::process(shar::Image* frame) {
+  auto packets = m_encoder.encode(*frame);
+  for (auto& packet: packets) {
+    output().push(std::move(packet));
   }
 }
 
