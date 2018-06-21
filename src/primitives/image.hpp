@@ -20,7 +20,6 @@ public:
   Image(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size);
   Image(Image&&) noexcept;
   Image& operator=(Image&&) noexcept;
-  Image& operator=(const sc::Image& image) noexcept;
   ~Image() = default;
 
 

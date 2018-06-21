@@ -5,6 +5,25 @@
 
 namespace {
 
+shar::Image convert(const sc::Image& image) noexcept {
+  std::size_t width  = static_cast<std::size_t>(Width(image));
+  std::size_t height = static_cast<std::size_t>(Height(image));
+  std::size_t pixels = width * height;
+
+  const std::size_t PIXEL_SIZE = 4;
+
+  // FIXME: this reallocates when we assign big picture -> small picture -> big picture
+  // TODO: introduce |capacity| member to fix it
+  auto bytes = std::make_unique<uint8_t[]>(pixels * PIXEL_SIZE);
+  auto size  = shar::Size {height, width};
+
+  assert(bytes.get() != nullptr);
+  sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
+
+  return shar::Image{std::move(bytes), size};
+}
+
+
 struct FrameHandler {
   FrameHandler(shar::FramesQueue& frames_consumer)
       : m_metrics_timer(std::chrono::seconds(1))
@@ -19,8 +38,7 @@ struct FrameHandler {
     }
     ++m_fps;
 
-    shar::Image buffer;
-    buffer = frame; // convert sc::Image to shar::Image (memcpy)
+    shar::Image buffer = convert(frame) ;
     m_frames_consumer.push(std::move(buffer));
   }
 
