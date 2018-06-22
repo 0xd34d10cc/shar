@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-file(GLOB_RECURSE HEADERS "src/*.hpp")
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "src/*.hpp") # fix this (need to import everything except client/server)
+file(GLOB_RECURSE SOURCES "src/*.cpp") 
 
 add_executable(shar ${SOURCES} ${HEADERS})
 
@@ -88,5 +88,6 @@ endif ()
 
 target_compile_options(shar PRIVATE ${ENABLED_WARNINGS})
 
-add_subdirectory(utils)
+add_subdirectory(utils) 
+add_subdirectory(src/client)
 
