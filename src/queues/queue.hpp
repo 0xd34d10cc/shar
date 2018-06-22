@@ -87,6 +87,7 @@ public:
   }
 
   void set_producer_state(State state) {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_producer_state = state;
 
     if (!is_producer_alive()) {
@@ -95,6 +96,7 @@ public:
   }
 
   void set_consumer_state(State state) {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_consumer_state = state;
 
     if (!is_consumer_alive()) {
