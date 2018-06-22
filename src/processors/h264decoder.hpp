@@ -5,17 +5,16 @@
 #include "queues/frames_queue.hpp"
 #include "codecs/h264/decoder.hpp"
 
+
 namespace shar {
 
-class H264Decoder: public Processor {
+class H264Decoder : public Processor<H264Decoder, PacketsQueue, FramesQueue> {
 public:
   H264Decoder(PacketsQueue& input, FramesQueue& output);
 
-  void run();
+  void process(Packet* packet);
 
 private:
-  PacketsQueue& m_packets;
-  FramesQueue & m_frames_consumer;
   codecs::h264::Decoder m_decoder;
 };
 

@@ -17,13 +17,13 @@ int main() {
   using FrameSink = shar::NullQueue<shar::Image>;
   FrameSink                     frames_sink;
   shar::FrameFileReader         reader {params, frames_to_display};
-  shar::FrameDisplay<FrameSink> display {frames_to_display, frames_sink};
+  shar::FrameDisplay<FrameSink> display {window, frames_to_display, frames_sink};
 
   std::thread reader_thread {[&] {
     reader.run();
   }};
 
-  display.run(window);
+  display.run();
 
   reader.stop();
   display.stop();

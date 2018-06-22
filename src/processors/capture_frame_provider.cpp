@@ -18,7 +18,7 @@ shar::Image convert(const sc::Image& image) noexcept {
   assert(bytes.get() != nullptr);
   sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
 
-  return shar::Image{std::move(bytes), size};
+  return shar::Image {std::move(bytes), size};
 }
 
 
@@ -30,13 +30,13 @@ struct FrameHandler {
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
     if (m_metrics_timer.expired()) {
-      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
+//      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
       m_fps = 0;
       m_metrics_timer.restart();
     }
     ++m_fps;
 
-    shar::Image buffer = convert(frame) ;
+    shar::Image buffer = convert(frame);
     m_frames_consumer.push(std::move(buffer));
   }
 
@@ -53,7 +53,7 @@ namespace shar {
 CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
                                            const sc::Monitor& monitor,
                                            FramesQueue& output)
-    : Processor("CaptureFrameProvider")
+    : Source("CaptureFrameProvider", output)
     , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
@@ -66,18 +66,17 @@ CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
   m_config->onNewFrame(FrameHandler {output});
 }
 
-void CaptureFrameProvider::run() {
-  Processor::start();
+void CaptureFrameProvider::process(Void*) {
+  m_wakeup_timer.restart();
+  m_wakeup_timer.wait();
+}
 
+void CaptureFrameProvider::setup() {
   m_capture = m_config->start_capturing();
   m_capture->setFrameChangeInterval(m_interval);
-  while (is_running()) {
-    if (m_wakeup_timer.expired()) {
-      m_wakeup_timer.restart();
-    }
-    m_wakeup_timer.wait();
-  }
+}
 
+void CaptureFrameProvider::teardown() {
   m_capture.reset();
 }
 

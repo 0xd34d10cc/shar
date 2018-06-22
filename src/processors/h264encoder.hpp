@@ -9,17 +9,15 @@
 
 namespace shar {
 
-class H264Encoder : public Processor {
+class H264Encoder : public Processor<H264Encoder, FramesQueue, PacketsQueue> {
 public:
   H264Encoder(Size frame_size, std::size_t bitrate,
               FramesQueue& input, PacketsQueue& output);
   H264Encoder(const H264Encoder&) = delete;
 
-  void run();
+  void process(Image* frame);
 
 private:
-  FramesQueue & m_input_frames;
-  PacketsQueue& m_output_packets;
   codecs::h264::Encoder m_encoder;
 };
 

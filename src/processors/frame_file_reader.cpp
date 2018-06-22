@@ -11,27 +11,21 @@ using namespace std::chrono_literals;
 
 FrameFileReader::FrameFileReader(FileParams file_params,
                                  FramesQueue& output)
-    : Processor("FrameFileReader")
-    , m_output_frames(output)
+    : Source("FrameFileReader", output)
     , m_file_params(std::move(file_params))
     , m_stream(m_file_params.path, mode::in | mode::binary)
     , m_timer(1000ms / m_file_params.fps) {}
 
-void FrameFileReader::run() {
-  Processor::start();
-
-  while (is_running()) {
-    auto frame = read_frame();
-    if (frame.empty()) {
-      // EOF
-      Processor::stop();
-      break;
-    }
-
-    m_output_frames.push(std::move(frame));
-    m_timer.wait();
-    m_timer.restart();
+void FrameFileReader::process(Void* /*dummy input*/) {
+  auto frame = read_frame();
+  if (frame.empty()) {
+    // EOF
+    Processor::stop();
   }
+
+  output().push(std::move(frame));
+  m_timer.wait();
+  m_timer.restart();
 }
 
 shar::Image FrameFileReader::read_frame() {

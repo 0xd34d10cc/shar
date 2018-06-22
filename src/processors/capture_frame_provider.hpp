@@ -7,7 +7,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "queues/frames_queue.hpp"
-#include "processors/processor.hpp"
+#include "processors/source.hpp"
 #include "primitives/timer.hpp"
 
 
@@ -21,7 +21,7 @@ using Milliseconds = std::chrono::milliseconds;
 
 namespace shar {
 
-class CaptureFrameProvider : public Processor {
+class CaptureFrameProvider : public Source<CaptureFrameProvider, FramesQueue> {
 public:
   CaptureFrameProvider(const Milliseconds& interval,
                        const sc::Monitor& monitor,
@@ -29,7 +29,9 @@ public:
   CaptureFrameProvider(const CaptureFrameProvider&) = delete;
   CaptureFrameProvider(CaptureFrameProvider&&) = delete;
 
-  void run();
+  void setup();
+  void process(Void*);
+  void teardown();
 
 private:
   Milliseconds m_interval;
