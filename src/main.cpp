@@ -87,21 +87,19 @@ int main() {
   // run gui thread
   display.run();
 
-  // stop all processors in reverse order
-  display.stop();
-  decoder.stop();
-  receiver.stop();
-  sender.stop();
-  encoder.stop();
+  // stop all processors
   capture.stop();
+  encoder.stop();
+  sender.stop();
+  receiver.stop();
+  decoder.stop();
+  display.stop();
 
-  // FIXME: replace with join() after we figure out how to
-  //        notify processors which are waiting on input in the time of shutdown
-  decoder_thread.join();
-  receiver_thread.join();
-  sender_thread.join();
-  encoder_thread.join();
   capture_thread.join();
+  encoder_thread.join();
+  sender_thread.join();
+  receiver_thread.join();
+  decoder_thread.join();
 
   return 0;
 }
