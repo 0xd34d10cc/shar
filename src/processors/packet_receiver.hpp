@@ -13,7 +13,7 @@
 
 namespace shar {
 
-using IpAddress = std::array<std::uint8_t, 4>;
+using IpAddress = boost::asio::ip::address;
 
 class PacketReceiver : public Source<PacketReceiver, PacketsQueue> {
 public:

@@ -3,6 +3,7 @@
 #include "processors/packet_receiver.hpp"
 
 
+
 namespace shar {
 
 // The packet format is pretty simple: [content_length] [content]
@@ -69,7 +70,7 @@ PacketReceiver::PacketReceiver(IpAddress server, PacketsQueue& output)
     : Source("PacketReceiver", output)
     , m_reader()
     , m_buffer(4096, 0)
-    , m_server_address(boost::asio::ip::address_v4 {{server}})
+    , m_server_address(server)
     , m_context()
     , m_receiver(m_context) {}
 
