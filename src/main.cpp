@@ -1,7 +1,6 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
-#include <cassert>
 
 #include "window.hpp"
 #include "queues/null_queue.hpp"
@@ -49,7 +48,7 @@ int main() {
 
   // setup processors pipeline
   shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
-  shar::H264Encoder          encoder {frame_size, 5000000 /* bitrate */,
+  shar::H264Encoder          encoder {frame_size, 11000 * 1024 /* bitrate */,
                                       captured_frames, packets_to_send};
   shar::PacketSender         sender {packets_to_send};
   shar::PacketReceiver       receiver {{127, 0, 0, 1}, received_packets};

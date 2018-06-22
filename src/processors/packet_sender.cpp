@@ -94,6 +94,9 @@ void PacketSender::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](boost::system::error_code ec) {
     if (ec) {
       std::cerr << "Acceptor failed!" << std::endl;
+      if (m_clients.empty()) {
+        Processor::stop();
+      }
       return;
     }
 
