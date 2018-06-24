@@ -21,7 +21,7 @@ struct LatencyInfo {
 
 int main() {
   std::size_t total_frames = 120;
-  int frame_rate = 30;
+  std::size_t frame_rate = 30;
 
   shar::FramesQueue  input_frames;
   shar::FramesQueue  frames_after_timestamp;
@@ -36,7 +36,7 @@ int main() {
   shar::FileParams      params {"example.bgra", frame_size, frame_rate };
   shar::FrameFileReader reader {std::move(params), input_frames};
 
-  shar::H264Encoder encoder {frame_size, 5000000, frame_rate,
+  shar::H264Encoder encoder {frame_size, 5000000, static_cast<int>(frame_rate),
                              frames_after_timestamp, encoded_packets};
   shar::H264Decoder decoder {encoded_packets, output_frames};
 
