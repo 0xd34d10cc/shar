@@ -18,7 +18,7 @@
 int main(int argc, const char *argv[]) {
 
   namespace po = boost::program_options;
-  using IpAddress = boost::asio::ip::address;
+  using IpAddress = boost::asio::ip::address; 
 
   po::options_description desc{ "Options" };
   desc.add_options()
@@ -38,7 +38,7 @@ int main(int argc, const char *argv[]) {
       return 0;
     }
     else {
-      std::string input_host = vm["Host"].as<std::string>();
+      const std::string input_host = vm["Host"].as<std::string>();
       boost::system::error_code ec;
       ip = boost::asio::ip::address::from_string(input_host, ec);
       if (ec != boost::system::errc::success) {
@@ -48,7 +48,7 @@ int main(int argc, const char *argv[]) {
       }
     }
   }
-
+    
   const std::size_t width  = vm["Width"].as<size_t>();
   const std::size_t height = vm["Height"].as<size_t>();
 

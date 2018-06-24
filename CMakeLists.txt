@@ -8,8 +8,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-file(GLOB_RECURSE HEADERS "src/*.hpp") # fix this (need to import everything except client/server)
-file(GLOB_RECURSE SOURCES "src/*.cpp") 
+file(GLOB HEADERS 
+            "src/*.hpp"
+            "src/queues/*.hpp"
+            "src/codecs/h264/*.hpp"
+            "src/primitives/*.hpp"
+            "src/processors/*.hpp"
+            )
+file(GLOB SOURCES 
+            "src/*.cpp"
+            "src/queues/*.cpp"
+            "src/codecs/h264/*.cpp"
+            "src/primitives/*.cpp"
+            "src/processors/*.cpp"
+            ) 
 
 add_executable(shar ${SOURCES} ${HEADERS})
 
@@ -52,8 +64,8 @@ endif ()
 target_include_directories(shar
         PRIVATE src
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
-        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
-        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
+        PRIVATE ${CONAN_INCLUDE_DIRS_BOOST}
+        PRIVATE ${CONAN_INCLUDE_DIRS_OPENH264}
         )
 
 target_link_libraries(shar
@@ -90,4 +102,4 @@ target_compile_options(shar PRIVATE ${ENABLED_WARNINGS})
 
 add_subdirectory(utils) 
 add_subdirectory(src/client)
-
+add_subdirectory(src/server)
