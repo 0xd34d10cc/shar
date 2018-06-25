@@ -14,7 +14,6 @@ target_include_directories(client
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
         )
 
-
 target_link_libraries(client
         ${CONAN_LIBS_GLFW}
         ${CONAN_LIBS_OPENH264}
@@ -22,3 +21,4 @@ target_link_libraries(client
         ${CONAN_LIBS_BOOST}
         )
 
+target_compile_options(client PRIVATE ${ENABLED_WARNINGS})

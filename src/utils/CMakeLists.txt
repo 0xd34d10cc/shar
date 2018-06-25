@@ -39,6 +39,7 @@ target_link_libraries(latency
                       ${CONAN_LIBS_OPENH264})
 target_compile_options(latency PRIVATE ${ENABLED_WARNINGS})
 
+
 # full pipeline test
 add_executable(pipeline_test
                full_pipeline_test.cpp
@@ -70,3 +71,4 @@ target_link_libraries(pipeline_test
                 ${CONAN_LIBS_BOOST}
                 )
 
+target_compile_options(pipeline_test PRIVATE ${ENABLED_WARNINGS})
