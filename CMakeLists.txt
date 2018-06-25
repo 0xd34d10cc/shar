@@ -7,22 +7,6 @@ conan_basic_setup()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-file(GLOB HEADERS 
-            "src/*.hpp"
-            "src/queues/*.hpp"
-            "src/codecs/h264/*.hpp"
-            "src/primitives/*.hpp"
-            "src/processors/*.hpp"
-            )
-file(GLOB SOURCES 
-            "src/*.cpp"
-            "src/queues/*.cpp"
-            "src/codecs/h264/*.cpp"
-            "src/primitives/*.cpp"
-            "src/processors/*.cpp"
-            ) 
-
 # platfor specific libraries for screen_capture_lite
 if (WIN32)
     set(SC_PLATFORM_LIBS Dwmapi)
