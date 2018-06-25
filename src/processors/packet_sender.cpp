@@ -51,10 +51,11 @@ bool send_packet(Socket& socket, shar::Packet& packet, boost::system::error_code
 
 namespace shar {
 
-PacketSender::PacketSender(PacketsQueue& input)
+PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
     : Sink("PacketSender", input)
     , m_metrics_timer(std::chrono::seconds(1))
     , m_bps(0)
+    , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
@@ -110,10 +111,7 @@ void PacketSender::start_accepting() {
 
 void PacketSender::setup() {
   namespace ip = boost::asio::ip;
-  ip::address_v4    localhost {{127, 0, 0, 1}};
-//  ip::address_v4    any_interface {{0, 0, 0, 0}};
-  ip::address       address {localhost};
-  ip::tcp::endpoint endpoint {address, 1337};
+  ip::tcp::endpoint endpoint {m_ip, 1337};
   m_acceptor.open(endpoint.protocol());
   m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);

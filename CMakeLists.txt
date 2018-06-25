@@ -7,12 +7,6 @@ conan_basic_setup()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-file(GLOB_RECURSE HEADERS "src/*.hpp")
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-
-add_executable(shar ${SOURCES} ${HEADERS})
-
 # platfor specific libraries for screen_capture_lite
 if (WIN32)
     set(SC_PLATFORM_LIBS Dwmapi)
@@ -49,21 +43,6 @@ IF (!WIN32)
     target_link_libraries(shar dl)
 endif ()
 
-target_include_directories(shar
-        PRIVATE src
-        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
-        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
-        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
-        )
-
-target_link_libraries(shar
-        screen_capture_lite
-        ${SC_PLATFORM_LIBS}
-        ${CONAN_LIBS_GLFW}
-        ${CONAN_LIBS_OPENH264}
-        ${OPENGL_gl_LIBRARY}
-        ${CONAN_LIBS_BOOST}
-        )
 
 
 # Setup warnings
@@ -86,7 +65,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
 endif ()
 
-target_compile_options(shar PRIVATE ${ENABLED_WARNINGS})
-
-add_subdirectory(utils)
-
+add_subdirectory(src/utils) 
+add_subdirectory(src/client)
+add_subdirectory(src/server)

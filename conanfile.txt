@@ -16,7 +16,6 @@ boost:without_graph =  True
 boost:without_iostreams =  True
 boost:without_locale =  True
 boost:without_log =  True
-boost:without_program_options =  True
 boost:without_random =  True
 boost:without_regex =  True
 boost:without_mpi =  True

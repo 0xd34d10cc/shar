@@ -16,7 +16,7 @@ namespace shar {
 
 class PacketSender : public Sink<PacketSender, PacketsQueue> {
 public:
-  PacketSender(PacketsQueue& input);
+  PacketSender(PacketsQueue& input, boost::asio::ip::address ip);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -34,8 +34,9 @@ public:
 private:
   void start_accepting();
 
-  Timer       m_metrics_timer;
-  std::size_t m_bps;
+  Timer                    m_metrics_timer;
+  std::size_t              m_bps;
+  boost::asio::ip::address m_ip;
 
   Clients  m_clients;
   Context  m_context;

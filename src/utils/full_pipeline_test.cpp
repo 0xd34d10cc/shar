@@ -41,6 +41,7 @@ int main() {
   using namespace std::chrono_literals;
   const int  fps      = 30;
   const auto interval = 1000ms / fps;
+  shar::IpAddress ip = boost::asio::ip::address::from_string("127.0.0.1");
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;
@@ -48,16 +49,16 @@ int main() {
   shar::FramesQueue  decoded_frames;
 
   // setup processors pipeline
-  shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
-  shar::H264Encoder          encoder {frame_size, 5000000 /* bitrate */,
-                                      captured_frames, packets_to_send};
-  shar::PacketSender         sender {packets_to_send};
-  shar::PacketReceiver       receiver {{127, 0, 0, 1}, received_packets};
-  shar::H264Decoder          decoder {received_packets, decoded_frames};
+  shar::CaptureFrameProvider capture  {interval, monitor, captured_frames};
+  shar::H264Encoder          encoder  {frame_size, 5000000 /* bitrate */, fps,
+                                       captured_frames, packets_to_send};
+  shar::PacketSender         sender   {packets_to_send, ip };
+  shar::PacketReceiver       receiver {ip, received_packets};
+  shar::H264Decoder          decoder  {received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
-  Sink                     sink;
-  shar::FrameDisplay<Sink> display {window, decoded_frames, sink};
+  Sink                       sink;
+  shar::FrameDisplay<Sink>   display  {window, decoded_frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {
