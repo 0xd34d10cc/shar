@@ -52,7 +52,7 @@ int main() {
   shar::CaptureFrameProvider capture  {interval, monitor, captured_frames};
   shar::H264Encoder          encoder  {frame_size, 5000000 /* bitrate */, fps,
                                        captured_frames, packets_to_send};
-  shar::PacketSender         sender   {packets_to_send};
+  shar::PacketSender         sender   {packets_to_send, ip };
   shar::PacketReceiver       receiver {ip, received_packets};
   shar::H264Decoder          decoder  {received_packets, decoded_frames};
 

@@ -64,8 +64,8 @@ endif ()
 target_include_directories(shar
         PRIVATE src
         PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
-        PRIVATE ${CONAN_INCLUDE_DIRS_BOOST}
-        PRIVATE ${CONAN_INCLUDE_DIRS_OPENH264}
+        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
+        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
         )
 
 target_link_libraries(shar
@@ -100,6 +100,6 @@ endif ()
 
 target_compile_options(shar PRIVATE ${ENABLED_WARNINGS})
 
-add_subdirectory(utils) 
+add_subdirectory(src/utils) 
 add_subdirectory(src/client)
 add_subdirectory(src/server)

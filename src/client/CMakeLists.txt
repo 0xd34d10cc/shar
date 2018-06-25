@@ -11,7 +11,7 @@ add_executable(client
 
 target_include_directories(client 
         PRIVATE .. 
-        SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
+        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
         )
 
 

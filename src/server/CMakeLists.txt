@@ -10,8 +10,8 @@ add_executable(server
 
 target_include_directories(server 
         PRIVATE .. 
-        PRIVATE ${CONAN_INCLUDE_DIRS_BOOST}
-        PRIVATE ${CONAN_INCLUDE_DIRS_OPENH264}
+        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
+        PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
         )
 
 
