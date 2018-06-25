@@ -52,9 +52,10 @@ bool send_packet(Socket& socket, shar::Packet& packet, boost::system::error_code
 namespace shar {
 
 PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
-    : Sink("PacketSender", input), m_ip(ip)
+    : Sink("PacketSender", input)
     , m_metrics_timer(std::chrono::seconds(1))
     , m_bps(0)
+    , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
