@@ -1,7 +1,6 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
-#include <cassert>
 
 #include "window.hpp"
 #include "queues/null_queue.hpp"
@@ -39,9 +38,9 @@ int main() {
   shar::Window window {frame_size};;
 
   using namespace std::chrono_literals;
-  const int  fps      = 30;
-  const auto interval = 1000ms / fps;
-  shar::IpAddress ip = boost::asio::ip::address::from_string("127.0.0.1");
+  const int       fps      = 30;
+  const auto      interval = 1000ms / fps;
+  shar::IpAddress ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;
@@ -49,16 +48,19 @@ int main() {
   shar::FramesQueue  decoded_frames;
 
   // setup processors pipeline
-  shar::CaptureFrameProvider capture  {interval, monitor, captured_frames};
-  shar::H264Encoder          encoder  {frame_size, 5000000 /* bitrate */, fps,
-                                       captured_frames, packets_to_send};
-  shar::PacketSender         sender   {packets_to_send, ip };
+
+  shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
+  shar::H264Encoder          encoder {frame_size, 5000000 /* bitrate */, fps,
+                                      captured_frames, packets_to_send};
+  shar::PacketSender         sender {packets_to_send, ip};
   shar::PacketReceiver       receiver {ip, received_packets};
-  shar::H264Decoder          decoder  {received_packets, decoded_frames};
+  shar::H264Decoder          decoder {received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
-  Sink                       sink;
-  shar::FrameDisplay<Sink>   display  {window, decoded_frames, sink};
+  using Display = shar::FrameDisplay<Sink>;
+
+  Sink    sink;
+  Display display {window, decoded_frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {
@@ -88,21 +90,19 @@ int main() {
   // run gui thread
   display.run();
 
-  // stop all processors in reverse order
-  display.stop();
-  decoder.stop();
-  receiver.stop();
-  sender.stop();
-  encoder.stop();
+  // stop all processors
   capture.stop();
+  encoder.stop();
+  sender.stop();
+  receiver.stop();
+  decoder.stop();
+  display.stop();
 
-  // FIXME: replace with join() after we figure out how to
-  //        notify processors which are waiting on input in the time of shutdown
-  decoder_thread.join();
-  receiver_thread.join();
-  sender_thread.join();
-  encoder_thread.join();
   capture_thread.join();
+  encoder_thread.join();
+  sender_thread.join();
+  receiver_thread.join();
+  decoder_thread.join();
 
   return 0;
 }

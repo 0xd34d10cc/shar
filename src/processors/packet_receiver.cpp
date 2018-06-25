@@ -3,7 +3,6 @@
 #include "processors/packet_receiver.hpp"
 
 
-
 namespace shar {
 
 // The packet format is pretty simple: [content_length] [content]
@@ -75,36 +74,42 @@ PacketReceiver::PacketReceiver(IpAddress server, PacketsQueue& output)
     , m_receiver(m_context) {}
 
 void PacketReceiver::process(Void*) {
-  boost::system::error_code ec;
-
-  std::size_t bytes_received = m_receiver.receive(
-      boost::asio::buffer(m_buffer.data(), m_buffer.size()),
-      0 /* message flags */, ec
-  );
-
-  if (ec) {
-    std::cerr << "PacketReceiver[" << ec << "]: " << ec.message() << std::endl;
-    return;
-  }
-
-  auto packets = m_reader.update(m_buffer, bytes_received);
-  for (auto& packet: packets) {
-//    std::cerr << "Received packet of size " << packet.size() << std::endl;
-    output().push(std::move(packet));
-  }
-
+  m_context.run_for(std::chrono::milliseconds(250));
 }
 
 void PacketReceiver::setup() {
   using Endpoint = boost::asio::ip::tcp::endpoint;
   Endpoint endpoint {m_server_address, 1337};
   m_receiver.connect(endpoint);
+
+  start_read();
 }
 
 void PacketReceiver::teardown() {
   // close the connection
   m_receiver.shutdown(boost::asio::socket_base::shutdown_both);
   m_receiver.close();
+}
+
+
+void PacketReceiver::start_read() {
+  m_receiver.async_read_some(
+      boost::asio::buffer(m_buffer.data(), m_buffer.size()),
+      [this](const boost::system::error_code& ec, std::size_t received) {
+        if (ec) {
+          std::cerr << "Receiver failed: " << ec.message() << std::endl;
+          Processor::stop();
+          return;
+        }
+
+        auto packets = m_reader.update(m_buffer, received);
+        for (auto& packet: packets) {
+          output().push(std::move(packet));
+        }
+
+        start_read();
+      }
+  );
 }
 
 }

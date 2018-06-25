@@ -47,7 +47,6 @@ struct FrameHandler {
 
 }
 
-
 namespace shar {
 
 CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,

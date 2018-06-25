@@ -113,10 +113,14 @@ int main() {
     frame_number++;
   }
 
-  reader_thread.detach();
-  start_timestamp_writer.detach();
-  encoder_thread.detach();
-  decoder_thread.detach();
+  reader.stop();
+  encoder.stop();
+  decoder.stop();
+
+  reader_thread.join();
+  start_timestamp_writer.join();
+  encoder_thread.join();
+  decoder_thread.join();
 
   return 0;
 }

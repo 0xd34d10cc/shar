@@ -39,7 +39,8 @@ public:
 
     m_buffer[m_to] = std::forward<T>(value);
     m_to = (m_to + 1) % SIZE;
-    m_not_empty.notify_one();
+
+    notify_consumer();
   }
 
   std::size_t size() {
@@ -63,9 +64,10 @@ public:
   }
 
   void wait() {
-    if (is_producer_alive()) {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      m_not_empty.wait(lock, [this] { return !empty(); });
+    std::unique_lock<std::mutex> lock(m_mutex);
+    while (is_producer_alive() && empty()) {
+      // wait for producer
+      m_not_empty.wait(lock);
     }
   }
 
@@ -74,7 +76,8 @@ public:
     std::unique_lock<std::mutex> lock(m_mutex);
     assert(size() >= count);
     m_from = (m_from + count) % SIZE;
-    m_not_full.notify_one();
+
+    notify_producer();
   }
 
   // TODO: split in tx/rx and use destructor for that
@@ -87,6 +90,7 @@ public:
   }
 
   void set_producer_state(State state) {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_producer_state = state;
 
     if (!is_producer_alive()) {
@@ -95,6 +99,7 @@ public:
   }
 
   void set_consumer_state(State state) {
+    std::unique_lock<std::mutex> lock(m_mutex);
     m_consumer_state = state;
 
     if (!is_consumer_alive()) {

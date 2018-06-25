@@ -24,6 +24,8 @@ public:
   void teardown();
 
 private:
+  void start_read();
+
   using Buffer = std::vector<std::uint8_t>;
 
   // TODO: rename to PacketParser

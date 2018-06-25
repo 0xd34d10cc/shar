@@ -1,60 +1,25 @@
-#include "packet_sender.hpp"
-
-#include <type_traits>
 #include <iostream>
 
-
-namespace {
-using Socket = shar::PacketSender::Socket;
-
-template<typename T, std::size_t NBYTES = 4>
-std::size_t send_little_endian(Socket& socket, T integer, boost::system::error_code& error_code) {
-  static_assert(std::is_unsigned<T>::value);
-
-  std::array<std::uint8_t, NBYTES> bytes;
-
-  for (std::size_t i = 0; i < bytes.size(); ++i) {
-    bytes[i] = static_cast<std::uint8_t>(integer & 0xff);
-    integer >>= 8;
-  }
-
-  return socket.send(boost::asio::buffer(bytes.data(), bytes.size()),
-                     0 /* message flags */, error_code);
-}
-
-bool send_packet(Socket& socket, shar::Packet& packet, boost::system::error_code& ec) {
-//  std::cerr << "Sending packet of size " << packet.size() << std::endl;
-  auto sent = send_little_endian<std::size_t, 4>(socket, packet.size(), ec);
-  if (sent != 4 || ec) {
-    return false;
-  }
-
-  // send content
-  std::size_t bytes_sent = 0;
-  while (bytes_sent != packet.size()) {
-    bytes_sent += socket.send(
-        boost::asio::buffer(packet.data() + bytes_sent,
-                            packet.size() - bytes_sent),
-        0 /* message flags */, ec
-    );
-
-    if (ec) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-}
+#include "processors/packet_sender.hpp"
 
 
 namespace shar {
 
+
+PacketSender::Client::Client(Socket socket)
+    : m_length({0, 0, 0, 0})
+    , m_state(State::SendingLength)
+    , m_bytes_sent(0)
+    , m_is_running(false)
+    , m_socket(std::move(socket))
+    , m_packets() {}
+
+bool PacketSender::Client::is_running() const {
+  return m_is_running;
+}
+
 PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
     : Sink("PacketSender", input)
-    , m_metrics_timer(std::chrono::seconds(1))
-    , m_bps(0)
     , m_ip(ip)
     , m_clients()
     , m_context()
@@ -63,42 +28,32 @@ PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
 {}
 
 void PacketSender::process(Packet* packet) {
-  // report metrics
-  if (m_metrics_timer.expired()) {
-//    std::cout << "bps: " << m_bps << std::endl;
-    m_bps = 0;
-
-    m_metrics_timer.restart();
-  }
-
-  // run acceptor for some time
   using namespace std::chrono_literals;
-  m_context.run_for(5ms);
+  // NOTE: we can't send more than 100 packets/s
+  m_context.run_for(10ms);
 
-  m_bps += packet->size();
+  const auto shared_packet = std::make_shared<Packet>(std::move(*packet));
+//  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
+  for (auto&[id, client]: m_clients) {
+    client.m_packets.push(shared_packet);
 
-  for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-    const auto client_id = it->first;
-    auto& client = it->second;
-
-    boost::system::error_code ec;
-    if (!send_packet(client, *packet, ec) || ec) {
-      std::cerr << "Failed to send packet to Client #" << client_id
-                << ": " << ec.message() << std::endl;
-      it = m_clients.erase(it);
+    if (!client.is_running()) {
+      run_client(id);
     }
-
   }
 }
 
 void PacketSender::start_accepting() {
-  m_acceptor.async_accept(m_current_socket, [this](boost::system::error_code ec) {
+  m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
       std::cerr << "Acceptor failed!" << std::endl;
+      if (m_clients.empty()) {
+        Processor::stop();
+      }
       return;
     }
 
-    std::size_t id = static_cast<std::size_t>(m_current_socket.native_handle());
+    const auto id = static_cast<ClientId>(m_current_socket.native_handle());
     std::cout << "Client #" << id << ": connected" << std::endl;
 
     m_clients.emplace(id, std::move(m_current_socket));
@@ -107,6 +62,99 @@ void PacketSender::start_accepting() {
     // schedule another async_accept
     start_accepting();
   });
+}
+
+void PacketSender::run_client(ClientId id) {
+  auto it = m_clients.find(id);
+  if (it == m_clients.end()) {
+    assert(false);
+    return;
+  }
+
+  auto& client = it->second;
+  if (client.m_packets.empty() || client.is_running()) {
+    return;
+  }
+  client.m_is_running = true;
+
+  auto& packet = client.m_packets.front();
+
+  switch (client.m_state) {
+    case Client::State::SendingLength: {
+      const auto size = packet->size();
+      client.m_length = {
+          static_cast<std::uint8_t>((size >> 0) & 0xff),
+          static_cast<std::uint8_t>((size >> 8) & 0xff),
+          static_cast<std::uint8_t>((size >> 16) & 0xff),
+          static_cast<std::uint8_t>((size >> 24) & 0xff)
+      };
+
+      auto buffer = boost::asio::buffer(client.m_length.data() + client.m_bytes_sent,
+                                        client.m_length.size() - client.m_bytes_sent);
+      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
+        if (ec) {
+          std::cerr << "Failed to send packet length to client #" << id << ": " << ec.message() << std::endl;
+          m_clients.erase(id);
+          return;
+        }
+
+        handle_write(bytes_sent, id);
+      });
+    }
+      break;
+
+    case Client::State::SendingContent: {
+      auto buffer = boost::asio::buffer(packet->data() + client.m_bytes_sent,
+                                        packet->size() - client.m_bytes_sent);
+      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
+        if (ec) {
+          std::cerr << "Failed to send packet to client #" << id << ": " << ec.message() << std::endl;
+          m_clients.erase(id);
+          return;
+        }
+
+        handle_write(bytes_sent, id);
+      });
+    }
+      break;
+  }
+
+}
+
+void PacketSender::handle_write(std::size_t bytes_sent, ClientId id) {
+  const auto it = m_clients.find(id);
+  if (it == m_clients.end()) {
+    // can this even happen?
+    assert(false);
+    return;
+  }
+
+  auto& client        = it->second;
+  client.m_bytes_sent += bytes_sent;
+  client.m_is_running = false;
+
+  assert(!client.m_packets.empty());
+
+  switch (client.m_state) {
+    case Client::State::SendingLength:
+      assert(client.m_bytes_sent <= client.m_length.size());
+      if (client.m_length.size() == client.m_bytes_sent) {
+        client.m_bytes_sent = 0;
+        client.m_state      = Client::State::SendingContent;
+      }
+      break;
+
+    case Client::State::SendingContent:
+      assert(client.m_bytes_sent <= client.m_packets.front()->size());
+      if (client.m_packets.front()->size() == client.m_bytes_sent) {
+        client.m_bytes_sent = 0;
+        client.m_packets.pop();
+        client.m_state = Client::State::SendingLength;
+      }
+      break;
+  }
+
+  run_client(id);
 }
 
 void PacketSender::setup() {

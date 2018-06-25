@@ -15,9 +15,7 @@ public:
       : m_name(name)
       , m_running(false)
       , m_input(input)
-      , m_output(output)
-      , m_ips_timer(std::chrono::seconds(1))
-      , m_ips(0) {}
+      , m_output(output) {}
 
   bool is_running() const noexcept {
     return m_running && m_input.is_producer_alive() && m_output.is_consumer_alive();
@@ -29,30 +27,22 @@ public:
 
     while (is_running()) {
       m_input.wait();
-      while (!m_input.empty()) {
-        if (m_ips_timer.expired()) {
-//          std::cout << m_name << " IPS: " << m_ips << std::endl;
-          m_ips = 0;
-          m_ips_timer.restart();
-        }
-
+      while (!m_input.empty() && is_running()) {
         auto* item = m_input.get_next();
         static_cast<Process*>(this)->process(item);
-        ++m_ips;
         m_input.consume(1);
       }
     }
     static_cast<Process*>(this)->teardown();
-
     stop();
-    m_input.set_consumer_state(InputQueue::State::Dead);
-    m_output.set_producer_state(OutputQueue::State::Dead);
 
     std::cerr << m_name << " finished" << std::endl;
   }
 
   void stop() {
     if (m_running) {
+      m_input.set_consumer_state(InputQueue::State::Dead);
+      m_output.set_producer_state(OutputQueue::State::Dead);
       std::cout << m_name << " stopping" << std::endl;
     }
     m_running = false;
@@ -85,9 +75,6 @@ private:
 
   InputQueue & m_input;
   OutputQueue& m_output;
-
-  Timer       m_ips_timer;
-  std::size_t m_ips;
 };
 
 }
