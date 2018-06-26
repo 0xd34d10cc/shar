@@ -28,6 +28,10 @@ PacketSender::PacketSender(PacketsQueue& input)
 {}
 
 void PacketSender::process(Packet* packet) {
+  using namespace std::chrono_literals;
+  // NOTE: we can't send more than 100 packets/s
+  m_context.run_for(10ms);
+
   const auto shared_packet = std::make_shared<Packet>(std::move(*packet));
 //  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
   for (auto&[id, client]: m_clients) {
@@ -37,10 +41,6 @@ void PacketSender::process(Packet* packet) {
       run_client(id);
     }
   }
-
-  using namespace std::chrono_literals;
-  // NOTE: this limits packets/s
-  m_context.run_for(10ms);
 }
 
 void PacketSender::start_accepting() {
