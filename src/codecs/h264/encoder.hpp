@@ -14,7 +14,7 @@ namespace shar::codecs::h264 {
   
 class Encoder {
 public:
-  Encoder(Size frame_size, std::size_t bitrate);
+  Encoder(Size frame_size, std::size_t bitrate, int fps);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder &&) = delete; // TODO: implement
   ~Encoder();

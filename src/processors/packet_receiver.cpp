@@ -69,7 +69,7 @@ PacketReceiver::PacketReceiver(IpAddress server, PacketsQueue& output)
     : Source("PacketReceiver", output)
     , m_reader()
     , m_buffer(4096, 0)
-    , m_server_address(boost::asio::ip::address_v4 {{server}})
+    , m_server_address(server)
     , m_context()
     , m_receiver(m_context) {}
 
@@ -90,6 +90,7 @@ void PacketReceiver::teardown() {
   m_receiver.shutdown(boost::asio::socket_base::shutdown_both);
   m_receiver.close();
 }
+
 
 void PacketReceiver::start_read() {
   m_receiver.async_read_some(

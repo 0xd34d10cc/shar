@@ -18,9 +18,9 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-
-PacketSender::PacketSender(PacketsQueue& input)
+PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
     : Sink("PacketSender", input)
+    , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
@@ -159,10 +159,7 @@ void PacketSender::handle_write(std::size_t bytes_sent, ClientId id) {
 
 void PacketSender::setup() {
   namespace ip = boost::asio::ip;
-  ip::address_v4    localhost {{127, 0, 0, 1}};
-//  ip::address_v4    any_interface {{0, 0, 0, 0}};
-  ip::address       address {localhost};
-  ip::tcp::endpoint endpoint {address, 1337};
+  ip::tcp::endpoint endpoint {m_ip, 1337};
   m_acceptor.open(endpoint.protocol());
   m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
