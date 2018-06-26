@@ -66,9 +66,8 @@ void PacketSender::start_accepting() {
 
 void PacketSender::run_client(ClientId id) {
   auto it = m_clients.find(id);
-
-  // client was disconnected
   if (it == m_clients.end()) {
+    assert(false);
     return;
   }
 

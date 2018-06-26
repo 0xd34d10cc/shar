@@ -26,7 +26,7 @@ public:
   void process(Packet* packet);
   void teardown();
 
-
+private:
   using Socket = boost::asio::ip::tcp::socket;
   using Context = boost::asio::io_context;
   using Acceptor = boost::asio::ip::tcp::acceptor;
@@ -34,7 +34,6 @@ public:
   using SharedPacket = std::shared_ptr<Packet>;
   using ClientId = std::size_t;
 
-private:
   struct Client {
     enum class State {
       SendingLength,
