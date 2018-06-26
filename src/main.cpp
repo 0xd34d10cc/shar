@@ -55,8 +55,9 @@ int main() {
   shar::H264Decoder          decoder {received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
-  Sink                     sink;
-  shar::FrameDisplay<Sink> display {window, decoded_frames, sink};
+  using Display = shar::FrameDisplay<Sink>;
+  Sink    sink;
+  Display display {window, decoded_frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {
