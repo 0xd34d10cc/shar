@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "processors/capture_frame_provider.hpp"
+#include "processors/screen_capture.hpp"
 
 
 namespace {
@@ -30,7 +30,7 @@ struct FrameHandler {
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
     if (m_metrics_timer.expired()) {
-//      std::cout << "CaptureFrameProvider::fps = " << m_fps << std::endl;
+//      std::cout << "ScreenCapture::fps = " << m_fps << std::endl;
       m_fps = 0;
       m_metrics_timer.restart();
     }
@@ -49,10 +49,10 @@ struct FrameHandler {
 
 namespace shar {
 
-CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
+ScreenCapture::ScreenCapture(const Milliseconds& interval,
                                            const sc::Monitor& monitor,
                                            FramesQueue& output)
-    : Source("CaptureFrameProvider", output)
+    : Source("ScreenCapture", output)
     , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
@@ -65,17 +65,17 @@ CaptureFrameProvider::CaptureFrameProvider(const Milliseconds& interval,
   m_config->onNewFrame(FrameHandler {output});
 }
 
-void CaptureFrameProvider::process(Void*) {
+void ScreenCapture::process(Void*) {
   m_wakeup_timer.restart();
   m_wakeup_timer.wait();
 }
 
-void CaptureFrameProvider::setup() {
+void ScreenCapture::setup() {
   m_capture = m_config->start_capturing();
   m_capture->setFrameChangeInterval(m_interval);
 }
 
-void CaptureFrameProvider::teardown() {
+void ScreenCapture::teardown() {
   m_capture.reset();
 }
 

@@ -3,6 +3,7 @@ ScreenCaptureLite/16.1.0@0xd34d10cc/testing
 glfw/3.2.1.20180327@bincrafters/stable
 boost/1.67.0@conan/stable
 openh264/1.7.0@bincrafters/stable
+ffmpeg/4.0@bincrafters/stable
 
 [generators]
 cmake
@@ -35,3 +36,5 @@ boost:without_python =  True
 boost:without_stacktrace =  True
 boost:without_test =  True
 boost:without_type_erasure =  True
+ffmpeg:iconv = False
+ffmpeg:x264 = True

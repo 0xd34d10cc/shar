@@ -53,7 +53,7 @@ std::unique_ptr<uint8_t[]> yuv420p_to_bgra(const std::uint8_t* ys,
 
 }
 
-namespace shar::codecs::h264 {
+namespace shar::codecs::openh264 {
 
 Decoder::Decoder() {
   WelsCreateDecoder(&m_decoder);

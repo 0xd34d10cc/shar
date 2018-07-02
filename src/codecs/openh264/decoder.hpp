@@ -11,7 +11,7 @@
 #include "packet.hpp"
 
 
-namespace shar::codecs::h264 {
+namespace shar::codecs::openh264 {
 
 class Decoder {
 public:

@@ -10,7 +10,7 @@
 #include "queues/frames_queue.hpp"
 #include "queues/packets_queue.hpp"
 #include "processors/packet_sender.hpp"
-#include "processors/capture_frame_provider.hpp"
+#include "processors/screen_capture.hpp"
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
 
@@ -58,7 +58,7 @@ int main() {
   shar::PacketsQueue packets_to_send;
 
   // setup processors pipeline
-  shar::CaptureFrameProvider capture {interval,        monitor, captured_frames};
+  shar::ScreenCapture capture {interval,        monitor, captured_frames};
   shar::H264Encoder          encoder {frame_size,      bitrate, fps,
                                       captured_frames, packets_to_send};
   shar::PacketSender         sender  {packets_to_send, host};

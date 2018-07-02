@@ -70,9 +70,9 @@ std::array<ChannelData, 3> bgra_to_yuv420p(const shar::Image& image) {
 }
 }
 
-namespace shar::codecs::h264 {
+namespace shar::codecs::openh264 {
 
-Encoder::Encoder(Size frame_size, std::size_t bit_rate, int fps) {
+Encoder::Encoder(Size frame_size, std::size_t bit_rate, std::size_t fps) {
   m_frame_ind = 0;
   int rv = WelsCreateSVCEncoder(&m_encoder);
   assert(rv == 0);
@@ -80,7 +80,7 @@ Encoder::Encoder(Size frame_size, std::size_t bit_rate, int fps) {
   (void)rv;
   memset(&m_params, 0, sizeof(SEncParamBase));
   m_params.iUsageType     = SCREEN_CONTENT_REAL_TIME;
-  m_params.fMaxFrameRate  = fps;
+  m_params.fMaxFrameRate  = static_cast<int>(fps);
   m_params.iPicWidth      = static_cast<int>(frame_size.width());
   m_params.iPicHeight     = static_cast<int>(frame_size.height());
   m_params.iTargetBitrate = static_cast<int>(bit_rate);

@@ -2,7 +2,7 @@
 #include <thread>
 
 #include "queues/frames_queue.hpp"
-#include "processors/capture_frame_provider.hpp"
+#include "processors/screen_capture.hpp"
 #include "processors/frame_file_writer.hpp"
 
 
@@ -14,7 +14,7 @@ int main() {
   auto        interval = 1000ms / fps;
   sc::Monitor monitor  = sc::GetMonitors().front();
 
-  shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
+  shar::ScreenCapture capture {interval, monitor, captured_frames};
   shar::FrameFileWriter      writer {"example.bgra", captured_frames};
 
   std::thread capture_thread {[&] {

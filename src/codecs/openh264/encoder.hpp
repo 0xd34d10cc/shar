@@ -10,11 +10,11 @@
 #include "packet.hpp"
 #include "primitives/image.hpp"
 
-namespace shar::codecs::h264 {
+namespace shar::codecs::openh264 {
   
 class Encoder {
 public:
-  Encoder(Size frame_size, std::size_t bitrate, int fps);
+  Encoder(Size frame_size, std::size_t bitrate, std::size_t fps);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder &&) = delete; // TODO: implement
   ~Encoder();

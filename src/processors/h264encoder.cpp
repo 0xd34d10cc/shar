@@ -3,7 +3,7 @@
 
 namespace shar {
 
-H264Encoder::H264Encoder(Size frame_size, std::size_t bitrate, int fps,
+H264Encoder::H264Encoder(Size frame_size, std::size_t bitrate, std::size_t fps,
                          FramesQueue& input, PacketsQueue& output)
     : Processor("H264Encoder", input, output)
     , m_encoder(frame_size, bitrate, fps) {}

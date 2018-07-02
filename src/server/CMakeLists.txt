@@ -1,8 +1,8 @@
 add_executable(server 
         main.cpp
         ../packet.cpp
-        ../codecs/h264/encoder.cpp
-        ../processors/capture_frame_provider.cpp
+               ../codecs/openh264/encoder.cpp
+               ../processors/screen_capture.cpp
         ../processors/packet_sender.cpp
         ../processors/h264encoder.cpp
         ../primitives/image.cpp

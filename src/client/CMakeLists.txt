@@ -3,7 +3,7 @@ add_executable(client
         ../texture.cpp
         ../window.cpp
         ../packet.cpp
-        ../codecs/h264/decoder.cpp
+               ../codecs/openh264/decoder.cpp
         ../processors/packet_receiver.cpp
         ../processors/h264decoder.cpp
         ../primitives/image.cpp
