@@ -21,13 +21,13 @@ using Milliseconds = std::chrono::milliseconds;
 
 namespace shar {
 
-class CaptureFrameProvider : public Source<CaptureFrameProvider, FramesQueue> {
+class ScreenCapture : public Source<ScreenCapture, FramesQueue> {
 public:
-  CaptureFrameProvider(const Milliseconds& interval,
+  ScreenCapture(const Milliseconds& interval,
                        const sc::Monitor& monitor,
                        FramesQueue& output);
-  CaptureFrameProvider(const CaptureFrameProvider&) = delete;
-  CaptureFrameProvider(CaptureFrameProvider&&) = delete;
+  ScreenCapture(const ScreenCapture&) = delete;
+  ScreenCapture(ScreenCapture&&) = delete;
 
   void setup();
   void process(Void*);

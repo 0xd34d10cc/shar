@@ -10,9 +10,10 @@
 #include "queues/frames_queue.hpp"
 #include "queues/packets_queue.hpp"
 #include "processors/packet_sender.hpp"
-#include "processors/capture_frame_provider.hpp"
+#include "processors/screen_capture.hpp"
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
+
 
 namespace sc = SL::Screen_Capture;
 namespace pt = boost::property_tree;
@@ -30,16 +31,16 @@ int main() {
 
   // TODO: make it configurable
   auto        monitor = sc::GetMonitors().front();
-  std::size_t width   = root.get<std::size_t>("width",  static_cast<std::size_t>(monitor.Width));
+  std::size_t width   = root.get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   std::size_t height  = root.get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
 
-  shar::Size  frame_size {height, width};
+  shar::Size frame_size {height, width};
 
   using namespace std::chrono_literals;
-  const int         fps       = root.get<int>("fps", 30);
-  const auto        interval  = 1000ms / fps;
-  const std::size_t bitrate   = root.get<std::size_t>("bitrate", 5000000);
-  const std::string conf_ip   = root.get<std::string>("host", "127.0.0.1");
+  const std::size_t fps      = root.get<std::size_t>("fps", 30);
+  const auto        interval = 1000ms / fps;
+  const std::size_t bitrate  = root.get<std::size_t>("bitrate", 5000000);
+  const std::string conf_ip  = root.get<std::string>("host", "127.0.0.1");
   ip::address       host;
 
   {
@@ -58,10 +59,10 @@ int main() {
   shar::PacketsQueue packets_to_send;
 
   // setup processors pipeline
-  shar::CaptureFrameProvider capture {interval,        monitor, captured_frames};
-  shar::H264Encoder          encoder {frame_size,      bitrate, fps,
-                                      captured_frames, packets_to_send};
-  shar::PacketSender         sender  {packets_to_send, host};
+  shar::ScreenCapture capture {interval, monitor, captured_frames};
+  shar::H264Encoder   encoder {frame_size, bitrate, fps,
+                               captured_frames, packets_to_send};
+  shar::PacketSender  sender {packets_to_send, host};
 
   // start processors
   std::thread capture_thread {[&] {

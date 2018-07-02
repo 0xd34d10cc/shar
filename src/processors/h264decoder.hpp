@@ -3,7 +3,8 @@
 #include "processors/processor.hpp"
 #include "queues/packets_queue.hpp"
 #include "queues/frames_queue.hpp"
-#include "codecs/h264/decoder.hpp"
+#include "codecs/ffmpeg/decoder.hpp"
+//#include "codecs/openh264/decoder.hpp"
 
 
 namespace shar {
@@ -15,7 +16,7 @@ public:
   void process(Packet* packet);
 
 private:
-  codecs::h264::Decoder m_decoder;
+  codecs::ffmpeg::Decoder m_decoder;
 };
 
 }

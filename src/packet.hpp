@@ -21,6 +21,7 @@ public:
 
   bool empty() const;
   const std::uint8_t* data() const;
+  std::uint8_t* data();
   std::size_t size() const;
 
 private:

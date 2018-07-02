@@ -8,7 +8,7 @@
 #include "queues/packets_queue.hpp"
 #include "processors/packet_sender.hpp"
 #include "processors/packet_receiver.hpp"
-#include "processors/capture_frame_provider.hpp"
+#include "processors/screen_capture.hpp"
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
 #include "processors/h264decoder.hpp"
@@ -22,7 +22,7 @@ namespace sc = SL::Screen_Capture;
 //        -> FrameDisplay[Frames => NULL]
 
 // "server":
-//    CaptureFrameProvider[WindowManager => Frames]
+//    ScreenCapture[WindowManager => Frames]
 //      -> FrameDisplay[Frames => Frames]
 //        -> H264Encoder[Frames => Packets]
 //           -> PacketsSender
@@ -49,12 +49,12 @@ int main() {
 
   // setup processors pipeline
 
-  shar::CaptureFrameProvider capture {interval, monitor, captured_frames};
-  shar::H264Encoder          encoder {frame_size, 5000000 /* bitrate */, fps,
-                                      captured_frames, packets_to_send};
-  shar::PacketSender         sender {packets_to_send, ip};
-  shar::PacketReceiver       receiver {ip, received_packets};
-  shar::H264Decoder          decoder {received_packets, decoded_frames};
+  shar::ScreenCapture  capture {interval, monitor, captured_frames};
+  shar::H264Encoder    encoder {frame_size, 5000000 /* bitrate */, fps,
+                                captured_frames, packets_to_send};
+  shar::PacketSender   sender {packets_to_send, ip};
+  shar::PacketReceiver receiver {ip, received_packets};
+  shar::H264Decoder    decoder {received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
   using Display = shar::FrameDisplay<Sink>;

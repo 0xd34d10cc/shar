@@ -11,21 +11,21 @@
 #include "window.hpp"
 
 namespace {
-/*
-void GLAPIENTRY opengl_error_callback(GLenum source,
-                                      GLenum type,
-                                      GLuint id ,
-                                      GLenum severity,
-                                      GLsizei length ,
-                                      const GLchar* message,
-                                      const void* userParam ) {
-  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
-            << "type = " << type
-            << ", severity = " << severity
-            << ", message = " << message
-            << std::endl;
-}
-*/
+
+//void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
+//                                      GLenum type,
+//                                      GLuint /*id */,
+//                                      GLenum severity,
+//                                      GLsizei /*length */,
+//                                      const GLchar* message,
+//                                      const void* /*userParam */) {
+//  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
+//            << "type = " << type
+//            << ", severity = " << severity
+//            << ", message = " << message
+//            << std::endl;
+//}
+
 }
 
 namespace shar {
@@ -91,8 +91,8 @@ Window::SystemWindow* Window::create_window(Size size) {
 
   // TODO: disable in release
   // enable debug output
-  //glEnable(GL_DEBUG_OUTPUT);
-  //glDebugMessageCallback(opengl_error_callback, nullptr);
+//  glEnable(GL_DEBUG_OUTPUT);
+//  glDebugMessageCallback(opengl_error_callback, nullptr);
 
   return window;
 }
