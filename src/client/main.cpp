@@ -14,17 +14,18 @@
 #include "processors/frame_display.hpp"
 #include "processors/h264decoder.hpp"
 
-int main(int argc, const char *argv[]) {
+
+int main(int argc, const char* argv[]) {
 
   namespace po = boost::program_options;
-  using IpAddress = boost::asio::ip::address; 
+  using IpAddress = boost::asio::ip::address;
 
-  po::options_description desc{ "Options" };
+  po::options_description desc {"Options"};
   desc.add_options()
-    ("help, h", "Help")
-    ("width"  , po::value<size_t>()->default_value(1920), "Width of the screen") //get default values from opengl
-    ("height" , po::value<size_t>()->default_value(1080), "Height of the screen")
-    ("host"   , po::value<std::string>()->default_value("127.0.0.1"), "IP of the server");
+          ("help, h", "Help")
+          ("width", po::value<size_t>()->default_value(1920), "Width of the screen") //get default values from opengl
+          ("height", po::value<size_t>()->default_value(1080), "Height of the screen")
+          ("host", po::value<std::string>()->default_value("127.0.0.1"), "IP of the server");
 
   po::variables_map vm;
   po::store(parse_command_line(argc, argv, desc), vm);
@@ -37,7 +38,7 @@ int main(int argc, const char *argv[]) {
       return 0;
     }
     else {
-      const std::string input_host = vm["host"].as<std::string>();
+      const std::string         input_host = vm["host"].as<std::string>();
       boost::system::error_code ec;
       ip = boost::asio::ip::address::from_string(input_host, ec);
       if (ec != boost::system::errc::success) {
@@ -46,33 +47,33 @@ int main(int argc, const char *argv[]) {
       }
     }
   }
-    
+
   const std::size_t width  = vm["width"].as<size_t>();
   const std::size_t height = vm["height"].as<size_t>();
 
-  std::cout << "Starting with Host: " << vm["host"].as<std::string>() << 
-                          " Screen: " << width << "x" << height << std::endl;
-  
-  const shar::Size           frame_size{ height, width };
-  shar::Window               window{ frame_size };;
+  std::cout << "Starting with Host: " << vm["host"].as<std::string>() <<
+            " Screen: " << width << "x" << height << std::endl;
 
-  shar::PacketsQueue         received_packets;
-  shar::FramesQueue          decoded_frames;
+  const shar::Size frame_size {height, width};
+  shar::Window     window {frame_size};;
+
+  shar::PacketsQueue received_packets;
+  shar::FramesQueue  decoded_frames;
 
   using Sink = shar::NullQueue<shar::Image>;
-  Sink                       sink;
-  shar::PacketReceiver       receiver{ ip, received_packets };
-  shar::H264Decoder          decoder{ received_packets, decoded_frames };
-  shar::FrameDisplay<Sink>   display{ window, decoded_frames, sink };
+  Sink                     sink;
+  shar::PacketReceiver     receiver {ip, received_packets};
+  shar::H264Decoder        decoder {received_packets, decoded_frames};
+  shar::FrameDisplay<Sink> display {window, decoded_frames, sink};
 
   // start processors
-  std::thread receiver_thread{ [&] {
+  std::thread receiver_thread {[&] {
     receiver.run();
-  } };
+  }};
 
-  std::thread decoder_thread{ [&] {
+  std::thread decoder_thread {[&] {
     decoder.run();
-  } };
+  }};
 
   // run gui thread
   display.run();

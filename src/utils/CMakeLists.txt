@@ -19,7 +19,7 @@ add_executable(record
                ../primitives/image.cpp)
 target_include_directories(record PRIVATE ..)
 target_link_libraries(record
-                      screen_capture_lite
+                      ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${SC_PLATFORM_LIBS})
 target_compile_options(record PRIVATE ${ENABLED_WARNINGS})
 
@@ -28,6 +28,7 @@ target_compile_options(record PRIVATE ${ENABLED_WARNINGS})
 add_executable(latency
                latency.cpp
                ../packet.cpp
+               ../codecs/convert.cpp
                ../codecs/ffmpeg/encoder.cpp
                ../codecs/ffmpeg/decoder.cpp
                ../processors/frame_file_reader.cpp
@@ -47,10 +48,9 @@ add_executable(pipeline_test
                ../packet.cpp
                ../texture.cpp
                ../window.cpp
+               ../codecs/convert.cpp
                ../codecs/ffmpeg/encoder.cpp
                ../codecs/ffmpeg/decoder.cpp
-               ../codecs/openh264/encoder.cpp
-               ../codecs/openh264/decoder.cpp
                ../processors/screen_capture.cpp
                ../processors/h264encoder.cpp
                ../processors/h264decoder.cpp
@@ -66,7 +66,7 @@ target_include_directories(pipeline_test
                            )
 
 target_link_libraries(pipeline_test
-                      screen_capture_lite
+                      ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_GLFW}
                       ${CONAN_LIBS_OPENH264}
@@ -77,14 +77,3 @@ target_link_libraries(pipeline_test
                       )
 
 target_compile_options(pipeline_test PRIVATE ${ENABLED_WARNINGS})
-
-
-add_executable(ffmpeg_test
-               ffmpeg_test.cpp
-               ../packet.cpp
-               ../codecs/ffmpeg/decoder.cpp
-               ../codecs/ffmpeg/encoder.cpp
-               ../primitives/image.cpp
-               )
-target_include_directories(ffmpeg_test PRIVATE ..)
-target_link_libraries(ffmpeg_test avcodec avutil)
