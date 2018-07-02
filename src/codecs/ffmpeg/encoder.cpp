@@ -1,5 +1,5 @@
 #include <cassert>
-
+#include <iostream>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -13,34 +13,52 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
+static AVCodec* select_codec() {
+  static std::array<const char*, 8> codecs = {
+      "h264_nvenc",
+      "nvenc_h264",
+      "nvenc",
+      "dxva_h264",
+      "h264_vaapi",
+      "h264_cuvid",
+      "h264_omx",
+      "libmfx"
+  };
+
+  for (const char* name: codecs) {
+    if (auto* codec = avcodec_find_encoder_by_name(name)) {
+      std::cout << "Using " << name << " encoder" << std::endl;
+      return codec;
+    }
+  }
+
+  std::cout << "Using default h264 encoder" << std::endl;
+  return avcodec_find_encoder(AV_CODEC_ID_H264);
+}
+
+
 Encoder::Encoder(Size /*frame_size*/, std::size_t bitrate, std::size_t fps)
     : m_context(nullptr)
     , m_encoder(nullptr) {
-  m_encoder = avcodec_find_encoder_by_name("h264_nvenc");
+  m_encoder = select_codec();
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
 
-  m_context->max_b_frames            = 1;
-  m_context->gop_size                = 10;
   m_context->bit_rate                = static_cast<int>(bitrate);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
   m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
+  // FIXME: unhardcode
   m_context->width                   = 1920;
   m_context->height                  = 1080;
   m_context->max_pixels              = 1920 * 1080;
-  // "unknown"
   m_context->sample_aspect_ratio.num = 16;
   m_context->sample_aspect_ratio.den = 9;
 
   AVDictionary* opts = nullptr;
-  if (av_dict_set(&opts, "b", "2.5M", 0) < 0) {
-    assert(false);
-  }
-
   if (avcodec_open2(m_context, m_encoder, &opts) < 0) {
     assert(false);
   }
@@ -49,13 +67,13 @@ Encoder::Encoder(Size /*frame_size*/, std::size_t bitrate, std::size_t fps)
 
 Encoder::~Encoder() {
   avcodec_free_context(&m_context);
+
   m_context = nullptr;
-  // why there is no encoder_free function in libavcodec?
   m_encoder = nullptr;
 }
 
 std::vector<Packet> Encoder::encode(const shar::Image& image) {
-  auto [y, u, v] = bgra_to_yuv420(image);
+  auto[y, u, v] = bgra_to_yuv420(image);
 
   AVFrame* frame = av_frame_alloc();
   std::fill_n(reinterpret_cast<char*>(frame), sizeof(AVFrame), 0);
@@ -73,7 +91,7 @@ std::vector<Packet> Encoder::encode(const shar::Image& image) {
 
   int ret = avcodec_send_frame(m_context, frame);
 
-  if (ret == AVERROR(EAGAIN) || ret == 0) {
+  if (ret == 0) {
     std::vector<Packet> packets;
 
     AVPacket packet;

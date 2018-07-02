@@ -28,25 +28,22 @@ namespace shar::codecs::ffmpeg {
 Decoder::Decoder()
     : m_context(nullptr)
     , m_decoder(nullptr) {
-  m_decoder = avcodec_find_decoder_by_name("h264");
+  m_decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
   m_context = avcodec_alloc_context3(m_decoder);
 
   assert(m_decoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
 
-
   m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
+  // FIXME: unhardcode
   m_context->width                   = 1920;
   m_context->height                  = 1080;
   m_context->max_pixels              = 1920 * 1080;
   m_context->get_format              = get_format;
-  // "unknown"
   m_context->sample_aspect_ratio.num = 16;
   m_context->sample_aspect_ratio.den = 9;
-
-  // FIXME
-  m_context->get_buffer2 = avcodec_default_get_buffer2;
+  m_context->get_buffer2             = avcodec_default_get_buffer2;
 
   AVDictionary* opts = nullptr;
   if (avcodec_open2(m_context, m_decoder, &opts) < 0) {
@@ -56,10 +53,9 @@ Decoder::Decoder()
 
 Decoder::~Decoder() {
   avcodec_free_context(&m_context);
-  m_context = nullptr;
-  // why there is no encoder_free function in libavcodec?
-  m_decoder = nullptr;
 
+  m_context = nullptr;
+  m_decoder = nullptr;
 }
 
 Image Decoder::decode(shar::Packet packet) {
@@ -98,7 +94,6 @@ Image Decoder::decode(shar::Packet packet) {
   uint8_t* y = frame->data[0];
   uint8_t* u = frame->data[1];
   uint8_t* v = frame->data[2];
-
 
   auto bytes = yuv420_to_bgra(y, u, v, height, width, y_pad, uv_pad);
   return Image {std::move(bytes.data), Size {height, width}};
