@@ -51,6 +51,7 @@ private:
     Client(const Client&) = delete;
 
     bool is_running() const;
+    bool is_initialized() const;
 
     using U32LE = std::array<std::uint8_t, 4>;
     using PacketsQueue = std::queue<SharedPacket>;
