@@ -5,26 +5,34 @@ namespace shar {
 
 Packet::Packet()
     : m_bytes(nullptr)
-    , m_size(0) {}
+    , m_size(0)
+    , m_type(Type::Unknown) {}
 
 Packet::Packet(void* data, std::size_t size)
     : m_bytes(static_cast<std::uint8_t*>(data))
-    , m_size(size) {}
+    , m_size(size)
+    , m_type(Type::Unknown) {}
 
-Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size)
+Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type)
     : m_bytes(std::move(data))
-    , m_size(size) {}
+    , m_size(size)
+    , m_type(type) {}
 
 Packet::Packet(Packet&& from)
     : m_bytes(std::move(from.m_bytes))
-    , m_size(from.m_size) {
+    , m_size(from.m_size)
+    , m_type(from.m_type) {
   from.m_size = 0;
+  from.m_type = Type::Unknown;
 }
 
 Packet& Packet::operator=(Packet&& from) {
   if (this != &from) {
     m_bytes = std::move(from.m_bytes);
     m_size  = from.m_size;
+    m_type  = from.m_type;
+
+    from.m_type = Type::Unknown;
     from.m_size = 0;
   }
   return *this;
@@ -44,6 +52,10 @@ std::uint8_t* Packet::data() {
 
 std::size_t Packet::size() const {
   return m_size;
+}
+
+Packet::Type Packet::type() const {
+  return m_type;
 }
 
 } // namespace shar

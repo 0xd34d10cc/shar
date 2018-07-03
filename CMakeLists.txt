@@ -55,7 +55,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-c++98-compat-pedantic
         -Wno-padded
         -Wno-newline-eof
-        -Wno-missing-braces)
+        -Wno-missing-braces
+        -Wno-global-constructors
+        -Wno-exit-time-destructors)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     set(ENABLED_WARNINGS -Wall -Wextra -pedantic)
