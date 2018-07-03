@@ -38,7 +38,6 @@ int main() {
   }
 
   pt::ptree root;
-
   try {
     pt::read_json("config.json", root);
   } catch (const pt::json_parser::json_parser_error&) {

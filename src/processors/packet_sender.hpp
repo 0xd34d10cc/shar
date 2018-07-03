@@ -17,7 +17,9 @@ namespace shar {
 
 class PacketSender : public Sink<PacketSender, PacketsQueue> {
 public:
-  PacketSender(PacketsQueue& input, boost::asio::ip::address ip);
+  using IpAddress = boost::asio::ip::address;
+
+  PacketSender(PacketsQueue& input, IpAddress ip);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -35,13 +37,21 @@ private:
   using ClientId = std::size_t;
 
   struct Client {
+    enum class StreamState {
+      Initial,
+      IDRReceived
+    };
+
     enum class State {
       SendingLength,
       SendingContent
     };
 
     Client(Socket socket);
+    Client(const Client&) = delete;
+
     bool is_running() const;
+    bool is_initialized() const;
 
     using U32LE = std::array<std::uint8_t, 4>;
     using PacketsQueue = std::queue<SharedPacket>;
@@ -53,6 +63,7 @@ private:
     bool         m_is_running;
     Socket       m_socket;
     PacketsQueue m_packets;
+    StreamState  m_stream_state;
   };
 
   using Clients = std::unordered_map<ClientId, Client>;
@@ -60,11 +71,11 @@ private:
   void run_client(ClientId id);
   void handle_write(std::size_t bytes_sent, ClientId to_client);
 
-  boost::asio::ip::address m_ip;
-  Clients  m_clients;
-  Context  m_context;
-  Socket   m_current_socket;
-  Acceptor m_acceptor;
+  IpAddress m_ip;
+  Clients   m_clients;
+  Context   m_context;
+  Socket    m_current_socket;
+  Acceptor  m_acceptor;
 };
 
 } // namespace shar

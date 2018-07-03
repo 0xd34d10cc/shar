@@ -2,9 +2,12 @@
 #include <iostream>
 
 #include "disable_warnings_push.hpp"
+
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
+
 #include "disable_warnings_pop.hpp"
 
 #include "codecs/convert.hpp"
@@ -99,13 +102,14 @@ std::vector<Packet> Encoder::encode(const shar::Image& image) {
 
     ret = avcodec_receive_packet(m_context, &packet);
     while (ret != AVERROR(EAGAIN)) {
-      // convert packet
-
       std::size_t size = static_cast<std::size_t>(packet.size);
       auto        data = std::make_unique<std::uint8_t[]>(size);
       std::copy(packet.data, packet.data + size, data.get());
 
-      packets.emplace_back(std::move(data), size);
+      const bool is_IDR = (packet.flags & AV_PKT_FLAG_KEY) != 0;
+      const auto type   = is_IDR ? Packet::Type::IDR : Packet::Type::Unknown;
+
+      packets.emplace_back(std::move(data), size, type);
 
       // reset packet
       std::fill_n(reinterpret_cast<char*>(&packet), sizeof(AVPacket), 0);

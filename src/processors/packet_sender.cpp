@@ -12,20 +12,20 @@ PacketSender::Client::Client(Socket socket)
     , m_bytes_sent(0)
     , m_is_running(false)
     , m_socket(std::move(socket))
-    , m_packets() {}
+    , m_packets()
+    , m_stream_state(StreamState::Initial) {}
 
 bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsQueue& input, boost::asio::ip::address ip)
+PacketSender::PacketSender(PacketsQueue& input, IpAddress ip)
     : Sink("PacketSender", input)
     , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
-    , m_acceptor(m_context) // ???
-{}
+    , m_acceptor(m_context) {}
 
 void PacketSender::process(Packet* packet) {
   using namespace std::chrono_literals;
@@ -75,10 +75,18 @@ void PacketSender::run_client(ClientId id) {
   if (client.m_packets.empty() || client.is_running()) {
     return;
   }
-  client.m_is_running = true;
 
   auto& packet = client.m_packets.front();
+  if (client.m_stream_state == Client::StreamState::Initial) {
+    if (packet->type() != Packet::Type::IDR) {
+      // don't send P or B frames before IDR is received
+      client.m_packets.pop();
+      return;
+    }
+    client.m_stream_state = Client::StreamState::IDRReceived;
+  }
 
+  client.m_is_running = true;
   switch (client.m_state) {
     case Client::State::SendingLength: {
       const auto size = packet->size();
