@@ -1,6 +1,8 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
+#include <condition_variable>
+#include <csignal>
 
 #include "disable_warnings_push.hpp"
 #include <boost/property_tree/ptree.hpp>
@@ -15,11 +17,26 @@
 #include "processors/h264encoder.hpp"
 
 
+static std::mutex              mutex;
+static std::condition_variable signal_to_exit;
+static std::atomic<bool>       is_running = false;
+
 namespace sc = SL::Screen_Capture;
 namespace pt = boost::property_tree;
 namespace ip = boost::asio::ip;
 
+static void signal_handler(int /*signum*/) {
+  std::lock_guard lock(mutex);
+  is_running = false;
+  signal_to_exit.notify_all();
+}
+
 int main() {
+  // setup signal handler
+  if (signal(SIGINT, signal_handler) == SIG_ERR) {
+    std::cerr << "Failed to setup signal handler" << std::endl;
+  }
+
   pt::ptree root;
 
   try {
@@ -76,6 +93,14 @@ int main() {
   std::thread sender_thread {[&] {
     sender.run();
   }};
+
+  std::unique_lock lock(mutex);
+  is_running = true;
+  while (is_running) {
+    signal_to_exit.wait(lock);
+  }
+
+  std::cerr << "Stopping all processors..." << std::endl;
 
   sender.stop();
   encoder.stop();
