@@ -2,12 +2,9 @@
 #include <iostream>
 
 #include "disable_warnings_push.hpp"
-
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
-
 #include "disable_warnings_pop.hpp"
 
 #include "codecs/convert.hpp"
@@ -40,9 +37,11 @@ static AVCodec* select_codec() {
 }
 
 
-Encoder::Encoder(Size /*frame_size*/, std::size_t bitrate, std::size_t fps)
+Encoder::Encoder(Size frame_size, std::size_t fps, const Config& config)
     : m_context(nullptr)
     , m_encoder(nullptr) {
+
+  // TODO: allow manual codec selection
   m_encoder = select_codec();
   m_context = avcodec_alloc_context3(m_encoder);
 
@@ -50,18 +49,24 @@ Encoder::Encoder(Size /*frame_size*/, std::size_t bitrate, std::size_t fps)
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
 
-  m_context->bit_rate                = static_cast<int>(bitrate);
+  std::size_t bit_rate = config.get<std::size_t>("bitrate", 5000) * 1024; // in kbits
+  m_context->bit_rate                = static_cast<int>(bit_rate);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
   m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
+  m_context->width                   = static_cast<int>(frame_size.width());
+  m_context->height                  = static_cast<int>(frame_size.height());
+  m_context->max_pixels              = m_context->width * m_context->height;
   // FIXME: unhardcode
-  m_context->width                   = 1920;
-  m_context->height                  = 1080;
-  m_context->max_pixels              = 1920 * 1080;
   m_context->sample_aspect_ratio.num = 16;
   m_context->sample_aspect_ratio.den = 9;
 
   AVDictionary* opts = nullptr;
+  for (const auto&[key, value]: config) {
+    // TODO: handle errors here
+    av_dict_set(&opts, key.c_str(), value.get_value<std::string>().c_str(), 0 /* flags */);
+  }
+
   if (avcodec_open2(m_context, m_encoder, &opts) < 0) {
     assert(false);
   }

@@ -36,7 +36,8 @@ int main() {
   shar::FileParams      params {"example.bgra", frame_size, frame_rate };
   shar::FrameFileReader reader {std::move(params), input_frames};
 
-  shar::H264Encoder encoder {frame_size, 5000000, frame_rate,
+  auto config = shar::Config::make_default();
+  shar::H264Encoder encoder {frame_size, frame_rate, config.get_subconfig("encoder"),
                              frames_after_timestamp, encoded_packets};
   shar::H264Decoder decoder {encoded_packets, output_frames};
 

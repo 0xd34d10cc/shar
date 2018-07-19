@@ -3,10 +3,10 @@
 
 namespace shar {
 
-H264Encoder::H264Encoder(Size frame_size, std::size_t bitrate, std::size_t fps,
+H264Encoder::H264Encoder(Size frame_size, std::size_t fps, const Config& config,
                          FramesQueue& input, PacketsQueue& output)
     : Processor("H264Encoder", input, output)
-    , m_encoder(frame_size, bitrate, fps) {}
+    , m_encoder(frame_size, fps, config) {}
 
 
 void H264Encoder::process(shar::Image* frame) {
