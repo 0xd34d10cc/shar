@@ -49,7 +49,8 @@ Encoder::Encoder(Size frame_size, std::size_t fps, const Config& config)
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
 
-  std::size_t bit_rate = config.get<std::size_t>("bitrate", 5000) * 1024; // in kbits
+  std::string kbits = config.get<std::string>("bitrate", "5000");
+  std::size_t bit_rate = std::stoul(kbits) * 1024;
   m_context->bit_rate                = static_cast<int>(bit_rate);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
