@@ -47,10 +47,11 @@ int main() {
   shar::PacketsQueue received_packets;
   shar::FramesQueue  decoded_frames;
 
-  // setup processors pipeline
+  const auto config = shar::Config::make_default();
 
+  // setup processors pipeline
   shar::ScreenCapture  capture {interval, monitor, captured_frames};
-  shar::H264Encoder    encoder {frame_size, 5000000 /* bitrate */, fps,
+  shar::H264Encoder    encoder {frame_size, fps, config.get_subconfig("encoder"),
                                 captured_frames, packets_to_send};
   shar::PacketSender   sender {packets_to_send, ip};
   shar::PacketReceiver receiver {ip, received_packets};

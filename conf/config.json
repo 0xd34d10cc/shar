@@ -3,5 +3,8 @@
     "height": 1080,
     "fps": 30,
     "host": "127.0.0.1",
-    "bitrate": 5000000
+
+    "encoder": {
+        "bitrate": "11000"
+    }
  }

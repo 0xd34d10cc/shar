@@ -1,6 +1,7 @@
 add_executable(server
                main.cpp
                ../packet.cpp
+               ../config.hpp
                ../codecs/convert.cpp
                ../codecs/ffmpeg/encoder.cpp
                ../processors/screen_capture.cpp
