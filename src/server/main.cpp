@@ -76,7 +76,7 @@ static int run() {
   }};
 
   // wait for sigint (ctrl+c)
-  std::unique_lock lock(mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   is_running = true;
   while (is_running) {
     signal_to_exit.wait(lock);
