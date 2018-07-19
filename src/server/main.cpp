@@ -20,7 +20,7 @@ namespace sc = SL::Screen_Capture;
 namespace ip = boost::asio::ip;
 
 static void signal_handler(int /*signum*/) {
-  std::lock_guard lock(mutex);
+  std::lock_guard<std::mutex> lock(mutex);
   is_running = false;
   signal_to_exit.notify_all();
 }
