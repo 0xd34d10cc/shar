@@ -14,15 +14,14 @@ extern "C" {
 namespace shar::codecs::ffmpeg {
 
 static AVCodec* select_codec() {
-  static std::array<const char*, 8> codecs = {
+  static std::array<const char*, 7> codecs = {
       "h264_nvenc",
-      "nvenc_h264",
-      "nvenc",
-      "dxva_h264",
+      "h264_amf",
       "h264_vaapi",
-      "h264_cuvid",
-      "h264_omx",
-      "libmfx"
+      "h264_qsv",
+      "h264_v4l2m2m",
+      "h264_videotoolbox",
+      "h264_omx"
   };
 
   for (const char* name: codecs) {
