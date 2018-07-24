@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <atomic>
 
 #include "logger.hpp"
@@ -12,7 +11,7 @@ namespace shar {
 template<typename Process, typename InputQueue, typename OutputQueue>
 class Processor {
 public:
-  Processor(const char* name, Logger& logger, InputQueue& input, OutputQueue& output)
+  Processor(const char* name, Logger logger, InputQueue& input, OutputQueue& output)
       : m_name(name)
       , m_running(false)
       , m_logger(logger)
@@ -70,7 +69,7 @@ protected:
     return m_output;
   }
 
-  Logger& m_logger;
+  Logger m_logger;
 
 private:
   const char* m_name;

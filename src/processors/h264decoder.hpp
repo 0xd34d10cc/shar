@@ -11,7 +11,7 @@ namespace shar {
 
 class H264Decoder : public Processor<H264Decoder, PacketsQueue, FramesQueue> {
 public:
-  H264Decoder(PacketsQueue& input, Logger& logger, FramesQueue& output);
+  H264Decoder(Logger logger, PacketsQueue& input, FramesQueue& output);
 
   void process(Packet* packet);
 

@@ -3,7 +3,7 @@
 
 namespace shar {
 
-H264Decoder::H264Decoder(PacketsQueue& input, Logger& logger, FramesQueue& output)
+H264Decoder::H264Decoder(Logger logger, PacketsQueue& input, FramesQueue& output)
     : Processor("H264Decoder", logger, input, output)
     , m_decoder(logger) {}
 

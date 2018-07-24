@@ -15,7 +15,7 @@ class Window {
 public:
   using SystemWindow = GLFWwindow;
 
-  Window(Size size, Logger& logger);
+  Window(Size size, Logger logger);
   Window(const Window&) = delete;
   ~Window() noexcept;
 
@@ -36,7 +36,7 @@ private:
 
   SystemWindow* m_window;
   Size m_size;
-  Logger& m_logger;
+  Logger m_logger;
 };
 
 }

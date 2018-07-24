@@ -20,7 +20,7 @@ struct FileParams {
 
 class FrameFileReader : public Source<FrameFileReader, FramesQueue> {
 public:
-  FrameFileReader(FileParams params, Logger& logger, FramesQueue& output);
+  FrameFileReader(FileParams params, Logger logger, FramesQueue& output);
 
   void process(Void* /* dummy input */);
 private:

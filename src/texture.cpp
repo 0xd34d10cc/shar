@@ -1,7 +1,5 @@
 #include "texture.hpp"
 
-#include <iostream>
-
 #include "disable_warnings_push.hpp"
 #ifdef WIN32
 #define GL_BGRA 0x80E1

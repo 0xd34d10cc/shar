@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/frame_file_reader.hpp"
 
 
@@ -10,7 +8,7 @@ namespace shar {
 using namespace std::chrono_literals;
 
 FrameFileReader::FrameFileReader(FileParams file_params,
-                                 Logger& logger,
+                                 Logger logger,
                                  FramesQueue& output)
     : Source("FrameFileReader", logger, output)
     , m_file_params(std::move(file_params))

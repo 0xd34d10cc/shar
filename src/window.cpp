@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <iostream>
 
 #include "disable_warnings_push.hpp"
 
@@ -32,7 +31,7 @@ namespace shar {
 
 std::atomic<std::size_t> Window::instances {0};
 
-Window::Window(Size size, Logger& logger)
+Window::Window(Size size, Logger logger)
     : m_window(create_window(size))
     , m_size(size)
     , m_logger(logger) {
@@ -64,7 +63,7 @@ void Window::clear() noexcept {
 }
 
 static void on_error(int code, const char* description) {
-  std::cerr << "GLFW Error [" << code << "]: " << description << std::endl;
+  spdlog::get("shar_logger")->error("GLFW Error [{0}]:{1}", code, description);
 }
 
 Window::SystemWindow* Window::create_window(Size size) {

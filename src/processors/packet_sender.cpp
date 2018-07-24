@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/packet_sender.hpp"
 
 
@@ -19,7 +17,7 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsQueue& input, IpAddress ip, Logger& logger)
+PacketSender::PacketSender(PacketsQueue& input, IpAddress ip, Logger logger)
     : Sink("PacketSender", logger, input)
     , m_ip(ip)
     , m_clients()

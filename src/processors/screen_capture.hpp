@@ -25,7 +25,7 @@ class ScreenCapture : public Source<ScreenCapture, FramesQueue> {
 public:
   ScreenCapture(const Milliseconds& interval,
                 const sc::Monitor& monitor,
-                Logger& logger,
+                Logger logger,
                 FramesQueue& output);
   ScreenCapture(const ScreenCapture&) = delete;
   ScreenCapture(ScreenCapture&&) = delete;

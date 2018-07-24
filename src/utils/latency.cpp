@@ -1,5 +1,5 @@
 #include <thread>
-#include <iostream>
+
 #include <vector>
 #include <cstddef>
 #include <chrono>
@@ -40,7 +40,7 @@ int main() {
   auto config = shar::Config::make_default();
   shar::H264Encoder encoder {frame_size, frame_rate, config.get_subconfig("encoder"),
                              logger, frames_after_timestamp, encoded_packets};
-  shar::H264Decoder decoder {encoded_packets, logger, output_frames};
+  shar::H264Decoder decoder {logger, encoded_packets, output_frames};
 
   std::atomic<bool> reader_finished = false;
   std::thread       reader_thread {[&] {

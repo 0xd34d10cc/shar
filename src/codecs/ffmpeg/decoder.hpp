@@ -12,7 +12,7 @@ namespace shar::codecs::ffmpeg {
 
 class Decoder {
 public:
-  Decoder(Logger& logger);
+  Decoder(Logger logger);
   ~Decoder();
 
   Image decode(Packet packet);
@@ -20,7 +20,7 @@ private:
 
   AVCodecContext* m_context;
   AVCodec       * m_decoder;
-  Logger        & m_logger;
+  Logger          m_logger;
 };
 
 }

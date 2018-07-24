@@ -1,5 +1,5 @@
 #include <thread>
-#include <iostream>
+
 #include <chrono>
 #include <condition_variable>
 #include <csignal>

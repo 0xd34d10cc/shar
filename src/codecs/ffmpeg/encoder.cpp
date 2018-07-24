@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -13,13 +12,13 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger& logger) {
+static AVCodec* select_codec(Logger logger) {
   static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
-      //"h264_vaapi",
+      //"h264_vaapi", not supported yet
       "h264_qsv",
-      //"h264_v4l2m2m",
+      //"h264_v4l2m2m", not supported yet
       "h264_videotoolbox",
       "h264_omx"
   };
@@ -35,7 +34,7 @@ static AVCodec* select_codec(Logger& logger) {
 }
 
 
-Encoder::Encoder(Size frame_size, std::size_t fps, Logger& logger, const Config& config)
+Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
     , m_logger(logger)
     , m_encoder(nullptr) {

@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -24,7 +23,7 @@ static AVPixelFormat get_format(AVCodecContext* /*ctx*/, const enum AVPixelForma
 
 namespace shar::codecs::ffmpeg {
 
-Decoder::Decoder(Logger& logger)
+Decoder::Decoder(Logger logger)
     : m_context(nullptr)
     , m_logger(logger)
     , m_decoder(nullptr) {

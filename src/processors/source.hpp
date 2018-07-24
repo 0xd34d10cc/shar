@@ -11,7 +11,7 @@ class Source : public Processor<Producer, VoidQueue, OutputQueue> {
 public:
   using Base = Processor<Producer, VoidQueue, OutputQueue>;
 
-  Source(const char* name, Logger& logger, OutputQueue& output)
+  Source(const char* name, Logger logger, OutputQueue& output)
       : Base(name, logger, m_false_input, output) {}
 
 private:

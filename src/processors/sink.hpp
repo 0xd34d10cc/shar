@@ -11,7 +11,7 @@ class Sink : public Processor<Consumer, InputQueue, VoidQueue> {
 public:
   using Base = Processor<Consumer, InputQueue, VoidQueue>;
 
-  Sink(const char* name, Logger& logger, InputQueue& input)
+  Sink(const char* name, Logger logger, InputQueue& input)
       : Base(name, logger, input, m_false_output) {}
 
 private:

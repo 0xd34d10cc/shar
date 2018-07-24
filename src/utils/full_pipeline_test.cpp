@@ -1,5 +1,4 @@
 #include <thread>
-#include <iostream>
 #include <chrono>
 
 #include "window.hpp"
@@ -57,7 +56,7 @@ int main() {
                                 logger, captured_frames, packets_to_send};
   shar::PacketSender   sender {packets_to_send, ip, logger};
   shar::PacketReceiver receiver {ip, logger, received_packets};
-  shar::H264Decoder    decoder {received_packets, logger, decoded_frames};
+  shar::H264Decoder    decoder {logger, received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
   using Display = shar::FrameDisplay<Sink>;

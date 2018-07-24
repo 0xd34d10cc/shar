@@ -1,5 +1,4 @@
 #include <thread>
-#include <iostream> // replace with logger
 
 #include "disable_warnings_push.hpp"
 #include <boost/program_options.hpp>
@@ -63,7 +62,7 @@ int main(int argc, const char* argv[]) {
   using Sink = shar::NullQueue<shar::Image>;
   Sink                     sink;
   shar::PacketReceiver     receiver {ip, logger, received_packets};
-  shar::H264Decoder        decoder {received_packets, logger, decoded_frames};
+  shar::H264Decoder        decoder {logger, received_packets, decoded_frames};
   shar::FrameDisplay<Sink> display {window, logger, decoded_frames, sink};
 
   // start processors

@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/packet_receiver.hpp"
 
 
@@ -65,7 +63,7 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, Logger& logger, PacketsQueue& output)
+PacketReceiver::PacketReceiver(IpAddress server, Logger logger, PacketsQueue& output)
     : Source("PacketReceiver", logger, output)
     , m_reader()
     , m_buffer(4096, 0)

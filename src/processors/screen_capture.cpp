@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/screen_capture.hpp"
 
 
@@ -51,7 +49,7 @@ namespace shar {
 
 ScreenCapture::ScreenCapture(const Milliseconds& interval,
                              const sc::Monitor& monitor,
-                             Logger& logger,
+                             Logger logger,
                              FramesQueue& output)
     : Source("ScreenCapture", logger, output)
     , m_interval(interval)
