@@ -32,9 +32,10 @@ namespace shar {
 
 std::atomic<std::size_t> Window::instances {0};
 
-Window::Window(Size size)
+Window::Window(Size size, Logger& logger)
     : m_window(create_window(size))
-    , m_size(size) {
+    , m_size(size)
+    , m_logger(logger) {
   ++instances;
 }
 
@@ -86,7 +87,7 @@ Window::SystemWindow* Window::create_window(Size size) {
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+  m_logger.info("OpenGL {0}", glGetString(GL_VERSION));
   glEnable(GL_TEXTURE_2D);
 
   // TODO: disable in release

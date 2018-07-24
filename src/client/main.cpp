@@ -6,6 +6,7 @@
 #include <boost/asio/ip/address.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "logger.hpp"
 #include "window.hpp"
 #include "queues/null_queue.hpp"
 #include "queues/frames_queue.hpp"
@@ -14,12 +15,12 @@
 #include "processors/frame_display.hpp"
 #include "processors/h264decoder.hpp"
 
-
 int main(int argc, const char* argv[]) {
 
   namespace po = boost::program_options;
   using IpAddress = boost::asio::ip::address;
 
+  auto logger = shar::Logger("client.log");
   po::options_description desc {"Options"};
   desc.add_options()
           ("help, h", "Help")
@@ -38,7 +39,7 @@ int main(int argc, const char* argv[]) {
       return 0;
     }
     else {
-      const std::string         input_host = vm["host"].as<std::string>();
+      const std::string input_host = vm["host"].as<std::string>();
       boost::system::error_code ec;
       ip = boost::asio::ip::address::from_string(input_host, ec);
       if (ec != boost::system::errc::success) {
@@ -51,20 +52,19 @@ int main(int argc, const char* argv[]) {
   const std::size_t width  = vm["width"].as<size_t>();
   const std::size_t height = vm["height"].as<size_t>();
 
-  std::cout << "Starting with Host: " << vm["host"].as<std::string>() <<
-            " Screen: " << width << "x" << height << std::endl;
+  logger.info("Starting with Host: {0}, Screen {1}x{2}", vm["host"].as<std::string>(), width, height);
 
   const shar::Size frame_size {height, width};
-  shar::Window     window {frame_size};;
+  shar::Window     window {frame_size, logger};;
 
   shar::PacketsQueue received_packets;
   shar::FramesQueue  decoded_frames;
 
   using Sink = shar::NullQueue<shar::Image>;
   Sink                     sink;
-  shar::PacketReceiver     receiver {ip, received_packets};
-  shar::H264Decoder        decoder {received_packets, decoded_frames};
-  shar::FrameDisplay<Sink> display {window, decoded_frames, sink};
+  shar::PacketReceiver     receiver {ip, logger, received_packets};
+  shar::H264Decoder        decoder {received_packets, logger, decoded_frames};
+  shar::FrameDisplay<Sink> display {window, logger, decoded_frames, sink};
 
   // start processors
   std::thread receiver_thread {[&] {

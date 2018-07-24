@@ -17,7 +17,7 @@ using IpAddress = boost::asio::ip::address;
 
 class PacketReceiver : public Source<PacketReceiver, PacketsQueue> {
 public:
-  PacketReceiver(IpAddress server, PacketsQueue& output);
+  PacketReceiver(IpAddress server, Logger& logger, PacketsQueue& output);
 
   void setup();
   void process(Void*);

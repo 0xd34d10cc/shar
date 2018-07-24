@@ -13,35 +13,35 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec() {
-  static std::array<const char*, 7> codecs = {
+static AVCodec* select_codec(Logger& logger) {
+  static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
-      "h264_vaapi",
+      //"h264_vaapi",
       "h264_qsv",
-      "h264_v4l2m2m",
+      //"h264_v4l2m2m",
       "h264_videotoolbox",
       "h264_omx"
   };
 
   for (const char* name: codecs) {
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
-      std::cout << "Using " << name << " encoder" << std::endl;
+      logger.info("Using {0} encoder", name);
       return codec;
     }
   }
-
-  std::cout << "Using default h264 encoder" << std::endl;
+  logger.info("Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
 
-Encoder::Encoder(Size frame_size, std::size_t fps, const Config& config)
+Encoder::Encoder(Size frame_size, std::size_t fps, Logger& logger, const Config& config)
     : m_context(nullptr)
+    , m_logger(logger)
     , m_encoder(nullptr) {
 
   // TODO: allow manual codec selection
-  m_encoder = select_codec();
+  m_encoder = select_codec(logger);
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);

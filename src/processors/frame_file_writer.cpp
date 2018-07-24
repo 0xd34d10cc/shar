@@ -5,8 +5,8 @@ using mode = std::ios_base;
 
 namespace shar {
 
-FrameFileWriter::FrameFileWriter(const std::string& path, FramesQueue& input)
-    : Sink("FrameFileWriter", input)
+FrameFileWriter::FrameFileWriter(const std::string& path, Logger& logger, FramesQueue& input)
+    : Sink("FrameFileWriter", logger, input)
     , m_stream(path, mode::out | mode::binary) {}
 
 void FrameFileWriter::process(Image* frame) {

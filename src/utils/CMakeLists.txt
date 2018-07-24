@@ -5,10 +5,15 @@ add_executable(play
                ../processors/frame_file_reader.cpp
                ../primitives/image.cpp)
 
-target_include_directories(play PRIVATE ..)
+target_include_directories(play 
+                           PRIVATE ..
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+                          )
 target_link_libraries(play
                       ${CONAN_LIBS_GLFW}
-                      ${OPENGL_gl_LIBRARY})
+                      ${OPENGL_gl_LIBRARY}
+                      ${CONAN_LIBS_FMT}
+                      )
 target_compile_options(play PRIVATE ${ENABLED_WARNINGS})
 
 # recorder
@@ -17,10 +22,15 @@ add_executable(record
                ../processors/screen_capture.cpp
                ../processors/frame_file_writer.cpp
                ../primitives/image.cpp)
-target_include_directories(record PRIVATE ..)
+target_include_directories(record
+                           PRIVATE ..
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+                          )
 target_link_libraries(record
                       ${CONAN_LIBS_SCREENCAPTURELITE}
-                      ${SC_PLATFORM_LIBS})
+                      ${SC_PLATFORM_LIBS}
+                      ${CONAN_LIBS_FMT}
+                      )
 target_compile_options(record PRIVATE ${ENABLED_WARNINGS})
 
 
@@ -35,10 +45,15 @@ add_executable(latency
                ../processors/h264encoder.cpp
                ../processors/h264decoder.cpp
                ../primitives/image.cpp)
-target_include_directories(latency PRIVATE ..)
+target_include_directories(latency 
+                           PRIVATE ..
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+                          )
 target_link_libraries(latency
                       ${CONAN_LIBS_FFMPEG}
-                      ${CONAN_LIBS_LIBX264})
+                      ${CONAN_LIBS_LIBX264}
+                      ${CONAN_LIBS_FMT}
+                      )
 target_compile_options(latency PRIVATE ${ENABLED_WARNINGS})
 
 
@@ -63,6 +78,7 @@ target_include_directories(pipeline_test
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            )
 
 target_link_libraries(pipeline_test
@@ -73,6 +89,7 @@ target_link_libraries(pipeline_test
                       ${OPENGL_gl_LIBRARY}
                       ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_LIBX264}
+                      ${CONAN_LIBS_FMT}
                       ${CONAN_LIBS_FFMPEG}
                       )
 

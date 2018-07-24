@@ -7,6 +7,7 @@
 
 
 int main() {
+  auto logger = shar::Logger("record_test.log");
   shar::FramesQueue captured_frames;
 
   using namespace std::chrono_literals;
@@ -14,8 +15,8 @@ int main() {
   auto        interval = 1000ms / fps;
   sc::Monitor monitor  = sc::GetMonitors().front();
 
-  shar::ScreenCapture capture {interval, monitor, captured_frames};
-  shar::FrameFileWriter      writer {"example.bgra", captured_frames};
+  shar::ScreenCapture    capture {interval, monitor, logger, captured_frames};
+  shar::FrameFileWriter  writer {"example.bgra", logger, captured_frames};
 
   std::thread capture_thread {[&] {
     capture.run();

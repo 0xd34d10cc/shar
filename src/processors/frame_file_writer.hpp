@@ -15,7 +15,7 @@ namespace shar {
 
 class FrameFileWriter : public Sink<FrameFileWriter, FramesQueue> {
 public:
-  FrameFileWriter(const std::string& path, FramesQueue& input);
+  FrameFileWriter(const std::string& path, Logger& logger, FramesQueue& input);
   void process(shar::Image* frame);
   void teardown();
 

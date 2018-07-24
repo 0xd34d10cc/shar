@@ -19,8 +19,8 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsQueue& input, IpAddress ip)
-    : Sink("PacketSender", input)
+PacketSender::PacketSender(PacketsQueue& input, IpAddress ip, Logger& logger)
+    : Sink("PacketSender", logger, input)
     , m_ip(ip)
     , m_clients()
     , m_context()
@@ -46,7 +46,7 @@ void PacketSender::process(Packet* packet) {
 void PacketSender::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
-      std::cerr << "Acceptor failed!" << std::endl;
+      m_logger.error("Acceptor failed!");
       if (m_clients.empty()) {
         Processor::stop();
       }
@@ -54,7 +54,7 @@ void PacketSender::start_accepting() {
     }
 
     const auto id = static_cast<ClientId>(m_current_socket.native_handle());
-    std::cout << "Client #" << id << ": connected" << std::endl;
+    m_logger.info("Client {0}: connected", id);
 
     m_clients.emplace(id, std::move(m_current_socket));
     m_current_socket = Socket {m_context};
@@ -101,7 +101,7 @@ void PacketSender::run_client(ClientId id) {
                                         client.m_length.size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          std::cerr << "Failed to send packet length to client #" << id << ": " << ec.message() << std::endl;
+          m_logger.error("Failed to send packet length to client #{0}: {1}", id, ec.message());
           m_clients.erase(id);
           return;
         }
@@ -116,7 +116,7 @@ void PacketSender::run_client(ClientId id) {
                                         packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          std::cerr << "Failed to send packet to client #" << id << ": " << ec.message() << std::endl;
+          m_logger.error("Failet to send packet to client #{0}: {1}", id, ec.message());
           m_clients.erase(id);
           return;
         }

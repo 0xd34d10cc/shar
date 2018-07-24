@@ -5,8 +5,9 @@
 namespace ff = shar::codecs::ffmpeg;
 
 int main() {
-  ff::Encoder encoder {{1080, 1920}, 11000 * 1024, 30};
-  ff::Decoder decoder;
+  auto logger = Logger("ffmpeg_test.log");
+  ff::Encoder encoder {{1080, 1920}, logger, 11000 * 1024, 30};
+  ff::Decoder decoder {logger};
 
   return EXIT_SUCCESS;
 }

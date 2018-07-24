@@ -20,6 +20,7 @@ struct LatencyInfo {
 };
 
 int main() {
+  auto logger = shar::Logger("latency_test.log");
   std::size_t total_frames = 120;
   std::size_t frame_rate = 60;
 
@@ -34,12 +35,12 @@ int main() {
 
   shar::Size            frame_size {1080, 1920};
   shar::FileParams      params {"example.bgra", frame_size, frame_rate };
-  shar::FrameFileReader reader {std::move(params), input_frames};
+  shar::FrameFileReader reader {std::move(params), logger, input_frames};
 
   auto config = shar::Config::make_default();
   shar::H264Encoder encoder {frame_size, frame_rate, config.get_subconfig("encoder"),
-                             frames_after_timestamp, encoded_packets};
-  shar::H264Decoder decoder {encoded_packets, output_frames};
+                             logger, frames_after_timestamp, encoded_packets};
+  shar::H264Decoder decoder {encoded_packets, logger, output_frames};
 
   std::atomic<bool> reader_finished = false;
   std::thread       reader_thread {[&] {
@@ -64,7 +65,7 @@ int main() {
       input_frames.wait();
     }
 
-    std::cout << "Finished reading frames. Total: " << frame_number << std::endl;
+    logger.info("Finished reading frames. Total: {0}", frame_number);
   }};
 
   std::thread encoder_thread {[&] {
@@ -81,7 +82,7 @@ int main() {
   std::size_t frame_number          = 0;
   while (frame_number != total_frames - 1) {
     if (timer.expired()) {
-      std::cout << "fps: " << fps << std::endl;
+      logger.info("fps: {}", fps);
       fps = 0;
       timer.restart();
     }
@@ -112,6 +113,7 @@ int main() {
   frame_number = 0;
   for (const auto& entry: entries) {
     const auto latency = entry.end - entry.start;
+    logger.info("{0}: {1}ms", frame_number, to_ms(latency).count());
     std::cout << frame_number << ": " << to_ms(latency).count() << "ms" << std::endl;
     frame_number++;
   }
