@@ -33,7 +33,7 @@ int main() {
   auto        monitor = sc::GetMonitors().front();
   std::size_t width   = static_cast<std::size_t>(monitor.Width);
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
-  logger.info("Capturing {0} {1}x{2}", monitor.Name, width, height);
+  logger.info("Capturing {} {}x{}", monitor.Name, width, height);
 
   shar::Size   frame_size {height, width};
   shar::Window window {frame_size, logger};;

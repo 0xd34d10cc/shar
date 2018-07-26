@@ -14,7 +14,7 @@ public:
   Processor(const char* name, Logger logger, InputQueue& input, OutputQueue& output)
       : m_name(name)
       , m_running(false)
-      , m_logger(logger)
+      , m_logger(std::move(logger))
       , m_input(input)
       , m_output(output) {}
 
@@ -36,7 +36,7 @@ public:
     }
     static_cast<Process*>(this)->teardown();
     stop();
-    m_logger.info("{0} finished", m_name);
+    m_logger.info("{} finished", m_name);
   }
 
   void stop() {
@@ -44,7 +44,7 @@ public:
       m_input.set_consumer_state(InputQueue::State::Dead);
       m_output.set_producer_state(OutputQueue::State::Dead);
       
-      m_logger.info("{0} stopping", m_name);
+      m_logger.info("{} stopping", m_name);
     }
     m_running = false;
   }
@@ -56,7 +56,7 @@ protected:
 
   void start() {
     if (!m_running) {
-      m_logger.info("{0} starting", m_name);
+      m_logger.info("{} starting", m_name);
     }
     m_running = true;
   }

@@ -48,12 +48,12 @@ static int run() {
   const auto        ip_str   = config.get<std::string>("host", "127.0.0.1");
   const ip::address ip       = ip::address::from_string(ip_str);
 
-  logger.info("Capturing {0} {1}x{2}", monitor.Name, width, height);
-  logger.info("FPS: {0}", fps);
-  logger.info("IP: {0}", ip_str);
+  logger.info("Capturing {} {}x{}", monitor.Name, width, height);
+  logger.info("FPS: {}", fps);
+  logger.info("IP: {}", ip_str);
 
   const auto encoder_config = config.get_subconfig("encoder");
-  logger.info("Encoder config: {0}", encoder_config.to_string());
+  logger.info("Encoder config: {}", encoder_config.to_string());
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;

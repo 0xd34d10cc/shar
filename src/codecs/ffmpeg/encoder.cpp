@@ -25,7 +25,7 @@ static AVCodec* select_codec(Logger logger) {
 
   for (const char* name: codecs) {
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
-      logger.info("Using {0} encoder", name);
+      logger.info("Using {} encoder", name);
       return codec;
     }
   }
@@ -34,9 +34,9 @@ static AVCodec* select_codec(Logger logger) {
 }
 
 
-Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
+Encoder::Encoder(Size frame_size, std::size_t fps, const Logger&& logger, const Config& config)
     : m_context(nullptr)
-    , m_logger(logger)
+    , m_logger(std::move(logger))
     , m_encoder(nullptr) {
 
   // TODO: allow manual codec selection

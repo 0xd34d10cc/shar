@@ -51,7 +51,7 @@ int main(int argc, const char* argv[]) {
   const std::size_t width  = vm["width"].as<size_t>();
   const std::size_t height = vm["height"].as<size_t>();
 
-  logger.info("Starting with Host: {0}, Screen {1}x{2}", vm["host"].as<std::string>(), width, height);
+  logger.info("Starting with Host: {}, Screen {}x{}", vm["host"].as<std::string>(), width, height);
 
   const shar::Size frame_size {height, width};
   shar::Window     window {frame_size, logger};;

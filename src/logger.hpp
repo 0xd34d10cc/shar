@@ -23,10 +23,6 @@ public:
     m_logger->info("Logger has been initialized");
   }
 
-  ~Logger(){
-    spdlog::drop_all();
-  }
-
   template<typename... Args>
   void trace(const Args&... args) {
     m_logger->trace(args...);

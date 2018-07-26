@@ -65,7 +65,7 @@ int main() {
       input_frames.wait();
     }
 
-    logger.info("Finished reading frames. Total: {0}", frame_number);
+    logger.info("Finished reading frames. Total: {}", frame_number);
   }};
 
   std::thread encoder_thread {[&] {
@@ -76,7 +76,7 @@ int main() {
     decoder.run();
   }};
 
-  std::size_t fps {0};
+  std::size_t fps {};
   shar::Timer timer {std::chrono::seconds(1)};
   // write end timestamp
   std::size_t frame_number          = 0;
@@ -113,7 +113,7 @@ int main() {
   frame_number = 0;
   for (const auto& entry: entries) {
     const auto latency = entry.end - entry.start;
-    logger.info("{0}: {1}ms", frame_number, to_ms(latency).count());
+    logger.info("{}: {}ms", frame_number, to_ms(latency).count());
     std::cout << frame_number << ": " << to_ms(latency).count() << "ms" << std::endl;
     frame_number++;
   }

@@ -29,12 +29,12 @@ namespace {
 
 namespace shar {
 
-std::atomic<std::size_t> Window::instances {0};
+std::atomic<std::size_t> Window::instances {};
 
 Window::Window(Size size, Logger logger)
     : m_window(create_window(size))
     , m_size(size)
-    , m_logger(logger) {
+    , m_logger(std::move(logger)) {
   ++instances;
 }
 
@@ -63,7 +63,7 @@ void Window::clear() noexcept {
 }
 
 static void on_error(int code, const char* description) {
-  spdlog::get("shar_logger")->error("GLFW Error [{0}]:{1}", code, description);
+  spdlog::get("shar_logger")->error("GLFW Error [{}]:{}", code, description);
 }
 
 Window::SystemWindow* Window::create_window(Size size) {
@@ -86,7 +86,7 @@ Window::SystemWindow* Window::create_window(Size size) {
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  m_logger.info("OpenGL {0}", glGetString(GL_VERSION));
+  m_logger.info("OpenGL {}", glGetString(GL_VERSION));
   glEnable(GL_TEXTURE_2D);
 
   // TODO: disable in release

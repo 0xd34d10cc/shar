@@ -95,7 +95,7 @@ void PacketReceiver::start_read() {
       boost::asio::buffer(m_buffer.data(), m_buffer.size()),
       [this](const boost::system::error_code& ec, std::size_t received) {
         if (ec) {
-          m_logger.error("Receiver failed: {0}", ec.message());
+          m_logger.error("Receiver failed: {}", ec.message());
           Processor::stop();
           return;
         }

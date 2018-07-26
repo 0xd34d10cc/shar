@@ -33,7 +33,7 @@ shar::Image FrameFileReader::read_frame() {
 
   auto total_bytes = static_cast<std::streamsize>(size.width() * size.height() * PIXEL_SIZE);
   auto image       = std::make_unique<std::uint8_t[]>(static_cast<std::size_t>(total_bytes));
-  auto read        = std::streamsize {0};
+  auto read        = std::streamsize {};
 
   auto* ptr = reinterpret_cast<char*>(image.get());
   while (read != total_bytes) {
