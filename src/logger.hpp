@@ -54,6 +54,7 @@ public:
   }
   
   Logger(const Logger&) = default;
+  Logger(Logger&&) = default;
 
 private:
   Logger() = default;
