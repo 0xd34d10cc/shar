@@ -12,7 +12,7 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger logger) {
+static AVCodec* select_codec(Logger& logger) {
   static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
@@ -34,7 +34,7 @@ static AVCodec* select_codec(Logger logger) {
 }
 
 
-Encoder::Encoder(Size frame_size, std::size_t fps, const Logger&& logger, const Config& config)
+Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
     , m_logger(std::move(logger))
     , m_encoder(nullptr) {

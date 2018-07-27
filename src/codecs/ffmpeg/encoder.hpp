@@ -16,7 +16,7 @@ namespace shar::codecs::ffmpeg {
 
 class Encoder {
 public:
-  Encoder(Size frame_size, std::size_t fps, const Logger&& logger, const Config& config);
+  Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder&&) = delete; // TODO: implement
   ~Encoder();

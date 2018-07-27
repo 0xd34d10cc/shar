@@ -39,9 +39,9 @@ int main() {
   shar::Window window {frame_size, logger};;
 
   using namespace std::chrono_literals;
-  const int       fps      = 30;
-  const auto      interval = 1000ms / fps;
-  shar::IpAddress ip       = boost::asio::ip::address::from_string("127.0.0.1");
+  const std::size_t fps      = 30;
+  const auto        interval = 1000ms / fps;
+  shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;

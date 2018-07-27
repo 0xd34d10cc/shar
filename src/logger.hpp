@@ -53,7 +53,7 @@ public:
     m_logger->critical(args...);
   }
   
-  Logger(Logger&) = default;
+  Logger(const Logger&) = default;
 
 private:
   Logger() = default;

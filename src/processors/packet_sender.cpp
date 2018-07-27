@@ -32,11 +32,11 @@ void PacketSender::process(Packet* packet) {
 
   const auto shared_packet = std::make_shared<Packet>(std::move(*packet));
 //  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
-  for (auto&[id, client]: m_clients) {
-    client.m_packets.push(shared_packet);
+  for (auto& client: m_clients) {
+    client.second.m_packets.push(shared_packet);
 
-    if (!client.is_running()) {
-      run_client(id);
+    if (!client.second.is_running()) {
+      run_client(client.first);
     }
   }
 }
