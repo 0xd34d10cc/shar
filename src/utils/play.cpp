@@ -9,15 +9,16 @@
 
 
 int main() {
-  shar::Size   size {1080, 1920};
-  shar::Window window {size};
+  auto logger = shar::Logger("play_test.log");
+  shar::Size    size {1080, 1920};
+  shar::Window  window {size, logger};
 
   shar::FileParams  params {"example.bgra", size, 30 /* fps */};
   shar::FramesQueue frames_to_display;
   using FrameSink = shar::NullQueue<shar::Image>;
   FrameSink                     frames_sink;
-  shar::FrameFileReader         reader {params, frames_to_display};
-  shar::FrameDisplay<FrameSink> display {window, frames_to_display, frames_sink};
+  shar::FrameFileReader         reader {params, logger, frames_to_display};
+  shar::FrameDisplay<FrameSink> display {window, logger, frames_to_display, frames_sink};
 
   std::thread reader_thread {[&] {
     reader.run();

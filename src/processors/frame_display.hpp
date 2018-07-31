@@ -18,8 +18,8 @@ public:
 
   // NOTE: |window| should be initialized in same
   // thread from which run() will be called
-  FrameDisplay(Window& window, FramesQueue& input, OutputQueue& output)
-      : BaseProcessor("FrameDisplay", input, output)
+  FrameDisplay(Window& window, Logger logger, FramesQueue& input, OutputQueue& output)
+      : BaseProcessor("FrameDisplay", logger, input, output)
       , m_window(window)
       , m_texture(window.size()) {}
 

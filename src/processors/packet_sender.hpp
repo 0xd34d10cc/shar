@@ -19,7 +19,7 @@ class PacketSender : public Sink<PacketSender, PacketsQueue> {
 public:
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(PacketsQueue& input, IpAddress ip);
+  PacketSender(PacketsQueue& input, IpAddress ip, Logger logger);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;

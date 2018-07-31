@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -13,42 +12,42 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec() {
-  static std::array<const char*, 7> codecs = {
+static AVCodec* select_codec(Logger& logger) {
+  static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
-      "h264_vaapi",
+      //"h264_vaapi", not supported yet
       "h264_qsv",
-      "h264_v4l2m2m",
+      //"h264_v4l2m2m", not supported yet
       "h264_videotoolbox",
       "h264_omx"
   };
 
   for (const char* name: codecs) {
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
-      std::cout << "Using " << name << " encoder" << std::endl;
+      logger.info("Using {} encoder", name);
       return codec;
     }
   }
-
-  std::cout << "Using default h264 encoder" << std::endl;
+  logger.info("Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
 
-Encoder::Encoder(Size frame_size, std::size_t fps, const Config& config)
+Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
-    , m_encoder(nullptr) {
+    , m_encoder(nullptr)
+    , m_logger(std::move(logger)) {
 
   // TODO: allow manual codec selection
-  m_encoder = select_codec();
+  m_encoder = select_codec(logger);
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-
   std::string kbits = config.get<std::string>("bitrate", "5000");
+
   std::size_t bit_rate = std::stoul(kbits) * 1024;
   m_context->bit_rate                = static_cast<int>(bit_rate);
   m_context->time_base.num           = 1;
@@ -62,9 +61,9 @@ Encoder::Encoder(Size frame_size, std::size_t fps, const Config& config)
   m_context->sample_aspect_ratio.den = 9;
 
   AVDictionary* opts = nullptr;
-  for (const auto&[key, value]: config) {
+  for (const auto& iter: config) {
     // TODO: handle errors here
-    av_dict_set(&opts, key.c_str(), value.get_value<std::string>().c_str(), 0 /* flags */);
+    av_dict_set(&opts, iter.first.c_str(), iter.second.get_value<std::string>().c_str(), 0 /* flags */);
   }
 
   if (avcodec_open2(m_context, m_encoder, &opts) < 0) {

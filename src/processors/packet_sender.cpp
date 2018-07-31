@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/packet_sender.hpp"
 
 
@@ -19,8 +17,8 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsQueue& input, IpAddress ip)
-    : Sink("PacketSender", input)
+PacketSender::PacketSender(PacketsQueue& input, IpAddress ip, Logger logger)
+    : Sink("PacketSender", logger, input)
     , m_ip(ip)
     , m_clients()
     , m_context()
@@ -34,11 +32,11 @@ void PacketSender::process(Packet* packet) {
 
   const auto shared_packet = std::make_shared<Packet>(std::move(*packet));
 //  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
-  for (auto&[id, client]: m_clients) {
-    client.m_packets.push(shared_packet);
+  for (auto& client: m_clients) {
+    client.second.m_packets.push(shared_packet);
 
-    if (!client.is_running()) {
-      run_client(id);
+    if (!client.second.is_running()) {
+      run_client(client.first);
     }
   }
 }
@@ -46,7 +44,7 @@ void PacketSender::process(Packet* packet) {
 void PacketSender::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
-      std::cerr << "Acceptor failed!" << std::endl;
+      m_logger.error("Acceptor failed!");
       if (m_clients.empty()) {
         Processor::stop();
       }
@@ -54,7 +52,7 @@ void PacketSender::start_accepting() {
     }
 
     const auto id = static_cast<ClientId>(m_current_socket.native_handle());
-    std::cout << "Client #" << id << ": connected" << std::endl;
+    m_logger.info("Client {}: connected", id);
 
     m_clients.emplace(id, std::move(m_current_socket));
     m_current_socket = Socket {m_context};
@@ -101,7 +99,7 @@ void PacketSender::run_client(ClientId id) {
                                         client.m_length.size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          std::cerr << "Failed to send packet length to client #" << id << ": " << ec.message() << std::endl;
+          m_logger.error("Failed to send packet length to client #{}: {}", id, ec.message());
           m_clients.erase(id);
           return;
         }
@@ -116,7 +114,7 @@ void PacketSender::run_client(ClientId id) {
                                         packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          std::cerr << "Failed to send packet to client #" << id << ": " << ec.message() << std::endl;
+          m_logger.error("Failet to send packet to client #{}: {}", id, ec.message());
           m_clients.erase(id);
           return;
         }

@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -18,16 +17,16 @@ static AVPixelFormat get_format(AVCodecContext* /*ctx*/, const enum AVPixelForma
       return *p;
     }
   }
-
-  std::cerr << "YUV420 is unsupported for this decoder" << std::endl;
+  spdlog::get("shar_logger")->error("YUV420 pixel format is not supported for this decoder");
   return AV_PIX_FMT_NONE;
 }
 
 namespace shar::codecs::ffmpeg {
 
-Decoder::Decoder()
+Decoder::Decoder(Logger logger)
     : m_context(nullptr)
-    , m_decoder(nullptr) {
+    , m_decoder(nullptr)
+    , m_logger(std::move(logger)) {
   m_decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
   m_context = avcodec_alloc_context3(m_decoder);
 

@@ -14,6 +14,7 @@ target_include_directories(server
                            PRIVATE ..
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            )
 
 target_link_libraries(server
@@ -22,6 +23,7 @@ target_link_libraries(server
                       ${CONAN_LIBS_FFMPEG}
                       ${CONAN_LIBS_LIBX264}
                       ${CONAN_LIBS_BOOST}
+                      ${CONAN_LIBS_FMT}
                       )
 
 target_compile_options(server PRIVATE ${ENABLED_WARNINGS})

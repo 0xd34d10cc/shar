@@ -1,9 +1,10 @@
 #include <thread>
-#include <iostream>
+
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
 
+#include "logger.hpp"
 #include "queues/frames_queue.hpp"
 #include "queues/packets_queue.hpp"
 #include "processors/packet_sender.hpp"
@@ -26,9 +27,10 @@ static void signal_handler(int /*signum*/) {
 }
 
 static int run() {
+  auto logger = shar::Logger("server.log");
   // setup signal handler
   if (signal(SIGINT, signal_handler) == SIG_ERR) {
-    std::cerr << "Failed to setup signal handler" << std::endl;
+    logger.error("Failed to setup signal handler");
   }
 
   auto config = shar::Config::parse_from_file("config.json");
@@ -46,21 +48,21 @@ static int run() {
   const auto        ip_str   = config.get<std::string>("host", "127.0.0.1");
   const ip::address ip       = ip::address::from_string(ip_str);
 
-  std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
-  std::cout << "FPS: " << fps << std::endl;
-  std::cout << "IP: " << ip << std::endl;
+  logger.info("Capturing {} {}x{}", monitor.Name, width, height);
+  logger.info("FPS: {}", fps);
+  logger.info("IP: {}", ip_str);
 
   const auto encoder_config = config.get_subconfig("encoder");
-  std::cout << "Encoder config: " << encoder_config.to_string() << std::endl;
+  logger.info("Encoder config: {}", encoder_config.to_string());
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;
 
   // setup processors pipeline
-  shar::ScreenCapture capture {interval, monitor, captured_frames};
+  shar::ScreenCapture capture {interval, monitor, logger, captured_frames};
   shar::H264Encoder   encoder {frame_size, fps, encoder_config,
-                               captured_frames, packets_to_send};
-  shar::PacketSender  sender {packets_to_send, ip};
+                               logger, captured_frames, packets_to_send};
+  shar::PacketSender  sender {packets_to_send, ip, logger};
 
   // start processors
   std::thread capture_thread {[&] {
@@ -82,7 +84,7 @@ static int run() {
     signal_to_exit.wait(lock);
   }
 
-  std::cerr << "Stopping all processors..." << std::endl;
+  logger.info("Stopping all processors...");
 
   sender.stop();
   encoder.stop();

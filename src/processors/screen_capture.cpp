@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/screen_capture.hpp"
 
 
@@ -50,9 +48,10 @@ struct FrameHandler {
 namespace shar {
 
 ScreenCapture::ScreenCapture(const Milliseconds& interval,
-                                           const sc::Monitor& monitor,
-                                           FramesQueue& output)
-    : Source("ScreenCapture", output)
+                             const sc::Monitor& monitor,
+                             Logger logger,
+                             FramesQueue& output)
+    : Source("ScreenCapture", logger, output)
     , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)

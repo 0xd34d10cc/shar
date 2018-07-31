@@ -1,5 +1,4 @@
 #include <thread>
-#include <iostream>
 #include <chrono>
 
 #include "window.hpp"
@@ -29,18 +28,20 @@ namespace sc = SL::Screen_Capture;
 
 int main() {
   // TODO: make it configurable
+
+  auto        logger  = shar::Logger("pipeline_test.log");
   auto        monitor = sc::GetMonitors().front();
   std::size_t width   = static_cast<std::size_t>(monitor.Width);
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
-  std::cout << "Capturing " << monitor.Name << " " << width << 'x' << height << std::endl;
+  logger.info("Capturing {} {}x{}", monitor.Name, width, height);
 
   shar::Size   frame_size {height, width};
-  shar::Window window {frame_size};;
+  shar::Window window {frame_size, logger};;
 
   using namespace std::chrono_literals;
-  const int       fps      = 30;
-  const auto      interval = 1000ms / fps;
-  shar::IpAddress ip       = boost::asio::ip::address::from_string("127.0.0.1");
+  const std::size_t fps      = 30;
+  const auto        interval = 1000ms / fps;
+  shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   shar::FramesQueue  captured_frames;
   shar::PacketsQueue packets_to_send;
@@ -50,18 +51,18 @@ int main() {
   const auto config = shar::Config::make_default();
 
   // setup processors pipeline
-  shar::ScreenCapture  capture {interval, monitor, captured_frames};
+  shar::ScreenCapture  capture {interval, monitor, logger, captured_frames};
   shar::H264Encoder    encoder {frame_size, fps, config.get_subconfig("encoder"),
-                                captured_frames, packets_to_send};
-  shar::PacketSender   sender {packets_to_send, ip};
-  shar::PacketReceiver receiver {ip, received_packets};
-  shar::H264Decoder    decoder {received_packets, decoded_frames};
+                                logger, captured_frames, packets_to_send};
+  shar::PacketSender   sender {packets_to_send, ip, logger};
+  shar::PacketReceiver receiver {ip, logger, received_packets};
+  shar::H264Decoder    decoder {logger, received_packets, decoded_frames};
 
   using Sink = shar::NullQueue<shar::Image>;
   using Display = shar::FrameDisplay<Sink>;
 
   Sink    sink;
-  Display display {window, decoded_frames, sink};
+  Display display {window, logger, decoded_frames, sink};
 
   // start processors
   std::thread capture_thread {[&] {

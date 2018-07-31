@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "processors/packet_receiver.hpp"
 
 
@@ -65,8 +63,8 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, PacketsQueue& output)
-    : Source("PacketReceiver", output)
+PacketReceiver::PacketReceiver(IpAddress server, Logger logger, PacketsQueue& output)
+    : Source("PacketReceiver", logger, output)
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)
@@ -97,7 +95,7 @@ void PacketReceiver::start_read() {
       boost::asio::buffer(m_buffer.data(), m_buffer.size()),
       [this](const boost::system::error_code& ec, std::size_t received) {
         if (ec) {
-          std::cerr << "Receiver failed: " << ec.message() << std::endl;
+          m_logger.error("Receiver failed: {}", ec.message());
           Processor::stop();
           return;
         }
