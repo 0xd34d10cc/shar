@@ -25,8 +25,8 @@ namespace shar::codecs::ffmpeg {
 
 Decoder::Decoder(Logger logger)
     : m_context(nullptr)
-    , m_logger(std::move(logger))
-    , m_decoder(nullptr) {
+    , m_decoder(nullptr)
+    , m_logger(std::move(logger)) {
   m_decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
   m_context = avcodec_alloc_context3(m_decoder);
 

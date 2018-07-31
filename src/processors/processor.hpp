@@ -12,9 +12,9 @@ template<typename Process, typename InputQueue, typename OutputQueue>
 class Processor {
 public:
   Processor(const char* name, Logger logger, InputQueue& input, OutputQueue& output)
-      : m_name(name)
+      : m_logger(std::move(logger))
+      , m_name(name)
       , m_running(false)
-      , m_logger(std::move(logger))
       , m_input(input)
       , m_output(output) {}
 

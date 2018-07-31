@@ -36,26 +36,18 @@ static AVCodec* select_codec(Logger& logger) {
 
 Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
-    , m_logger(std::move(logger))
-    , m_encoder(nullptr) {
+    , m_encoder(nullptr)
+    , m_logger(std::move(logger)) {
 
   // TODO: allow manual codec selection
-  m_logger.info("Encoder initialization started...");
   m_encoder = select_codec(logger);
-  m_logger.info("Encoder initialization started11...");
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-  std::string kbits;
-  m_logger.info("Encoder initialization started11...");
-  try {
-  kbits = config.get<std::string>("bitrate", "5000");
-  } catch (boost::exception const&  ex) {
-    m_logger.info("Encoder fucked up on bitrate parse");
-  }
-    
+  std::string kbits = config.get<std::string>("bitrate", "5000");
+
   std::size_t bit_rate = std::stoul(kbits) * 1024;
   m_context->bit_rate                = static_cast<int>(bit_rate);
   m_context->time_base.num           = 1;
