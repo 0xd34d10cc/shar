@@ -41,11 +41,21 @@ class Shar(ConanFile):
                        "boost:without_type_erasure   = True",
                        "boost:shared                 = False",
                        "ffmpeg:iconv                 = False",
-                       "ffmpeg:x264                  = True")
+                       "ffmpeg:x264                  = True",
+                       "ffmpeg:mp3lame               = False",
+                       "ffmpeg:vpx                   = False",
+                       "ffmpeg:fdk_aac               = False",
+                       "ffmpeg:opus                  = False",
+                       "ffmpeg:vorbis                = False",
+                       "ffmpeg:x265                  = False",
+                       "ffmpeg:openh264              = False",
+                       "ffmpeg:openjpeg              = False")
+
+    def requirements(self):
+        if self.settings.os == "Windows":
+            self.options["ffmpeg"].qsv = False
 
     def build(self):
-        if os == "Windows":
-            default_options.append("ffmpeg:qsv = False")
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
