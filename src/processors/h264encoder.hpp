@@ -7,8 +7,8 @@
 #include "queues/frames_queue.hpp"
 #include "queues/packets_queue.hpp"
 
-namespace shar {
 
+namespace shar {
 
 class H264Encoder : public Processor<H264Encoder, FramesQueue, PacketsQueue> {
 public:
