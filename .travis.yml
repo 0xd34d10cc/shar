@@ -2,7 +2,10 @@ sudo: required
 
 language: cpp
 
-cache: ccache
+cache:
+  - ccache
+  directories:
+    - /home/travis/.conan
 
 compiler: 
   - clang
@@ -33,5 +36,5 @@ script:
   - mkdir build
   - cd build
   - conan install --build=missing  .. 
-  - cmake ..
+  - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
