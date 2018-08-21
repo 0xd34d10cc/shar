@@ -10,17 +10,22 @@ matrix:
   fast_finish: true
   
 install:
-  - echo "Downloading conan..."
-  - set PATH=%PATH%;%PYTHON%/Scripts/
-  - pip.exe install conan
-  - conan user 
-  - conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
-  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan 
-  - mkdir build
-  - cd build 
+  - cmd: echo "Downloading conan..."
+  - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
+  - cmd: pip.exe install conan
+  - cmd: conan user 
+  - cmd: conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
+  - cmd: conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  - cmd: conan config set storage.path=c:\Users\appveyor\conanCache
+  - cmd: mkdir build
+  - cmd: cd build 
 
 build_script: 
-  - conan install --build=missing ..
-  - set generator=Visual Studio 15 2017 Win64
-  - cmake .. -G %generator%
-  - cmake --build . --target INSTALL --config %configuration%
+  - cmd: conan install --build=missing ..
+  - cmd: set generator=Visual Studio 15 2017 Win64
+  - cmd: cmake .. -G"%generator%""
+  - cmd: cmake --build . --target INSTALL --config %configuration%
+
+cache:
+  - build
+  - c:\Users\appveyor\conanCache
