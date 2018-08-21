@@ -23,7 +23,7 @@ install:
 build_script: 
   - cmd: conan install --build=missing ..
   - cmd: set generator=Visual Studio 15 2017 Win64
-  - cmd: cmake .. -G"%generator%""
+  - cmd: cmake .. -G"%generator%"
   - cmd: cmake --build . --target INSTALL --config %configuration%
 
 cache:
