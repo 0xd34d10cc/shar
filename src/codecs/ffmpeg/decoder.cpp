@@ -95,6 +95,8 @@ Image Decoder::decode(shar::Packet packet) {
   uint8_t* v = frame->data[2];
 
   auto bytes = yuv420_to_bgra(y, u, v, height, width, y_pad, uv_pad);
+
+  av_frame_free(&frame);
   return Image {std::move(bytes.data), Size {height, width}};
 }
 

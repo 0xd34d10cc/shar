@@ -1,9 +1,7 @@
 #include <stdexcept>
 
 #include "disable_warnings_push.hpp"
-
 #define GL_GLEXT_PROTOTYPES
-
 #include <GLFW/glfw3.h>
 #include "disable_warnings_pop.hpp"
 
@@ -29,12 +27,13 @@ namespace {
 
 namespace shar {
 
-std::atomic<std::size_t> Window::instances {};
+std::atomic<std::size_t> Window::instances {0};
 
 Window::Window(Size size, Logger logger)
-    : m_window(create_window(size))
+    : m_window(nullptr)
     , m_size(size)
     , m_logger(std::move(logger)) {
+  m_window = create_window(size);
   ++instances;
 }
 
