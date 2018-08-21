@@ -9,7 +9,6 @@
 
 namespace shar {
 
-
 class H264Encoder : public Processor<H264Encoder, FramesQueue, PacketsQueue> {
 public:
   H264Encoder(Size frame_size, const std::size_t fps, const Config& config,
