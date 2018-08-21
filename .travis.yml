@@ -3,9 +3,8 @@ sudo: required
 language: cpp
 
 cache:
+  - directories: /home/travis/.conan
   - ccache
-  directories:
-    - /home/travis/.conan
 
 compiler: 
   - clang
@@ -38,3 +37,6 @@ script:
   - conan install --build=missing  .. 
   - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
+
+notifications:
+  email: false
