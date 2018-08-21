@@ -1,0 +1,26 @@
+image: Visual Studio 2017
+
+platform:
+- x64
+
+configuration:
+  - Release
+
+matrix:
+  fast_finish: true
+  
+install:
+  - echo "Downloading conan..."
+  - set PATH=%PATH%;%PYTHON%/Scripts/
+  - pip.exe install conan
+  - conan user 
+  - conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
+  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan 
+  - mkdir build
+  - cd build 
+
+build_script: 
+  - conan install --build=missing ..
+  - set generator=Visual Studio 15 2017 Win64
+  - cmake .. -G %generator%
+  - cmake --build . --target INSTALL --config %configuration%
