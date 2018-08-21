@@ -28,6 +28,8 @@ before_script:
     && bash cmake-3.12.0-rc1-Linux-x86_64.sh --skip-license && cd ..
   - sudo pip install conan
   - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev
+  - conan remote remove d34dpkgs || true
+  - conan remote remove bincrafters || true
   - conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan 
 
