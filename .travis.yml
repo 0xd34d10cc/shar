@@ -38,6 +38,3 @@ script:
   - conan install --build=missing  .. 
   - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
-
-notifications:
-  email: false
