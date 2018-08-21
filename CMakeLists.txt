@@ -57,7 +57,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-newline-eof
         -Wno-missing-braces
         -Wno-global-constructors
-        -Wno-exit-time-destructors)
+        -Wno-exit-time-destructors
+        -Wno-unused-command-line-argument) # because ccache
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     set(ENABLED_WARNINGS -Wall -Wextra -pedantic)
