@@ -114,7 +114,7 @@ void PacketSender::run_client(ClientId id) {
                                         packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          m_logger.error("Failet to send packet to client #{}: {}", id, ec.message());
+          m_logger.error("Failed to send packet to client #{}: {}", id, ec.message());
           m_clients.erase(id);
           return;
         }
@@ -175,6 +175,16 @@ void PacketSender::setup() {
 
 void PacketSender::teardown() {
   // disconnect all clients
+  for (auto& client: m_clients) {
+    client.second.m_socket.cancel();
+
+    ErrorCode ec;
+    client.second.m_socket.shutdown(Socket::shutdown_both, ec);
+    // ignore error
+  }
+  m_clients.clear();
+
+  m_acceptor.cancel();
 }
 
 } //  namespace shar
