@@ -14,7 +14,7 @@
 
 // SIG_ERR expands to c-style cast
 #include "disable_warnings_push.hpp"
-static const sighandler_t SIGNAL_ERROR = SIG_ERR;
+static const auto SIGNAL_ERROR = SIG_ERR;
 #include "disable_warnings_pop.hpp"
 
 static std::mutex              mutex;
