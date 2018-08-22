@@ -27,8 +27,6 @@ build_script:
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
 
 cache:
-  - 
-  - build
   - C:\Users\Appveyor\.conan
   - C:\.conan
   - c:\Users\Appveyor\conanCache
