@@ -12,7 +12,10 @@
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
 
-static const sighandler_t SIGNAL_ERROR = static_cast<sighandler_t>(-1);
+// SIG_ERR expands to c-style cast
+#include "disable_warnings_push.hpp"
+static const sighandler_t SIGNAL_ERROR = SIG_ERR;
+#include "disable_warnings_pop.hpp"
 
 static std::mutex              mutex;
 static std::condition_variable signal_to_exit;
