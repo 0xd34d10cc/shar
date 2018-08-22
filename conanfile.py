@@ -52,11 +52,7 @@ class Shar(ConanFile):
                        "ffmpeg:openjpeg              = False",
                        "ffmpeg:zlib                  = False",
                        "ffmpeg:bzlib                 = False",
-                       "ffmpeg:lzma                  = False",
-                       "ffmpeg:pulse                 = False",
-                       "ffmpeg:vaapi                 = False",
-                       "ffmpeg:vdpau                 = False",
-                       "ffmpeg:alsa                  = False")
+                       "ffmpeg:lzma                  = False")
 
     def requirements(self):
         if self.settings.os == "Windows":
