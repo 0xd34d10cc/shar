@@ -12,6 +12,7 @@
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
 
+static const sighandler_t SIGNAL_ERROR = static_cast<sighandler_t>(-1);
 
 static std::mutex              mutex;
 static std::condition_variable signal_to_exit;
@@ -28,8 +29,9 @@ static void signal_handler(int /*signum*/) {
 
 static int run() {
   auto logger = shar::Logger("server.log");
+
   // setup signal handler
-  if (signal(SIGINT, signal_handler) == SIG_ERR) {
+  if (signal(SIGINT, signal_handler) == SIGNAL_ERROR) {
     logger.error("Failed to setup signal handler");
   }
 
