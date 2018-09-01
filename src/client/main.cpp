@@ -1,10 +1,6 @@
 #include <thread>
 
-#include "disable_warnings_push.hpp"
-#include <boost/program_options.hpp>
-#include <boost/asio/ip/address.hpp>
-#include "disable_warnings_pop.hpp"
-
+#include "options.hpp"
 #include "logger.hpp"
 #include "window.hpp"
 #include "queues/null_queue.hpp"
@@ -14,46 +10,15 @@
 #include "processors/frame_display.hpp"
 #include "processors/h264decoder.hpp"
 
+
 int main(int argc, const char* argv[]) {
+  auto       logger = shar::Logger("client.log");
+  const auto opts   = shar::Options::from_args(argc, argv);
 
-  namespace po = boost::program_options;
-  using IpAddress = boost::asio::ip::address;
+  logger.info("Starting with Host: {}, Screen {}x{}",
+              opts.ip.to_string(), opts.width, opts.height);
 
-  auto logger = shar::Logger("client.log");
-  po::options_description desc {"Options"};
-  desc.add_options()
-          ("help, h", "Help")
-          ("width", po::value<size_t>()->default_value(1920), "Width of the screen") //get default values from opengl
-          ("height", po::value<size_t>()->default_value(1080), "Height of the screen")
-          ("host", po::value<std::string>()->default_value("127.0.0.1"), "IP of the server");
-
-  po::variables_map vm;
-  po::store(parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-
-  IpAddress ip;
-  { // Parse input from user
-    if (vm.count("help")) {
-      std::cout << desc << '\n';
-      return 0;
-    }
-    else {
-      const std::string input_host = vm["host"].as<std::string>();
-      boost::system::error_code ec;
-      ip = boost::asio::ip::address::from_string(input_host, ec);
-      if (ec != boost::system::errc::success) {
-        std::cerr << "Invalid Ip" << std::endl;
-        return 0;
-      }
-    }
-  }
-
-  const std::size_t width  = vm["width"].as<size_t>();
-  const std::size_t height = vm["height"].as<size_t>();
-
-  logger.info("Starting with Host: {}, Screen {}x{}", vm["host"].as<std::string>(), width, height);
-
-  const shar::Size frame_size {height, width};
+  const shar::Size frame_size {opts.height, opts.width};
   shar::Window     window {frame_size, logger};;
 
   shar::PacketsQueue received_packets;
@@ -61,7 +26,7 @@ int main(int argc, const char* argv[]) {
 
   using Sink = shar::NullQueue<shar::Image>;
   Sink                     sink;
-  shar::PacketReceiver     receiver {ip, logger, received_packets};
+  shar::PacketReceiver     receiver {opts.ip, logger, received_packets};
   shar::H264Decoder        decoder {logger, received_packets, decoded_frames};
   shar::FrameDisplay<Sink> display {window, logger, decoded_frames, sink};
 
@@ -84,5 +49,6 @@ int main(int argc, const char* argv[]) {
 
   decoder_thread.join();
   receiver_thread.join();
-  return 0;
+
+  return EXIT_SUCCESS;
 }

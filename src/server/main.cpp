@@ -11,6 +11,7 @@
 #include "processors/screen_capture.hpp"
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
+#include "forwarding.hpp"
 
 // SIG_ERR expands to c-style cast
 #include "disable_warnings_push.hpp"
@@ -30,6 +31,15 @@ static void signal_handler(int /*signum*/) {
   signal_to_exit.notify_all();
 }
 
+// wait for ctrl+c
+static void wait_for_sigint() {
+  std::unique_lock<std::mutex> lock(mutex);
+  is_running = true;
+  while (is_running) {
+    signal_to_exit.wait(lock);
+  }
+}
+
 static int run() {
   auto logger = shar::Logger("server.log");
 
@@ -40,7 +50,10 @@ static int run() {
 
   auto config = shar::Config::parse_from_file("config.json");
 
-  // TODO: make it configurable
+  // setup port forwarding
+  shar::forward_port(1337 /* local */, 1337 /* remote */, logger);
+
+  // TODO: allow monitor selection for capture
   auto        monitor = sc::GetMonitors().front();
   std::size_t width   = config.get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   std::size_t height  = config.get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
@@ -82,13 +95,7 @@ static int run() {
     sender.run();
   }};
 
-  // wait for sigint (ctrl+c)
-  std::unique_lock<std::mutex> lock(mutex);
-  is_running = true;
-  while (is_running) {
-    signal_to_exit.wait(lock);
-  }
-
+  wait_for_sigint();
   logger.info("Stopping all processors...");
 
   sender.stop();

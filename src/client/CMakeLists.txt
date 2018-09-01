@@ -1,5 +1,6 @@
 add_executable(client
                main.cpp
+               options.cpp
                ../texture.cpp
                ../window.cpp
                ../packet.cpp
