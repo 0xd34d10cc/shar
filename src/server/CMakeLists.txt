@@ -1,6 +1,7 @@
 add_executable(server
                main.cpp
                ../packet.cpp
+               ../forwarding.cpp
                ../config.hpp
                ../codecs/convert.cpp
                ../codecs/ffmpeg/encoder.cpp
@@ -15,6 +16,7 @@ target_include_directories(server
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+                           PRIVATE SYSTEM %{CONAN_INCLUDE_DIRS_MINIUPNPC}
                            )
 
 target_link_libraries(server
@@ -24,6 +26,7 @@ target_link_libraries(server
                       ${CONAN_LIBS_LIBX264}
                       ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_FMT}
+                      ${CONAN_LIBS_MINIUPNPC}
                       )
 
 target_compile_options(server PRIVATE ${ENABLED_WARNINGS})
