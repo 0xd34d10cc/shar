@@ -13,11 +13,9 @@ os: linux
 addons: &clang5
   apt:
     packages:
-      - g++-6
       - clang-6.0
-    sources: 
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise
+    sources:
+      - llvm-toolchain-trusty-6.0
 
 env:
   global:
