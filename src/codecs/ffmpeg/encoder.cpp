@@ -44,7 +44,6 @@ public:
     }
 
     std::string opts{buffer};
-    std::free(buffer);
     return opts;
   }
 
@@ -54,6 +53,11 @@ private:
 
 }
 
+static int get_pts()
+{
+  static int static_pts = 0;
+  return static_pts++;
+}
 
 namespace shar::codecs::ffmpeg {
 
@@ -91,9 +95,10 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-  std::string kbits = config.get<std::string>("bitrate", "5000");
+  const std::string kbits = config.get<std::string>("bitrate", "5000");
 
-  std::size_t bit_rate = std::stoul(kbits) * 1024;
+  const std::size_t bit_rate = std::stoul(kbits) * 1024;
+
   m_logger.info("bit rate: {} kbit/s", kbits);
   m_context->bit_rate                = static_cast<int>(bit_rate);
   m_context->time_base.num           = 1;
@@ -152,6 +157,7 @@ std::vector<Packet> Encoder::encode(const shar::Image& image) {
   frame->linesize[0] = static_cast<int>(image.width());
   frame->linesize[1] = static_cast<int>(image.width() / 2);
   frame->linesize[2] = static_cast<int>(image.width() / 2);
+  frame->pts = get_pts();
 
   int ret = avcodec_send_frame(m_context, frame);
   std::vector<Packet> packets;

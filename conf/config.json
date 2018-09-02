@@ -5,6 +5,9 @@
     "host": "127.0.0.1",
 
     "encoder": {
-        "bitrate": "11000"
+        "bitrate": "11000",
+        "preset": "medium",
+        "tune": "film",
+        "crf": "16"
     }
  }
