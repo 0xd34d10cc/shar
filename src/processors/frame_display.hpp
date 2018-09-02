@@ -4,22 +4,25 @@
 #include "texture.hpp"
 #include "primitives/point.hpp"
 #include "primitives/size.hpp"
+#include "primitives/image.hpp"
 #include "processors/processor.hpp"
-#include "queues/frames_queue.hpp"
+#include "channels/bounded.hpp"
 
 
 namespace shar {
 
-// Note: OutputQueue should be frames queue
-template<typename OutputQueue>
-class FrameDisplay : public Processor<FrameDisplay<OutputQueue>, FramesQueue, OutputQueue> {
+using FramesReceiver = channel::Receiver<Image>;
+
+// Note: OutputQueue should be frames sender
+template<typename Output>
+class FrameDisplay : public Processor<FrameDisplay<Output>, FramesReceiver, Output> {
 public:
-  using BaseProcessor = Processor<FrameDisplay<OutputQueue>, FramesQueue, OutputQueue>;
+  using BaseProcessor = Processor<FrameDisplay<Output>, FramesReceiver, Output>;
 
   // NOTE: |window| should be initialized in same
   // thread from which run() will be called
-  FrameDisplay(Window& window, Logger logger, FramesQueue& input, OutputQueue& output)
-      : BaseProcessor("FrameDisplay", logger, input, output)
+  FrameDisplay(Window& window, Logger logger, FramesReceiver input, Output output)
+      : BaseProcessor("FrameDisplay", logger, std::move(input), std::move(output))
       , m_window(window)
       , m_texture(window.size()) {}
 
@@ -31,14 +34,10 @@ public:
     m_texture.unbind();
   }
 
-  // FIXME: this processor should not (?) depend on window
-  void process(Image* frame) {
-//    std::cerr << "Displaying frame: "
-//              << frame->width() << 'x' << frame->height() << std::endl;
-
+  void process(Image frame) {
     m_texture.update(Point::origin(),
-                     frame->size(),
-                     frame->bytes());
+                     frame.size(),
+                     frame.bytes());
     m_window.draw_texture(m_texture);
     m_window.swap_buffers();
     m_window.poll_events();
@@ -48,7 +47,7 @@ public:
       return;
     }
 
-    BaseProcessor::output().push(std::move(*frame));
+    BaseProcessor::output().send(std::move(frame));
   }
 
 private:

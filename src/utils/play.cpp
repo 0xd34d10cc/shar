@@ -1,35 +1,38 @@
-#include <thread>
+#include <cstdlib>
 
 #include "window.hpp"
+#include "runner.hpp"
 #include "primitives/image.hpp"
-#include "queues/null_queue.hpp"
-#include "queues/frames_queue.hpp"
+#include "channels/bounded.hpp"
+#include "channels/sink.hpp"
 #include "processors/frame_file_reader.hpp"
 #include "processors/frame_display.hpp"
 
 
 int main() {
-  auto logger = shar::Logger("play_test.log");
-  shar::Size    size {1080, 1920};
-  shar::Window  window {size, logger};
+  using FramesSink = shar::channel::Sink<shar::Image>;
 
-  shar::FileParams  params {"example.bgra", size, 30 /* fps */};
-  shar::FramesQueue frames_to_display;
-  using FrameSink = shar::NullQueue<shar::Image>;
-  FrameSink                     frames_sink;
-  shar::FrameFileReader         reader {params, logger, frames_to_display};
-  shar::FrameDisplay<FrameSink> display {window, logger, frames_to_display, frames_sink};
+  auto         logger = shar::Logger("play.log");
+  shar::Size   size {1080, 1920};
+  shar::Window window {size, logger};
 
-  std::thread reader_thread {[&] {
-    reader.run();
-  }};
+  shar::FileParams params {"example.bgra", size, 30 /* fps */};
 
+  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
+
+  auto reader  = std::make_shared<shar::FrameFileReader>(
+      params,
+      logger,
+      std::move(frames_sender)
+  );
+  auto display = shar::FrameDisplay {
+      window,
+      logger,
+      std::move(frames_receiver),
+      FramesSink {}
+  };
+
+  shar::Runner reader_runner {std::move(reader)};
   display.run();
-
-  reader.stop();
-  display.stop();
-
-  reader_thread.join();
-
-  return 0;
+  return EXIT_SUCCESS;
 }

@@ -2,6 +2,7 @@ add_executable(server
                main.cpp
                ../packet.cpp
                ../forwarding.cpp
+               ../signal_handler.cpp
                ../config.hpp
                ../codecs/convert.cpp
                ../codecs/ffmpeg/encoder.cpp

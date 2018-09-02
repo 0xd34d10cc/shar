@@ -1,50 +1,25 @@
 #include <thread>
 
 #include <chrono>
-#include <condition_variable>
-#include <csignal>
 
 #include "logger.hpp"
-#include "queues/frames_queue.hpp"
-#include "queues/packets_queue.hpp"
+#include "runner.hpp"
+#include "signal_handler.hpp"
+#include "forwarding.hpp"
+#include "channels/bounded.hpp"
 #include "processors/packet_sender.hpp"
 #include "processors/screen_capture.hpp"
 #include "processors/frame_display.hpp"
 #include "processors/h264encoder.hpp"
-#include "forwarding.hpp"
 
-// SIG_ERR expands to c-style cast
-#include "disable_warnings_push.hpp"
-static const auto SIGNAL_ERROR = SIG_ERR;
-#include "disable_warnings_pop.hpp"
-
-static std::mutex              mutex;
-static std::condition_variable signal_to_exit;
-static std::atomic<bool>       is_running = false;
 
 namespace sc = SL::Screen_Capture;
 namespace ip = boost::asio::ip;
 
-static void signal_handler(int /*signum*/) {
-  std::lock_guard<std::mutex> lock(mutex);
-  is_running = false;
-  signal_to_exit.notify_all();
-}
-
-// wait for ctrl+c
-static void wait_for_sigint() {
-  std::unique_lock<std::mutex> lock(mutex);
-  is_running = true;
-  while (is_running) {
-    signal_to_exit.wait(lock);
-  }
-}
-
 static int run() {
   auto logger = shar::Logger("server.log");
 
-  // setup signal handler
-  if (signal(SIGINT, signal_handler) == SIGNAL_ERROR) {
+  if (!shar::SignalHandler::setup()) {
     logger.error("Failed to setup signal handler");
   }
 
@@ -73,38 +48,38 @@ static int run() {
   const auto encoder_config = config.get_subconfig("encoder");
   logger.info("Encoder config: {}", encoder_config.to_string());
 
-  shar::FramesQueue  captured_frames;
-  shar::PacketsQueue packets_to_send;
+  auto[captured_frames_sender, captured_frames_receiver] =
+    shar::channel::bounded<shar::Image>(120);
+  auto[encoded_packets_sender, encoded_packets_receiver] =
+    shar::channel::bounded<shar::Packet>(120);
 
   // setup processors pipeline
-  shar::ScreenCapture capture {interval, monitor, logger, captured_frames};
-  shar::H264Encoder   encoder {frame_size, fps, encoder_config,
-                               logger, captured_frames, packets_to_send};
-  shar::PacketSender  sender {packets_to_send, ip, logger};
+  auto capture = std::make_shared<shar::ScreenCapture>(
+      interval,
+      monitor,
+      logger,
+      std::move(captured_frames_sender)
+  );
+  auto encoder = std::make_shared<shar::H264Encoder>(
+      frame_size,
+      fps,
+      encoder_config,
+      logger,
+      std::move(captured_frames_receiver),
+      std::move(encoded_packets_sender)
+  );
+  auto sender  = std::make_shared<shar::PacketSender>(
+      std::move(encoded_packets_receiver),
+      ip,
+      logger
+  );
 
-  // start processors
-  std::thread capture_thread {[&] {
-    capture.run();
-  }};
+  shar::Runner capture_runner{std::move(capture)};
+  shar::Runner encoder_runner{std::move(encoder)};
+  shar::Runner sender_runner{std::move(sender)};
 
-  std::thread encoder_thread {[&] {
-    encoder.run();
-  }};
-
-  std::thread sender_thread {[&] {
-    sender.run();
-  }};
-
-  wait_for_sigint();
-  logger.info("Stopping all processors...");
-
-  sender.stop();
-  encoder.stop();
-  capture.stop();
-
-  sender_thread.join();
-  encoder_thread.join();
-  capture_thread.join();
+  shar::SignalHandler::wait_for_sigint();
+  sender_runner.stop();
 
   return EXIT_SUCCESS;
 }

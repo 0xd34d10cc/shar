@@ -16,6 +16,9 @@ public:
       : m_duration(duration)
       , m_deadline(Clock::now() + duration) {}
 
+  Timer(const Timer&) = default;
+  Timer(Timer&&) = default;
+
   void restart() noexcept {
     m_deadline = Clock::now() + m_duration;
   }

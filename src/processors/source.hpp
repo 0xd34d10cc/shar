@@ -1,21 +1,24 @@
 #pragma once
 
 #include "processors/processor.hpp"
-#include "queues/null_queue.hpp"
+#include "channels/source.hpp"
 
 
 namespace shar {
 
-template<typename Producer, typename OutputQueue>
-class Source : public Processor<Producer, VoidQueue, OutputQueue> {
+struct FalseInput {};
+using FakeSource = channel::Source<FalseInput>;
+
+template<typename Producer, typename Output>
+class Source : public Processor<Producer, FakeSource, Output> {
 public:
-  using Base = Processor<Producer, VoidQueue, OutputQueue>;
+  using Base = Processor<Producer, FakeSource, Output>;
 
-  Source(const char* name, Logger logger, OutputQueue& output)
-      : Base(name, logger, m_false_input, output) {}
+  Source(std::string name, Logger logger, Output output)
+      : Base(std::move(name), std::move(logger), FakeSource {}, std::move(output)) {}
 
-private:
-  VoidQueue m_false_input;
+  Source(const Source&) = default;
+  Source(Source&&) = default;
 };
 
 

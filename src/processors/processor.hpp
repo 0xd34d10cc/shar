@@ -1,25 +1,37 @@
 #pragma once
 
+#include <string>
 #include <atomic>
+#include <cassert>
 
 #include "logger.hpp"
-#include "primitives/timer.hpp"
 
 
 namespace shar {
 
-template<typename Process, typename InputQueue, typename OutputQueue>
+template<typename Process, typename Input, typename Output>
 class Processor {
 public:
-  Processor(const char* name, Logger logger, InputQueue& input, OutputQueue& output)
+  Processor(std::string name, Logger logger, Input input, Output output)
       : m_logger(std::move(logger))
-      , m_name(name)
+      , m_name(std::move(name))
       , m_running(false)
-      , m_input(input)
-      , m_output(output) {}
+      , m_input(std::move(input))
+      , m_output(std::move(output)) {}
 
-  bool is_running() const noexcept {
-    return m_running && m_input.is_producer_alive() && m_output.is_consumer_alive();
+  Processor(Processor&& other)
+      : m_logger(std::move(other.m_logger))
+      , m_name(std::move(other.m_name))
+      , m_running(false)
+      , m_input(std::move(other.m_input))
+      , m_output(std::move(other.m_output)) {
+    assert(!other.m_running);
+  }
+
+  ~Processor() {
+    if (!m_name.empty()) {
+      m_logger.info("{} destroyed", m_name);
+    }
   }
 
   void run() {
@@ -27,23 +39,33 @@ public:
     start();
 
     while (is_running()) {
-      m_input.wait();
-      while (!m_input.empty() && is_running()) {
-        auto* item = m_input.get_next();
-        static_cast<Process*>(this)->process(item);
-        m_input.consume(1);
+      if (auto item = m_input.receive()) {
+        static_cast<Process*>(this)->process(std::move(*item));
+      }
+      else {
+        // input channel was disconnected
+        break;
       }
     }
+
     static_cast<Process*>(this)->teardown();
     stop();
     m_logger.info("{} finished", m_name);
   }
 
+  bool is_running() const noexcept {
+    return m_running && m_input.connected() && m_output.connected();
+  }
+
+  void start() {
+    if (!m_running) {
+      m_logger.info("{} starting", m_name);
+    }
+    m_running = true;
+  }
+
   void stop() {
     if (m_running) {
-      m_input.set_consumer_state(InputQueue::State::Dead);
-      m_output.set_producer_state(OutputQueue::State::Dead);
-      
       m_logger.info("{} stopping", m_name);
     }
     m_running = false;
@@ -54,29 +76,23 @@ protected:
 
   void teardown() {}
 
-  void start() {
-    if (!m_running) {
-      m_logger.info("{} starting", m_name);
-    }
-    m_running = true;
-  }
 
-  InputQueue& input() {
+  Input& input() {
     return m_input;
   }
 
-  OutputQueue& output() {
+  Output& output() {
     return m_output;
   }
 
   Logger m_logger;
 
 private:
-  const char* m_name;
+  std::string       m_name;
   std::atomic<bool> m_running;
 
-  InputQueue & m_input;
-  OutputQueue& m_output;
+  Input  m_input;
+  Output m_output;
 };
 
 }

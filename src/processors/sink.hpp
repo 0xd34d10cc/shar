@@ -1,21 +1,20 @@
 #pragma once
 
-#include "queues/null_queue.hpp"
+#include "channels/sink.hpp"
 #include "processors/processor.hpp"
 
 
 namespace shar {
 
-template<typename Consumer, typename InputQueue>
-class Sink : public Processor<Consumer, InputQueue, VoidQueue> {
+enum class Void{};
+
+template<typename Consumer, typename Input>
+class Sink : public Processor<Consumer, Input, channel::Sink<Void>> {
 public:
-  using Base = Processor<Consumer, InputQueue, VoidQueue>;
+  using Base = Processor<Consumer, Input, channel::Sink<Void>>;
 
-  Sink(const char* name, Logger logger, InputQueue& input)
-      : Base(name, logger, input, m_false_output) {}
-
-private:
-  VoidQueue m_false_output;
+  Sink(std::string name, Logger logger, Input input)
+      : Base(std::move(name), std::move(logger), std::move(input), channel::Sink<Void>{}) {}
 };
 
 }

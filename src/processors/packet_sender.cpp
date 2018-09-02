@@ -17,20 +17,20 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsQueue& input, IpAddress ip, Logger logger)
-    : Sink("PacketSender", logger, input)
+PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger)
+    : Sink("PacketSender", std::move(logger), std::move(input))
     , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
     , m_acceptor(m_context) {}
 
-void PacketSender::process(Packet* packet) {
+void PacketSender::process(Packet packet) {
   using namespace std::chrono_literals;
   // NOTE: we can't send more than 100 packets/s
   m_context.run_for(10ms);
 
-  const auto shared_packet = std::make_shared<Packet>(std::move(*packet));
+  const auto shared_packet = std::make_shared<Packet>(std::move(packet));
 //  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
   for (auto& client: m_clients) {
     client.second.m_packets.push(shared_packet);

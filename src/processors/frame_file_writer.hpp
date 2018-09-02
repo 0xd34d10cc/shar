@@ -5,18 +5,19 @@
 
 #include "primitives/size.hpp"
 #include "primitives/image.hpp"
-#include "queues/null_queue.hpp"
-#include "queues/frames_queue.hpp"
+#include "channels/bounded.hpp"
 #include "processors/processor.hpp"
 #include "processors/sink.hpp"
 
 
 namespace shar {
 
-class FrameFileWriter : public Sink<FrameFileWriter, FramesQueue> {
+using FramesReceiver = channel::Receiver<Image>;
+
+class FrameFileWriter : public Sink<FrameFileWriter, FramesReceiver> {
 public:
-  FrameFileWriter(const std::string& path, Logger logger, FramesQueue& input);
-  void process(shar::Image* frame);
+  FrameFileWriter(const std::string& path, Logger logger, FramesReceiver input);
+  void process(shar::Image frame);
   void teardown();
 
 private:

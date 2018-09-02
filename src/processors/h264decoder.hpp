@@ -1,19 +1,22 @@
 #pragma once
 
+#include "packet.hpp"
+#include "primitives/image.hpp"
 #include "processors/processor.hpp"
-#include "queues/packets_queue.hpp"
-#include "queues/frames_queue.hpp"
+#include "channels/bounded.hpp"
 #include "codecs/ffmpeg/decoder.hpp"
-//#include "codecs/openh264/decoder.hpp"
 
 
 namespace shar {
 
-class H264Decoder : public Processor<H264Decoder, PacketsQueue, FramesQueue> {
-public:
-  H264Decoder(Logger logger, PacketsQueue& input, FramesQueue& output);
+using FramesSender = channel::Sender<Image>;
+using PacketsReceiver = channel::Receiver<Packet>;
 
-  void process(Packet* packet);
+class H264Decoder : public Processor<H264Decoder, PacketsReceiver, FramesSender> {
+public:
+  H264Decoder(Logger logger, PacketsReceiver input, FramesSender output);
+
+  void process(Packet packet);
 
 private:
   codecs::ffmpeg::Decoder m_decoder;
