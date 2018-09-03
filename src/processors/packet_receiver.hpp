@@ -7,20 +7,23 @@
 #include <boost/asio.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "packet.hpp"
 #include "processors/source.hpp"
-#include "queues/packets_queue.hpp"
+#include "channels/bounded.hpp"
 
 
 namespace shar {
 
 using IpAddress = boost::asio::ip::address;
+using PacketsSender = channel::Sender<Packet>;
 
-class PacketReceiver : public Source<PacketReceiver, PacketsQueue> {
+class PacketReceiver : public Source<PacketReceiver, PacketsSender> {
 public:
-  PacketReceiver(IpAddress server, Logger logger, PacketsQueue& output);
+  PacketReceiver(IpAddress server, Logger logger, PacketsSender output);
+  PacketReceiver(PacketReceiver&&) = default;
 
   void setup();
-  void process(Void*);
+  void process(FalseInput);
   void teardown();
 
 private:

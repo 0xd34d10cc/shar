@@ -10,18 +10,19 @@ compiler:
   - clang
 
 os: linux
-addons: &clang5
+addons: &clang6
   apt:
     packages:
-      - g++-6
-      - clang-5.0
-    sources: 
+      - clang-6.0
+    sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise
+      - llvm-toolchain-trusty-6.0
 
 env:
   global:
     - PATH="$TRAVIS_BUILD_DIR/cmake-download/bin:$PATH"
+    - CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+    - LINKER_FLAGS="$LINKER_FLAGS -stdlib=libc++ -lc++abi"
 
 before_script:
   - mkdir cmake-download && cd cmake-download && curl -O https://cmake.org/files/v3.12/cmake-3.12.0-rc1-Linux-x86_64.sh
@@ -34,7 +35,7 @@ before_script:
 script:
   - mkdir build
   - cd build
-  - conan install --build=missing  .. 
+  - conan install --build=missing -s compiler.libcxx=libc++ .. 
   - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
 

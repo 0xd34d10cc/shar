@@ -6,7 +6,8 @@
 
 #include "primitives/size.hpp"
 #include "primitives/timer.hpp"
-#include "queues/frames_queue.hpp"
+#include "primitives/image.hpp"
+#include "channels/bounded.hpp"
 #include "processors/source.hpp"
 
 
@@ -18,11 +19,22 @@ struct FileParams {
   std::size_t fps;
 };
 
-class FrameFileReader : public Source<FrameFileReader, FramesQueue> {
-public:
-  FrameFileReader(FileParams params, Logger logger, FramesQueue& output);
+using FramesSender = channel::Sender<Image>;
 
-  void process(Void* /* dummy input */);
+class FrameFileReader : public Source<FrameFileReader, FramesSender> {
+public:
+  FrameFileReader(FileParams params, Logger logger, FramesSender output);
+
+  FrameFileReader(const FrameFileReader&) = delete;
+  FrameFileReader(FrameFileReader&& other)
+      : Source(std::move(other))
+      , m_file_params(std::move(other.m_file_params))
+      , m_stream(std::move(other.m_stream))
+      , m_timer(std::move(other.m_timer))
+  {}
+
+  void process(FalseInput /* dummy input */);
+
 private:
   shar::Image read_frame();
 

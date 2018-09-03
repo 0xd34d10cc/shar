@@ -6,9 +6,10 @@
 #include <ScreenCapture.h>
 #include "disable_warnings_pop.hpp"
 
-#include "queues/frames_queue.hpp"
+#include "channels/bounded.hpp"
 #include "processors/source.hpp"
 #include "primitives/timer.hpp"
+#include "primitives/image.hpp"
 
 
 namespace sc = SL::Screen_Capture;
@@ -21,17 +22,19 @@ using Milliseconds = std::chrono::milliseconds;
 
 namespace shar {
 
-class ScreenCapture : public Source<ScreenCapture, FramesQueue> {
+using FramesSender = channel::Sender<Image>;
+
+class ScreenCapture : public Source<ScreenCapture, FramesSender> {
 public:
   ScreenCapture(const Milliseconds& interval,
                 const sc::Monitor& monitor,
                 Logger logger,
-                FramesQueue& output);
+                FramesSender output);
   ScreenCapture(const ScreenCapture&) = delete;
-  ScreenCapture(ScreenCapture&&) = delete;
+  ScreenCapture(ScreenCapture&&) = default;
 
   void setup();
-  void process(Void*);
+  void process(FalseInput);
   void teardown();
 
 private:

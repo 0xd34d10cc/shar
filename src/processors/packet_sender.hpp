@@ -10,22 +10,24 @@
 #include "primitives/timer.hpp"
 #include "packet.hpp"
 #include "processors/sink.hpp"
-#include "queues/packets_queue.hpp"
+#include "channels/bounded.hpp"
 
 
 namespace shar {
 
-class PacketSender : public Sink<PacketSender, PacketsQueue> {
+using PacketsReceiver = channel::Receiver<Packet>;
+
+class PacketSender : public Sink<PacketSender, PacketsReceiver> {
 public:
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(PacketsQueue& input, IpAddress ip, Logger logger);
+  PacketSender(PacketsReceiver input, IpAddress ip, Logger logger);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
 
   void setup();
-  void process(Packet* packet);
+  void process(Packet packet);
   void teardown();
 
 private:

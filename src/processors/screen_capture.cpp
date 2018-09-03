@@ -21,7 +21,7 @@ shar::Image convert(const sc::Image& image) noexcept {
 
 
 struct FrameHandler {
-  FrameHandler(shar::FramesQueue& frames_consumer)
+  FrameHandler(shar::FramesSender& frames_consumer)
       : m_metrics_timer(std::chrono::seconds(1))
       , m_fps(0)
       , m_frames_consumer(frames_consumer) {}
@@ -35,12 +35,14 @@ struct FrameHandler {
     ++m_fps;
 
     shar::Image buffer = convert(frame);
-    m_frames_consumer.push(std::move(buffer));
+    // ignore return value here, if channel was disconnected ScreenCapture will stop
+    // processing new frames anyway
+    m_frames_consumer.send(std::move(buffer));
   }
 
-  shar::Timer m_metrics_timer;
-  std::size_t m_fps;
-  shar::FramesQueue& m_frames_consumer;
+  shar::Timer         m_metrics_timer;
+  std::size_t         m_fps;
+  shar::FramesSender& m_frames_consumer;
 };
 
 }
@@ -50,8 +52,8 @@ namespace shar {
 ScreenCapture::ScreenCapture(const Milliseconds& interval,
                              const sc::Monitor& monitor,
                              Logger logger,
-                             FramesQueue& output)
-    : Source("ScreenCapture", logger, output)
+                             FramesSender output)
+    : Source("ScreenCapture", logger, std::move(output))
     , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
@@ -61,10 +63,10 @@ ScreenCapture::ScreenCapture(const Milliseconds& interval,
     return std::vector<sc::Monitor> {monitor};
   });
 
-  m_config->onNewFrame(FrameHandler {output});
+  m_config->onNewFrame(FrameHandler {Processor::output()});
 }
 
-void ScreenCapture::process(Void*) {
+void ScreenCapture::process(FalseInput) {
   m_wakeup_timer.restart();
   m_wakeup_timer.wait();
 }

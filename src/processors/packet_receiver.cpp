@@ -63,15 +63,15 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, Logger logger, PacketsQueue& output)
-    : Source("PacketReceiver", logger, output)
+PacketReceiver::PacketReceiver(IpAddress server, Logger logger, PacketsSender output)
+    : Source("PacketReceiver", std::move(logger), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)
     , m_context()
     , m_receiver(m_context) {}
 
-void PacketReceiver::process(Void*) {
+void PacketReceiver::process(FalseInput) {
   m_context.run_for(std::chrono::milliseconds(250));
 }
 
@@ -102,7 +102,7 @@ void PacketReceiver::start_read() {
 
         auto packets = m_reader.update(m_buffer, received);
         for (auto& packet: packets) {
-          output().push(std::move(packet));
+          output().send(std::move(packet));
         }
 
         start_read();
