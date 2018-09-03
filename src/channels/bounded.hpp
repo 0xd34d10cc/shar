@@ -184,8 +184,8 @@ inline static std::pair<Sender<T>, Receiver<T>> bounded(std::size_t capacity) {
 
   auto buffer   = Buffer<T>::with_capacity(capacity);
   auto state    = std::make_shared<State<T>>(std::move(buffer));
-  auto sender   = Sender {state};
-  auto receiver = Receiver {std::move(state)};
+  auto sender   = Sender<T> {state};
+  auto receiver = Receiver<T> {std::move(state)};
 
   return {std::move(sender), std::move(receiver)};
 };
