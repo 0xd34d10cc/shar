@@ -10,7 +10,7 @@ compiler:
   - clang
 
 os: linux
-addons: &clang5
+addons: &clang6
   apt:
     packages:
       - clang-6.0
