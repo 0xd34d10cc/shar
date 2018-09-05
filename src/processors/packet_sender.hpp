@@ -62,6 +62,7 @@ private:
     std::size_t m_bytes_sent;
 
     bool         m_is_running;
+    bool         m_overflown;
     Socket       m_socket;
     PacketsQueue m_packets;
     StreamState  m_stream_state;
@@ -71,12 +72,15 @@ private:
   void start_accepting();
   void run_client(ClientId id);
   void handle_write(std::size_t bytes_sent, ClientId to_client);
+  void reset_overflown_state(ClientId id);
 
   IpAddress m_ip;
   Clients   m_clients;
   Context   m_context;
   Socket    m_current_socket;
   Acceptor  m_acceptor;
+
+  std::size_t m_overflown_count;
 };
 
 } // namespace shar
