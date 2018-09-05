@@ -62,6 +62,7 @@ private:
     std::size_t m_bytes_sent;
 
     bool         m_is_running;
+    bool         m_overflown;
     Socket       m_socket;
     PacketsQueue m_packets;
     StreamState  m_stream_state;
@@ -77,6 +78,8 @@ private:
   Context   m_context;
   Socket    m_current_socket;
   Acceptor  m_acceptor;
+
+  std::size_t m_overflown_count;
 };
 
 } // namespace shar
