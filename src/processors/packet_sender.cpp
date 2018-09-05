@@ -113,6 +113,7 @@ void PacketSender::run_client(ClientId id) {
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
           m_logger.error("Failed to send packet length to client #{}: {}", id, ec.message());
+          reset_overflown_state(id);
           m_clients.erase(id);
           return;
         }
@@ -128,6 +129,7 @@ void PacketSender::run_client(ClientId id) {
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
           m_logger.error("Failed to send packet to client #{}: {}", id, ec.message());
+          reset_overflown_state(id);
           m_clients.erase(id);
           return;
         }
@@ -179,6 +181,20 @@ void PacketSender::handle_write(std::size_t bytes_sent, ClientId id) {
   }
 
   run_client(id);
+}
+
+void PacketSender::reset_overflown_state(ClientId id) {
+  const auto it = m_clients.find(id);
+  if (it == m_clients.end()) {
+    assert(false);
+    return;
+  }
+
+  auto& client = it->second;
+  if (client.m_overflown) {
+    client.m_overflown = false;
+    m_overflown_count -= 1;
+  }
 }
 
 void PacketSender::setup() {

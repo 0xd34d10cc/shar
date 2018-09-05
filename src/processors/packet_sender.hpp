@@ -72,6 +72,7 @@ private:
   void start_accepting();
   void run_client(ClientId id);
   void handle_write(std::size_t bytes_sent, ClientId to_client);
+  void reset_overflown_state(ClientId id);
 
   IpAddress m_ip;
   Clients   m_clients;
