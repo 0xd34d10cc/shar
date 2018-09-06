@@ -1,14 +1,23 @@
 add_executable(client
                main.cpp
                options.cpp
+               options.hpp
                ../texture.cpp
+               ../texture.hpp
                ../window.cpp
+               ../window.hpp
                ../packet.cpp
+               ../packet.hpp
                ../codecs/convert.cpp
+               ../codecs/convert.hpp
                ../codecs/ffmpeg/decoder.cpp
+               ../codecs/ffmpeg/decoder.hpp
                ../processors/packet_receiver.cpp
+               ../processors/packet_receiver.hpp
                ../processors/h264decoder.cpp
+               ../processors/h264decoder.hpp
                ../primitives/image.cpp
+               ../primitives/image.hpp
                )
 
 target_include_directories(client

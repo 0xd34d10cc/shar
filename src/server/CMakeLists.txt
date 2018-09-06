@@ -1,15 +1,24 @@
 add_executable(server
                main.cpp
                ../packet.cpp
+               ../packet.hpp
                ../forwarding.cpp
+               ../forwarding.hpp
                ../signal_handler.cpp
+               ../signal_handler.hpp
                ../config.hpp
                ../codecs/convert.cpp
+               ../codecs/convert.hpp
                ../codecs/ffmpeg/encoder.cpp
+               ../codecs/ffmpeg/encoder.hpp
                ../processors/screen_capture.cpp
+               ../processors/screen_capture.hpp
                ../processors/packet_sender.cpp
+               ../processors/packet_sender.hpp
                ../processors/h264encoder.cpp
+               ../processors/h264encoder.hpp
                ../primitives/image.cpp
+               ../primitives/image.hpp
                )
 
 target_include_directories(server
@@ -30,5 +39,10 @@ target_link_libraries(server
                       ${CONAN_LIBS_MINIUPNPC}
                       )
 
+if (WIN32)
+  target_link_libraries(server ws2_32 iphlpapi)
+endif ()
+
+target_compile_definitions(server PRIVATE MINIUPNP_STATICLIB)
 target_compile_options(server PRIVATE ${ENABLED_WARNINGS})
 
