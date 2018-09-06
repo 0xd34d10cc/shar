@@ -30,5 +30,10 @@ target_link_libraries(server
                       ${CONAN_LIBS_MINIUPNPC}
                       )
 
+if (WIN32)
+  target_link_libraries(server ws2_32 iphlpapi)
+endif ()
+
+target_compile_definitions(server PRIVATE MINIUPNP_STATICLIB)
 target_compile_options(server PRIVATE ${ENABLED_WARNINGS})
 
