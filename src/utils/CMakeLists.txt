@@ -1,9 +1,13 @@
 add_executable(play
                play.cpp
                ../texture.cpp
+               ../texture.hpp
                ../window.cpp
+               ../window.hpp
                ../processors/frame_file_reader.cpp
-               ../primitives/image.cpp)
+               ../processors/frame_file_reader.hpp
+               ../primitives/image.cpp
+               ../primitives/image.hpp)
 
 target_include_directories(play 
                            PRIVATE ..
@@ -20,9 +24,13 @@ target_compile_options(play PRIVATE ${ENABLED_WARNINGS})
 add_executable(record
                record.cpp
                ../processors/screen_capture.cpp
+               ../processors/screen_capture.hpp
                ../processors/frame_file_writer.cpp
+               ../processors/frame_file_writer.hpp
                ../primitives/image.cpp
-               ../signal_handler.cpp)
+               ../primitives/image.hpp
+               ../signal_handler.cpp
+               ../signal_handler.hpp)
 target_include_directories(record
                            PRIVATE ..
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
@@ -39,17 +47,29 @@ target_compile_options(record PRIVATE ${ENABLED_WARNINGS})
 add_executable(pipeline_test
                full_pipeline_test.cpp
                ../packet.cpp
+               ../packet.hpp
                ../texture.cpp
+               ../texture.hpp
                ../window.cpp
+               ../window.hpp
                ../codecs/convert.cpp
+               ../codecs/convert.hpp
                ../codecs/ffmpeg/encoder.cpp
+               ../codecs/ffmpeg/encoder.hpp
                ../codecs/ffmpeg/decoder.cpp
+               ../codecs/ffmpeg/decoder.hpp
                ../processors/screen_capture.cpp
+               ../processors/screen_capture.hpp
                ../processors/h264encoder.cpp
+               ../processors/h264encoder.hpp
                ../processors/h264decoder.cpp
+               ../processors/h264decoder.hpp
                ../processors/packet_sender.cpp
+               ../processors/packet_sender.hpp
                ../processors/packet_receiver.cpp
-               ../primitives/image.cpp)
+               ../processors/packet_receiver.hpp
+               ../primitives/image.cpp
+               ../primitives/image.hpp)
 
 target_include_directories(pipeline_test
                            PRIVATE ..
