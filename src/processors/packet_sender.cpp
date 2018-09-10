@@ -4,7 +4,7 @@
 namespace shar {
 
 static const std::size_t PACKETS_HIGH_WATERMARK = 120;
-static const std::size_t PACKETS_LOW_WATERMARK = 80;
+static const std::size_t PACKETS_LOW_WATERMARK  = 80;
 
 
 PacketSender::Client::Client(Socket socket)
@@ -21,14 +21,16 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger)
-    : Sink("PacketSender", std::move(logger), std::move(input))
+PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, MetricsPtr metrics)
+    : Sink("PacketSender", std::move(logger), std::move(metrics), std::move(input))
     , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
     , m_acceptor(m_context)
-    , m_overflown_count(0) {}
+    , m_overflown_count(0)
+    , m_packets_sent_metric(INVALID_METRIC_ID)
+    , m_bytes_sent_metric(INVALID_METRIC_ID) {}
 
 void PacketSender::process(Packet packet) {
   using namespace std::chrono_literals;
@@ -167,13 +169,17 @@ void PacketSender::handle_write(std::size_t bytes_sent, ClientId id) {
 
     case Client::State::SendingContent:
       assert(client.m_bytes_sent <= client.m_packets.front()->size());
-      if (client.m_packets.front()->size() == client.m_bytes_sent) {
+      std::size_t packet_size = client.m_packets.front()->size();
+      if (packet_size == client.m_bytes_sent) {
         client.m_bytes_sent = 0;
         if (client.m_overflown && client.m_packets.size() == PACKETS_LOW_WATERMARK) {
           m_overflown_count -= 1;
           client.m_overflown = false;
           m_logger.warning("Client {}: packets queue is not overflown anymore", id);
         }
+
+        m_metrics->increase(m_packets_sent_metric, 1);
+        m_metrics->increase(m_bytes_sent_metric, packet_size + client.m_length.size());
         client.m_packets.pop();
         client.m_state = Client::State::SendingLength;
       }
@@ -198,6 +204,10 @@ void PacketSender::reset_overflown_state(ClientId id) {
 }
 
 void PacketSender::setup() {
+  // setup metrics
+  m_packets_sent_metric = m_metrics->add("PacketSender\tpackets", Metrics::Format::Count);
+  m_bytes_sent_metric   = m_metrics->add("PacketSender\tbytes", Metrics::Format::Bytes);
+
   namespace ip = boost::asio::ip;
   ip::tcp::endpoint endpoint {m_ip, 1337};
   m_acceptor.open(endpoint.protocol());
@@ -219,6 +229,9 @@ void PacketSender::teardown() {
   m_clients.clear();
 
   m_acceptor.cancel();
+
+  m_metrics->remove(m_packets_sent_metric);
+  m_metrics->remove(m_bytes_sent_metric);
 }
 
 } //  namespace shar

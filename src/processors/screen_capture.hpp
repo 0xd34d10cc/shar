@@ -29,6 +29,7 @@ public:
   ScreenCapture(const Milliseconds& interval,
                 const sc::Monitor& monitor,
                 Logger logger,
+                MetricsPtr metrics,
                 FramesSender output);
   ScreenCapture(const ScreenCapture&) = delete;
   ScreenCapture(ScreenCapture&&) = default;

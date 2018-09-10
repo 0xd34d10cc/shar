@@ -4,6 +4,10 @@ add_executable(server
                ../packet.hpp
                ../forwarding.cpp
                ../forwarding.hpp
+               ../metrics.cpp
+               ../metrics.hpp
+               ../metrics_reporter.cpp
+               ../metrics_reporter.hpp
                ../signal_handler.cpp
                ../signal_handler.hpp
                ../config.hpp

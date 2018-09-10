@@ -17,6 +17,7 @@ int main() {
   }
 
   auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
   using namespace std::chrono_literals;
   std::size_t fps      = 30;
@@ -24,10 +25,10 @@ int main() {
   sc::Monitor monitor  = sc::GetMonitors().front();
 
   auto capture = std::make_shared<shar::ScreenCapture>(
-      interval, monitor, logger, std::move(frames_sender)
+      interval, monitor, logger, metrics, std::move(frames_sender)
   );
   auto writer = std::make_shared<shar::FrameFileWriter>(
-      "example.bgra", logger, std::move(frames_receiver)
+      "example.bgra", logger, metrics, std::move(frames_receiver)
   );
 
   shar::Runner capture_runner {std::move(capture)};

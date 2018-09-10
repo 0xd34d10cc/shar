@@ -19,7 +19,7 @@ using PacketsSender = channel::Sender<Packet>;
 
 class PacketReceiver : public Source<PacketReceiver, PacketsSender> {
 public:
-  PacketReceiver(IpAddress server, Logger logger, PacketsSender output);
+  PacketReceiver(IpAddress server, Logger logger, MetricsPtr metrics, PacketsSender output);
   PacketReceiver(PacketReceiver&&) = default;
 
   void setup();
@@ -53,6 +53,9 @@ private:
   boost::asio::ip::address     m_server_address;
   boost::asio::io_context      m_context;
   boost::asio::ip::tcp::socket m_receiver;
+
+  MetricId m_packets_received_metric;
+  MetricId m_bytes_received_metric;
 };
 
 }
