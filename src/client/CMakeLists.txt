@@ -8,6 +8,10 @@ add_executable(client
                ../window.hpp
                ../packet.cpp
                ../packet.hpp
+               ../metrics.cpp
+               ../metrics.hpp
+               ../metrics_reporter.cpp
+               ../metrics_reporter.hpp
                ../codecs/convert.cpp
                ../codecs/convert.hpp
                ../codecs/ffmpeg/decoder.cpp

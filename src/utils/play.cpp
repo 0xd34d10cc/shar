@@ -17,17 +17,20 @@ int main() {
   shar::Window window {size, logger};
 
   shar::FileParams params {"example.bgra", size, 30 /* fps */};
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
   auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
 
   auto reader  = std::make_shared<shar::FrameFileReader>(
       params,
       logger,
+      metrics,
       std::move(frames_sender)
   );
   auto display = shar::FrameDisplay {
       window,
       logger,
+      metrics,
       std::move(frames_receiver),
       FramesSink {}
   };

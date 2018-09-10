@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "logger.hpp"
+#include "metrics.hpp"
 
 
 namespace shar {
@@ -12,8 +13,9 @@ namespace shar {
 template<typename Process, typename Input, typename Output>
 class Processor {
 public:
-  Processor(std::string name, Logger logger, Input input, Output output)
+  Processor(std::string name, Logger logger, MetricsPtr metrics, Input input, Output output)
       : m_logger(std::move(logger))
+      , m_metrics(std::move(metrics))
       , m_name(std::move(name))
       , m_running(false)
       , m_input(std::move(input))
@@ -21,6 +23,7 @@ public:
 
   Processor(Processor&& other)
       : m_logger(std::move(other.m_logger))
+      , m_metrics(std::move(other.m_metrics))
       , m_name(std::move(other.m_name))
       , m_running(false)
       , m_input(std::move(other.m_input))
@@ -85,7 +88,8 @@ protected:
     return m_output;
   }
 
-  Logger m_logger;
+  Logger     m_logger;
+  MetricsPtr m_metrics;
 
 private:
   std::string       m_name;

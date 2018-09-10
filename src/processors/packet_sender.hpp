@@ -9,6 +9,7 @@
 
 #include "primitives/timer.hpp"
 #include "packet.hpp"
+#include "metrics.hpp"
 #include "processors/sink.hpp"
 #include "channels/bounded.hpp"
 
@@ -21,7 +22,7 @@ class PacketSender : public Sink<PacketSender, PacketsReceiver> {
 public:
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(PacketsReceiver input, IpAddress ip, Logger logger);
+  PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, MetricsPtr metrics);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -81,6 +82,9 @@ private:
   Acceptor  m_acceptor;
 
   std::size_t m_overflown_count;
+
+  MetricId m_packets_sent_metric;
+  MetricId m_bytes_sent_metric;
 };
 
 } // namespace shar

@@ -52,8 +52,9 @@ namespace shar {
 ScreenCapture::ScreenCapture(const Milliseconds& interval,
                              const sc::Monitor& monitor,
                              Logger logger,
+                             MetricsPtr metrics,
                              FramesSender output)
-    : Source("ScreenCapture", logger, std::move(output))
+    : Source("ScreenCapture", std::move(logger), std::move(metrics), std::move(output))
     , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)

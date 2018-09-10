@@ -25,7 +25,7 @@ static shar::Options parse_options(const po::variables_map& vm) {
 static shar::Options read_options(int argc, const char* argv[]) {
   po::options_description desc {"Options"};
   desc.add_options()
-          ("help, h", "Help")
+          ("help,h", "Help")
           // TODO: use screen size for default
           ("width", po::value<size_t>()->default_value(1920), "Width of the screen")
           ("height", po::value<size_t>()->default_value(1080), "Height of the screen")

@@ -4,6 +4,8 @@ add_executable(play
                ../texture.hpp
                ../window.cpp
                ../window.hpp
+               ../metrics.cpp
+               ../metrics.hpp
                ../processors/frame_file_reader.cpp
                ../processors/frame_file_reader.hpp
                ../primitives/image.cpp
@@ -23,6 +25,8 @@ target_compile_options(play PRIVATE ${ENABLED_WARNINGS})
 # recorder
 add_executable(record
                record.cpp
+               ../metrics.cpp
+               ../metrics.hpp
                ../processors/screen_capture.cpp
                ../processors/screen_capture.hpp
                ../processors/frame_file_writer.cpp
@@ -52,6 +56,8 @@ add_executable(pipeline_test
                ../texture.hpp
                ../window.cpp
                ../window.hpp
+               ../metrics.cpp
+               ../metrics.hpp
                ../codecs/convert.cpp
                ../codecs/convert.hpp
                ../codecs/ffmpeg/encoder.cpp

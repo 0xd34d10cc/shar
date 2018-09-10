@@ -17,13 +17,17 @@ using PacketsSender = channel::Sender<Packet>;
 class H264Encoder : public Processor<H264Encoder, FramesReceiver, PacketsSender> {
 public:
   H264Encoder(Size frame_size, const std::size_t fps, const Config& config,
-              Logger logger, FramesReceiver input, PacketsSender output);
+              Logger logger, MetricsPtr metrics, FramesReceiver input, PacketsSender output);
   H264Encoder(const H264Encoder&) = delete;
 
   void process(Image frame);
+  void setup();
+  void teardown();
 
 private:
   codecs::ffmpeg::Encoder m_encoder;
+  MetricId m_bytes_in;
+  MetricId m_bytes_out;
 };
 
 }

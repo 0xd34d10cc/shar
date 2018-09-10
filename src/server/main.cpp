@@ -6,6 +6,8 @@
 #include "runner.hpp"
 #include "signal_handler.hpp"
 #include "forwarding.hpp"
+#include "metrics.hpp"
+#include "metrics_reporter.hpp"
 #include "channels/bounded.hpp"
 #include "processors/packet_sender.hpp"
 #include "processors/screen_capture.hpp"
@@ -53,11 +55,14 @@ static int run() {
   auto[encoded_packets_sender, encoded_packets_receiver] =
     shar::channel::bounded<shar::Packet>(120);
 
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
+
   // setup processors pipeline
   auto capture = std::make_shared<shar::ScreenCapture>(
       interval,
       monitor,
       logger,
+      metrics,
       std::move(captured_frames_sender)
   );
   auto encoder = std::make_shared<shar::H264Encoder>(
@@ -65,21 +70,27 @@ static int run() {
       fps,
       encoder_config,
       logger,
+      metrics,
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
   auto sender  = std::make_shared<shar::PacketSender>(
       std::move(encoded_packets_receiver),
       ip,
-      logger
+      logger,
+      metrics
   );
 
   shar::Runner capture_runner{std::move(capture)};
   shar::Runner encoder_runner{std::move(encoder)};
   shar::Runner sender_runner{std::move(sender)};
 
+  shar::MetricsReporter reporter{metrics, 10};
+  reporter.start();
+
   shar::SignalHandler::wait_for_sigint();
   sender_runner.stop();
+  reporter.stop();
 
   return EXIT_SUCCESS;
 }

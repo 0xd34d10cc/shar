@@ -16,7 +16,7 @@ using FramesReceiver = channel::Receiver<Image>;
 
 class FrameFileWriter : public Sink<FrameFileWriter, FramesReceiver> {
 public:
-  FrameFileWriter(const std::string& path, Logger logger, FramesReceiver input);
+  FrameFileWriter(const std::string& path, Logger logger, MetricsPtr metrics, FramesReceiver input);
   void process(shar::Image frame);
   void teardown();
 

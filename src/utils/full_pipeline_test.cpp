@@ -54,12 +54,14 @@ int main() {
   shar::channel::bounded<shar::Image>(120);
 
   const auto config = shar::Config::make_default();
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
   // setup processors pipeline
   auto capture  = std::make_shared<shar::ScreenCapture>(
       interval,
       monitor,
       logger,
+      metrics,
       std::move(captured_frames_sender)
   );
   auto encoder  = std::make_shared<shar::H264Encoder>(
@@ -67,21 +69,25 @@ int main() {
       fps,
       config.get_subconfig("encoder"),
       logger,
+      metrics,
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
   auto sender   = std::make_shared<shar::PacketSender>(
       std::move(encoded_packets_receiver),
       ip,
-      logger
+      logger,
+      metrics
   );
   auto receiver = std::make_shared<shar::PacketReceiver>(
       ip,
       logger,
+      metrics,
       std::move(received_packets_sender)
   );
   auto decoder  = std::make_shared<shar::H264Decoder>(
       logger,
+      metrics,
       std::move(received_packets_receiver),
       std::move(decoded_frames_sender)
   );
@@ -92,6 +98,7 @@ int main() {
   Display display {
       window,
       logger,
+      metrics,
       std::move(decoded_frames_receiver),
       ImageSink {}
   };

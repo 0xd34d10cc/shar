@@ -63,19 +63,24 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, Logger logger, PacketsSender output)
-    : Source("PacketReceiver", std::move(logger), std::move(output))
+PacketReceiver::PacketReceiver(IpAddress server, Logger logger, MetricsPtr metrics, PacketsSender output)
+    : Source("PacketReceiver", std::move(logger), std::move(metrics), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)
     , m_context()
-    , m_receiver(m_context) {}
+    , m_receiver(m_context)
+    , m_packets_received_metric(INVALID_METRIC_ID)
+    , m_bytes_received_metric(INVALID_METRIC_ID) {}
 
 void PacketReceiver::process(FalseInput) {
   m_context.run_for(std::chrono::milliseconds(250));
 }
 
 void PacketReceiver::setup() {
+  m_packets_received_metric = m_metrics->add("PacketReceiver::packets", Metrics::Format::Count);
+  m_bytes_received_metric   = m_metrics->add("PacketReceiver::bytes", Metrics::Format::Bytes);
+
   using Endpoint = boost::asio::ip::tcp::endpoint;
   Endpoint endpoint {m_server_address, 1337};
   m_receiver.connect(endpoint);
@@ -87,6 +92,9 @@ void PacketReceiver::teardown() {
   // close the connection
   m_receiver.shutdown(boost::asio::socket_base::shutdown_both);
   m_receiver.close();
+
+  m_metrics->remove(m_packets_received_metric);
+  m_metrics->remove(m_bytes_received_metric);
 }
 
 
@@ -100,7 +108,10 @@ void PacketReceiver::start_read() {
           return;
         }
 
+        m_metrics->increase(m_bytes_received_metric, received);
+
         auto packets = m_reader.update(m_buffer, received);
+        m_metrics->increase(m_packets_received_metric, packets.size());
         for (auto& packet: packets) {
           output().send(std::move(packet));
         }

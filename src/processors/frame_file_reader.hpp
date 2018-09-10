@@ -23,7 +23,7 @@ using FramesSender = channel::Sender<Image>;
 
 class FrameFileReader : public Source<FrameFileReader, FramesSender> {
 public:
-  FrameFileReader(FileParams params, Logger logger, FramesSender output);
+  FrameFileReader(FileParams params, Logger logger, MetricsPtr metrics, FramesSender output);
 
   FrameFileReader(const FrameFileReader&) = delete;
   FrameFileReader(FrameFileReader&& other)
