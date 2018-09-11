@@ -78,8 +78,8 @@ void PacketReceiver::process(FalseInput) {
 }
 
 void PacketReceiver::setup() {
-  m_packets_received_metric = m_metrics->add("PacketReceiver::packets", Metrics::Format::Count);
-  m_bytes_received_metric   = m_metrics->add("PacketReceiver::bytes", Metrics::Format::Bytes);
+  m_packets_received_metric = m_metrics->add("PacketReceiver\tpackets", Metrics::Format::Count);
+  m_bytes_received_metric   = m_metrics->add("PacketReceiver\tbytes", Metrics::Format::Bytes);
 
   using Endpoint = boost::asio::ip::tcp::endpoint;
   Endpoint endpoint {m_server_address, 1337};

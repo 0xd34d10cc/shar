@@ -11,8 +11,8 @@ H264Encoder::H264Encoder(Size frame_size, std::size_t fps, const Config& config,
     , m_bytes_out(INVALID_METRIC_ID) {}
 
 void H264Encoder::setup() {
-  m_bytes_in = m_metrics->add("Encoder::in", Metrics::Format::Bytes);
-  m_bytes_out = m_metrics->add("Encoder::out", Metrics::Format::Bytes);
+  m_bytes_in = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);
+  m_bytes_out = m_metrics->add("Encoder\tout", Metrics::Format::Bytes);
 }
 
 void H264Encoder::teardown() {

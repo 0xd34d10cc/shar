@@ -8,8 +8,8 @@ H264Decoder::H264Decoder(Logger logger, MetricsPtr metrics, PacketsReceiver inpu
     , m_decoder(logger) {}
 
 void H264Decoder::setup() {
-  m_bytes_in  = m_metrics->add("Decoder::in", Metrics::Format::Bytes);
-  m_bytes_out = m_metrics->add("Decoder::out", Metrics::Format::Bytes);
+  m_bytes_in  = m_metrics->add("Decoder\tin", Metrics::Format::Bytes);
+  m_bytes_out = m_metrics->add("Decoder\tout", Metrics::Format::Bytes);
 }
 
 void H264Decoder::teardown() {

@@ -24,8 +24,8 @@ std::tuple<std::size_t, std::size_t, const char*> human_readable_bytes(std::size
   static const std::size_t MASK = MAX - 1;
 
   while (value >= MAX) {
-    value >>= 10;
     rem = value & MASK;
+    value >>= 10;
     ++i;
   }
 
@@ -96,11 +96,11 @@ Metrics::Metric::Metric(std::string name, Format format)
 void Metrics::Metric::report(shar::Logger& logger) {
   switch (m_format) {
     case Format::Count:
-      logger.info("{}  \t{}", m_name, m_value);
+      logger.info("{}\t{}", m_name, m_value);
       break;
     case Format::Bytes:
       auto[value, fraction, suffix] = human_readable_bytes(m_value);
-      logger.info("{}  \t{}.{}{}", m_name, value, fraction, suffix);
+      logger.info("{}\t{}.{}{}", m_name, value, fraction, suffix);
       break;
   }
 }

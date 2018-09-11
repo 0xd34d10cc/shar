@@ -28,7 +28,7 @@ public:
       , m_texture(window.size()) {}
 
   void setup() {
-    m_fps_metric = BaseProcessor::m_metrics->add("Display::fps", Metrics::Format::Count);
+    m_fps_metric = BaseProcessor::m_metrics->add("Display\tfps", Metrics::Format::Count);
     m_texture.bind();
   }
 

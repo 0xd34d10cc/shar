@@ -205,8 +205,8 @@ void PacketSender::reset_overflown_state(ClientId id) {
 
 void PacketSender::setup() {
   // setup metrics
-  m_packets_sent_metric = m_metrics->add("PacketSender::packets", Metrics::Format::Count);
-  m_bytes_sent_metric   = m_metrics->add("PacketSender::bytes", Metrics::Format::Bytes);
+  m_packets_sent_metric = m_metrics->add("PacketSender\tpackets", Metrics::Format::Count);
+  m_bytes_sent_metric   = m_metrics->add("PacketSender\tbytes", Metrics::Format::Bytes);
 
   namespace ip = boost::asio::ip;
   ip::tcp::endpoint endpoint {m_ip, 1337};
