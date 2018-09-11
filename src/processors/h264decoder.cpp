@@ -3,9 +3,9 @@
 
 namespace shar {
 
-H264Decoder::H264Decoder(Logger logger, MetricsPtr metrics, PacketsReceiver input, FramesSender output)
-    : Processor("H264Decoder", std::move(logger), std::move(metrics), std::move(input), std::move(output))
-    , m_decoder(logger) {}
+H264Decoder::H264Decoder(Context context, PacketsReceiver input, FramesSender output)
+    : Processor(std::move(context), std::move(input), std::move(output))
+    , m_decoder(m_logger) {}
 
 void H264Decoder::setup() {
   m_bytes_in  = m_metrics->add("Decoder\tin", Metrics::Format::Bytes);

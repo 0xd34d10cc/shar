@@ -21,16 +21,16 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, MetricsPtr metrics)
-    : Sink("PacketSender", std::move(logger), std::move(metrics), std::move(input))
+PacketSender::PacketSender(Context context, IpAddress ip, PacketsReceiver input)
+    : Sink(std::move(context), std::move(input))
     , m_ip(ip)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
     , m_acceptor(m_context)
     , m_overflown_count(0)
-    , m_packets_sent_metric(INVALID_METRIC_ID)
-    , m_bytes_sent_metric(INVALID_METRIC_ID) {}
+    , m_packets_sent_metric()
+    , m_bytes_sent_metric() {}
 
 void PacketSender::process(Packet packet) {
   using namespace std::chrono_literals;

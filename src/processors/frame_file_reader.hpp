@@ -23,15 +23,13 @@ using FramesSender = channel::Sender<Image>;
 
 class FrameFileReader : public Source<FrameFileReader, FramesSender> {
 public:
-  FrameFileReader(FileParams params, Logger logger, MetricsPtr metrics, FramesSender output);
+  using Base = Source<FrameFileReader, FramesSender>;
+  using Context = typename Base::Context;
+
+  FrameFileReader(Context context, FileParams params, FramesSender output);
 
   FrameFileReader(const FrameFileReader&) = delete;
-  FrameFileReader(FrameFileReader&& other)
-      : Source(std::move(other))
-      , m_file_params(std::move(other.m_file_params))
-      , m_stream(std::move(other.m_stream))
-      , m_timer(std::move(other.m_timer))
-  {}
+  FrameFileReader(FrameFileReader&& other) = default;
 
   void process(FalseInput /* dummy input */);
 

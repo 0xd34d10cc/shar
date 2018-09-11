@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <thread>
 #include <atomic>
+#include <condition_variable>
 
 #include "metrics.hpp"
 
@@ -21,10 +22,12 @@ public:
 
 private:
   MetricsPtr  m_metrics;
+  std::size_t m_period_seconds;
 
+  std::mutex m_mutex;
+  std::condition_variable m_condvar;
   std::atomic<bool> m_running;
   std::thread m_thread;
-  std::size_t m_period_seconds;
 };
 
 }

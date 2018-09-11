@@ -28,6 +28,13 @@ namespace sc = SL::Screen_Capture;
 
 int main() {
   auto        logger  = shar::Logger("pipeline_test.log");
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
+  auto context = shar::ProcessorContext {
+    "",
+    logger,
+    metrics
+  };
+
   auto        monitor = sc::GetMonitors().front();
   std::size_t width   = static_cast<std::size_t>(monitor.Width);
   std::size_t height  = static_cast<std::size_t>(monitor.Height);
@@ -42,52 +49,46 @@ int main() {
   shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   auto[captured_frames_sender, captured_frames_receiver] =
-  shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Image>(120);
 
   auto[encoded_packets_sender, encoded_packets_receiver] =
-  shar::channel::bounded<shar::Packet>(120);
+    shar::channel::bounded<shar::Packet>(120);
 
   auto[received_packets_sender, received_packets_receiver] =
-  shar::channel::bounded<shar::Packet>(120);
+    shar::channel::bounded<shar::Packet>(120);
 
   auto[decoded_frames_sender, decoded_frames_receiver] =
-  shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Image>(120);
 
   const auto config = shar::Config::make_default();
-  auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
   // setup processors pipeline
   auto capture  = std::make_shared<shar::ScreenCapture>(
+      context.with_name("Capture"),
       interval,
       monitor,
-      logger,
-      metrics,
       std::move(captured_frames_sender)
   );
   auto encoder  = std::make_shared<shar::H264Encoder>(
+      context.with_name("Encoder"),
       frame_size,
       fps,
       config.get_subconfig("encoder"),
-      logger,
-      metrics,
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
   auto sender   = std::make_shared<shar::PacketSender>(
-      std::move(encoded_packets_receiver),
+      context.with_name("PacketSender"),
       ip,
-      logger,
-      metrics
+      std::move(encoded_packets_receiver)
   );
   auto receiver = std::make_shared<shar::PacketReceiver>(
+      context.with_name("PacketReceiver"),
       ip,
-      logger,
-      metrics,
       std::move(received_packets_sender)
   );
   auto decoder  = std::make_shared<shar::H264Decoder>(
-      logger,
-      metrics,
+      context.with_name("Decoder"),
       std::move(received_packets_receiver),
       std::move(decoded_frames_sender)
   );
@@ -96,9 +97,8 @@ int main() {
   using Display = shar::FrameDisplay<ImageSink>;
 
   Display display {
+      context.with_name("Display"),
       window,
-      logger,
-      metrics,
       std::move(decoded_frames_receiver),
       ImageSink {}
   };

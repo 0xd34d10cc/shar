@@ -16,8 +16,11 @@ using PacketsSender = channel::Sender<Packet>;
 
 class H264Encoder : public Processor<H264Encoder, FramesReceiver, PacketsSender> {
 public:
-  H264Encoder(Size frame_size, const std::size_t fps, const Config& config,
-              Logger logger, MetricsPtr metrics, FramesReceiver input, PacketsSender output);
+  using Base = Processor<H264Encoder, FramesReceiver, PacketsSender>;
+  using Context = typename Base::Context;
+
+  H264Encoder(Context context, Size frame_size, const std::size_t fps, const Config& config,
+              FramesReceiver input, PacketsSender output);
   H264Encoder(const H264Encoder&) = delete;
 
   void process(Image frame);

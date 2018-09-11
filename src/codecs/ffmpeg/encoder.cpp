@@ -95,12 +95,9 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-  const std::string kbits = config.get<std::string>("bitrate", "5000");
+  const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
 
-  const std::size_t bit_rate = std::stoul(kbits) * 1024;
-
-  m_logger.info("bit rate: {} kbit/s", kbits);
-  m_context->bit_rate                = static_cast<int>(bit_rate);
+  m_context->bit_rate                = static_cast<int>(kbits * 1024);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
   m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
@@ -112,7 +109,7 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   m_context->sample_aspect_ratio.den = 9;
 
   Options opts{};
-  for (const auto& iter: config) {
+  for (const auto& iter: config.get_subconfig("options")) {
     // TODO: handle errors here
     const char* key = iter.first.c_str();
     const std::string value = iter.second.get_value<std::string>();

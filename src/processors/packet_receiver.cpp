@@ -63,15 +63,15 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, Logger logger, MetricsPtr metrics, PacketsSender output)
-    : Source("PacketReceiver", std::move(logger), std::move(metrics), std::move(output))
+PacketReceiver::PacketReceiver(Context context, IpAddress server, PacketsSender output)
+    : Source(std::move(context), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)
     , m_context()
     , m_receiver(m_context)
-    , m_packets_received_metric(INVALID_METRIC_ID)
-    , m_bytes_received_metric(INVALID_METRIC_ID) {}
+    , m_packets_received_metric()
+    , m_bytes_received_metric() {}
 
 void PacketReceiver::process(FalseInput) {
   m_context.run_for(std::chrono::milliseconds(250));

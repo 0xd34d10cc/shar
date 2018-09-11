@@ -19,7 +19,10 @@ using PacketsSender = channel::Sender<Packet>;
 
 class PacketReceiver : public Source<PacketReceiver, PacketsSender> {
 public:
-  PacketReceiver(IpAddress server, Logger logger, MetricsPtr metrics, PacketsSender output);
+  using Base = Source<PacketReceiver, PacketsSender>;
+  using Context = typename Base::Context;
+
+  PacketReceiver(Context context, IpAddress server, PacketsSender output);
   PacketReceiver(PacketReceiver&&) = default;
 
   void setup();

@@ -7,11 +7,10 @@ namespace shar {
 
 using namespace std::chrono_literals;
 
-FrameFileReader::FrameFileReader(FileParams file_params,
-                                 Logger logger,
-                                 MetricsPtr metrics,
+FrameFileReader::FrameFileReader(Context context,
+                                 FileParams file_params,
                                  FramesSender output)
-    : Source("FrameFileReader", std::move(logger), std::move(metrics), std::move(output))
+    : Source(std::move(context), std::move(output))
     , m_file_params(std::move(file_params))
     , m_stream(m_file_params.path, mode::in | mode::binary)
     , m_timer(1000ms / m_file_params.fps) {}

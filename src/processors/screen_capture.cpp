@@ -49,13 +49,12 @@ struct FrameHandler {
 
 namespace shar {
 
-ScreenCapture::ScreenCapture(const Milliseconds& interval,
+ScreenCapture::ScreenCapture(Context context,
+                             Milliseconds interval,
                              const sc::Monitor& monitor,
-                             Logger logger,
-                             MetricsPtr metrics,
                              FramesSender output)
-    : Source("ScreenCapture", std::move(logger), std::move(metrics), std::move(output))
-    , m_interval(interval)
+    : Source(std::move(context), std::move(output))
+    , m_interval(std::move(interval))
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
     , m_capture(nullptr) {

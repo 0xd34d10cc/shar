@@ -23,7 +23,7 @@ public:
   }
 
   static Config make_default() {
-    const char* json = "{\"encoder\": {}}";
+    const char* json = "{\"encoder\": {\"options\": {}}}";
     std::size_t len = std::strlen(json);
 
     pt::ptree         config;

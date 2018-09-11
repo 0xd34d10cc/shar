@@ -7,7 +7,11 @@ namespace shar {
 
 MetricsReporter::MetricsReporter(MetricsPtr metrics, std::size_t report_period_seconds)
     : m_metrics(std::move(metrics))
-    , m_period_seconds(report_period_seconds) {}
+    , m_period_seconds(report_period_seconds)
+    , m_mutex()
+    , m_condvar()
+    , m_running(false)
+    , m_thread() {}
 
 MetricsReporter::~MetricsReporter() {
   stop();
@@ -30,9 +34,14 @@ void MetricsReporter::start() {
   m_thread = std::thread([this] {
     auto period = std::chrono::seconds(m_period_seconds);
 
+    std::unique_lock<std::mutex> lock(m_mutex);
     while (m_running) {
-      std::this_thread::sleep_for(period);
       m_metrics->report();
+
+      m_condvar.wait_for(lock, period, [this] {
+        // predicate returns false if the waiting should be continued
+        return !m_running.load();
+      });
     }
   });
 }
@@ -41,8 +50,14 @@ void MetricsReporter::stop() {
   if (!m_running) {
     return;
   }
-  m_running = false;
-  m_thread.join();
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_running = false;
+    m_condvar.notify_one();
+  }
+  if (m_thread.joinable()) {
+    m_thread.join();
+  }
 }
 
 }
