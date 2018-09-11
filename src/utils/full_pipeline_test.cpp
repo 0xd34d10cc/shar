@@ -42,16 +42,16 @@ int main() {
   shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   auto[captured_frames_sender, captured_frames_receiver] =
-  shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Image>(120);
 
   auto[encoded_packets_sender, encoded_packets_receiver] =
-  shar::channel::bounded<shar::Packet>(120);
+    shar::channel::bounded<shar::Packet>(120);
 
   auto[received_packets_sender, received_packets_receiver] =
-  shar::channel::bounded<shar::Packet>(120);
+    shar::channel::bounded<shar::Packet>(120);
 
   auto[decoded_frames_sender, decoded_frames_receiver] =
-  shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Image>(120);
 
   const auto config = shar::Config::make_default();
   auto metrics = std::make_shared<shar::Metrics>(20, logger);

@@ -6,8 +6,10 @@
 
     "encoder": {
         "bitrate": "11000",
-        "preset": "medium",
-        "tune": "film",
-        "crf": "16"
+        "options": {
+            "preset": "medium",
+            "tune": "film",
+            "crf": "16"
+        }
     }
  }
