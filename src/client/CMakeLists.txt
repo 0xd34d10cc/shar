@@ -40,4 +40,5 @@ target_link_libraries(client
                       ${CONAN_LIBS_FMT}
                       )
 
-target_compile_options(client PRIVATE ${ENABLED_WARNINGS})
+target_compile_options(client PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(client PRIVATE ${SHAR_COMPILE_DEFINITIONS})

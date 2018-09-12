@@ -9,19 +9,24 @@
 
 namespace {
 
-//void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
-//                                      GLenum type,
-//                                      GLuint /*id */,
-//                                      GLenum severity,
-//                                      GLsizei /*length */,
-//                                      const GLchar* message,
-//                                      const void* /*userParam */) {
-//  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
-//            << "type = " << type
-//            << ", severity = " << severity
-//            << ", message = " << message
-//            << std::endl;
-//}
+#ifdef SHAR_DEBUG_BUILD
+#if 0
+// FIXME: make it build on windows
+void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
+                                      GLenum type,
+                                      GLuint /*id */,
+                                      GLenum severity,
+                                      GLsizei /*length */,
+                                      const GLchar* message,
+                                      const void* /*userParam */) {
+  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
+            << "type = " << type
+            << ", severity = " << severity
+            << ", message = " << message
+            << std::endl;
+}
+#endif
+#endif
 
 }
 
@@ -69,8 +74,9 @@ Window::SystemWindow* Window::create_window(Size size) {
   static int init_code = glfwInit();
   glfwSetErrorCallback(on_error);
 
-  // TODO: disable in release
+#ifdef SHAR_DEBUG_BUILD
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
 
   if (!init_code) {
     throw std::runtime_error("Failed to initialize GLFW");
@@ -88,10 +94,14 @@ Window::SystemWindow* Window::create_window(Size size) {
   m_logger.info("OpenGL {}", glGetString(GL_VERSION));
   glEnable(GL_TEXTURE_2D);
 
-  // TODO: disable in release
+#ifdef SHAR_DEBUG_BUILD
+#if 0
+  // FIXME: make it build on windows
   // enable debug output
-//  glEnable(GL_DEBUG_OUTPUT);
-//  glDebugMessageCallback(opengl_error_callback, nullptr);
+  // glEnable(GL_DEBUG_OUTPUT);
+  // glDebugMessageCallback(opengl_error_callback, nullptr);
+#endif
+#endif
 
   return window;
 }

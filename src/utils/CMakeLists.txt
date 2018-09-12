@@ -20,7 +20,8 @@ target_link_libraries(play
                       ${OPENGL_gl_LIBRARY}
                       ${CONAN_LIBS_FMT}
                       )
-target_compile_options(play PRIVATE ${ENABLED_WARNINGS})
+target_compile_options(play PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(play PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 
 # recorder
 add_executable(record
@@ -44,7 +45,8 @@ target_link_libraries(record
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_FMT}
                       )
-target_compile_options(record PRIVATE ${ENABLED_WARNINGS})
+target_compile_options(record PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(record PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 
 
 # full pipeline test
@@ -97,4 +99,5 @@ target_link_libraries(pipeline_test
                       ${CONAN_LIBS_FFMPEG}
                       )
 
-target_compile_options(pipeline_test PRIVATE ${ENABLED_WARNINGS})
+target_compile_options(pipeline_test PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(pipeline_test PRIVATE ${SHAR_COMPILE_DEFINITIONS})

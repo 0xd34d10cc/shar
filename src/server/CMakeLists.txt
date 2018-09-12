@@ -47,6 +47,8 @@ if (WIN32)
   target_link_libraries(server ws2_32 iphlpapi)
 endif ()
 
-target_compile_definitions(server PRIVATE MINIUPNP_STATICLIB)
-target_compile_options(server PRIVATE ${ENABLED_WARNINGS})
+target_compile_definitions(server
+                           PRIVATE MINIUPNP_STATICLIB
+                           PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(server PRIVATE ${SHAR_COMPILE_OPTIONS})
 
