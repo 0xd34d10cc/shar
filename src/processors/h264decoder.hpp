@@ -1,7 +1,8 @@
 #pragma once
 
-#include "packet.hpp"
-#include "primitives/image.hpp"
+#include "primitives/size.hpp"
+#include "network/packet.hpp"
+#include "primitives/frame.hpp"
 #include "processors/processor.hpp"
 #include "channels/bounded.hpp"
 #include "codecs/ffmpeg/decoder.hpp"
@@ -9,15 +10,12 @@
 
 namespace shar {
 
-using FramesSender = channel::Sender<Image>;
-using PacketsReceiver = channel::Receiver<Packet>;
-
-class H264Decoder : public Processor<H264Decoder, PacketsReceiver, FramesSender> {
+class H264Decoder : public Processor<H264Decoder, Receiver<Packet>, Sender<Frame>> {
 public:
-  using Base = Processor<H264Decoder, PacketsReceiver, FramesSender>;
+  using Base = Processor<H264Decoder, Receiver<Packet>, Sender<Frame>>;
   using Context = typename Base::Context;
 
-  H264Decoder(Context context, PacketsReceiver input, FramesSender output);
+  H264Decoder(Context context, Size size, Receiver<Packet> input, Sender<Frame> output);
 
   void setup();
   void teardown();

@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <vector>
+#include <numeric>
 
 #include "disable_warnings_push.hpp"
 extern "C" {
@@ -38,7 +39,7 @@ public:
 
   std::string to_string() {
     char* buffer = nullptr;
-    if (av_dict_get_string(m_opts, &buffer, ':', '|') < 0) {
+    if (av_dict_get_string(m_opts, &buffer, '=', ',') < 0) {
       std::free(buffer);
       return {};
     }
@@ -104,13 +105,13 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   m_context->width                   = static_cast<int>(frame_size.width());
   m_context->height                  = static_cast<int>(frame_size.height());
   m_context->max_pixels              = m_context->width * m_context->height;
-  // FIXME: unhardcode
-  m_context->sample_aspect_ratio.num = 16;
-  m_context->sample_aspect_ratio.den = 9;
+
+  std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
+  m_context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
+  m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
 
   Options opts{};
   for (const auto& iter: config.get_subconfig("options")) {
-    // TODO: handle errors here
     const char* key = iter.first.c_str();
     const std::string value = iter.second.get_value<std::string>();
 
@@ -138,7 +139,7 @@ Encoder::~Encoder() {
   m_encoder = nullptr;
 }
 
-std::vector<Packet> Encoder::encode(const shar::Image& image) {
+std::vector<Packet> Encoder::encode(const shar::Frame& image) {
   auto[y, u, v] = bgra_to_yuv420(image);
 
   AVFrame* frame = av_frame_alloc();
@@ -179,7 +180,6 @@ std::vector<Packet> Encoder::encode(const shar::Image& image) {
       // reset packet
       // NOTE: according to docs avcodec_receive_packet should call av_packet_unref
       // before doing anything else, but who trust docs?
-      // TODO: check it
       av_packet_unref(&packet);
       ret = avcodec_receive_packet(m_context, &packet);
     }

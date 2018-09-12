@@ -3,7 +3,7 @@
 
 namespace {
 
-shar::Image convert(const sc::Image& image) noexcept {
+shar::Frame convert(const sc::Image& image) noexcept {
   std::size_t width  = static_cast<std::size_t>(Width(image));
   std::size_t height = static_cast<std::size_t>(Height(image));
   std::size_t pixels = width * height;
@@ -16,33 +16,22 @@ shar::Image convert(const sc::Image& image) noexcept {
   assert(bytes.get() != nullptr);
   sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
 
-  return shar::Image {std::move(bytes), size};
+  return shar::Frame {std::move(bytes), size};
 }
 
 
 struct FrameHandler {
-  FrameHandler(shar::FramesSender& frames_consumer)
-      : m_metrics_timer(std::chrono::seconds(1))
-      , m_fps(0)
-      , m_frames_consumer(frames_consumer) {}
+  FrameHandler(shar::Sender<shar::Frame>& frames_consumer)
+      : m_frames_consumer(frames_consumer) {}
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
-    if (m_metrics_timer.expired()) {
-//      std::cout << "ScreenCapture::fps = " << m_fps << std::endl;
-      m_fps = 0;
-      m_metrics_timer.restart();
-    }
-    ++m_fps;
-
-    shar::Image buffer = convert(frame);
+    shar::Frame buffer = convert(frame);
     // ignore return value here, if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
     m_frames_consumer.send(std::move(buffer));
   }
 
-  shar::Timer         m_metrics_timer;
-  std::size_t         m_fps;
-  shar::FramesSender& m_frames_consumer;
+  shar::Sender<shar::Frame>& m_frames_consumer;
 };
 
 }
@@ -52,7 +41,7 @@ namespace shar {
 ScreenCapture::ScreenCapture(Context context,
                              Milliseconds interval,
                              const sc::Monitor& monitor,
-                             FramesSender output)
+                             Sender<Frame> output)
     : Source(std::move(context), std::move(output))
     , m_interval(std::move(interval))
     , m_wakeup_timer(std::chrono::seconds(1))

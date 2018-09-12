@@ -1,9 +1,9 @@
 add_executable(server
                main.cpp
-               ../packet.cpp
-               ../packet.hpp
-               ../forwarding.cpp
-               ../forwarding.hpp
+               ../network/packet.cpp
+               ../network/packet.hpp
+               ../network/forwarding.cpp
+               ../network/forwarding.hpp
                ../metrics.cpp
                ../metrics.hpp
                ../metrics_reporter.cpp
@@ -21,8 +21,8 @@ add_executable(server
                ../processors/packet_sender.hpp
                ../processors/h264encoder.cpp
                ../processors/h264encoder.hpp
-               ../primitives/image.cpp
-               ../primitives/image.hpp
+               ../primitives/frame.cpp
+               ../primitives/frame.hpp
                )
 
 target_include_directories(server
@@ -47,6 +47,8 @@ if (WIN32)
   target_link_libraries(server ws2_32 iphlpapi)
 endif ()
 
-target_compile_definitions(server PRIVATE MINIUPNP_STATICLIB)
-target_compile_options(server PRIVATE ${ENABLED_WARNINGS})
+target_compile_definitions(server
+                           PRIVATE MINIUPNP_STATICLIB
+                           PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(server PRIVATE ${SHAR_COMPILE_OPTIONS})
 

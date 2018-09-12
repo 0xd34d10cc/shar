@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 
 FrameFileReader::FrameFileReader(Context context,
                                  FileParams file_params,
-                                 FramesSender output)
+                                 Sender<Frame> output)
     : Source(std::move(context), std::move(output))
     , m_file_params(std::move(file_params))
     , m_stream(m_file_params.path, mode::in | mode::binary)
@@ -27,7 +27,7 @@ void FrameFileReader::process(FalseInput /*dummy input*/) {
   m_timer.restart();
 }
 
-shar::Image FrameFileReader::read_frame() {
+shar::Frame FrameFileReader::read_frame() {
   static const std::size_t PIXEL_SIZE = 4;
   const auto& size = m_file_params.frame_size;
 
@@ -41,13 +41,13 @@ shar::Image FrameFileReader::read_frame() {
     if (ret == -1 || ret == 0) {
       // EOF?
       m_logger.info("FrameFileReader reached EOF");
-      return shar::Image {};
+      return shar::Frame {};
     }
 
     read += ret;
   }
 
-  return Image {std::move(image), size};
+  return Frame {std::move(image), size};
 }
 
 }

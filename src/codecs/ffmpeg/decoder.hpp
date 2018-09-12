@@ -1,7 +1,7 @@
 #pragma once
 
-#include "primitives/image.hpp"
-#include "packet.hpp"
+#include "primitives/frame.hpp"
+#include "network/packet.hpp"
 #include "logger.hpp"
 
 struct AVCodecContext;
@@ -12,10 +12,10 @@ namespace shar::codecs::ffmpeg {
 
 class Decoder {
 public:
-  Decoder(Logger logger);
+  Decoder(Size size, Logger logger);
   ~Decoder();
 
-  Image decode(Packet packet);
+  Frame decode(Packet packet);
 private:
 
   AVCodecContext* m_context;

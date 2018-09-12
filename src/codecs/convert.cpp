@@ -1,5 +1,5 @@
 #include "convert.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 
 
 namespace shar::codecs {
@@ -9,7 +9,7 @@ static Slice alloc(std::size_t size) {
 }
 
 
-std::array<Slice, 3> bgra_to_yuv420(const shar::Image& image) {
+std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
   Slice ys = alloc(image.total_pixels());
   Slice us = alloc(image.total_pixels() / 4);
   Slice vs = alloc(image.total_pixels() / 4);

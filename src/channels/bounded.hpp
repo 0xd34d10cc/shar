@@ -9,7 +9,7 @@
 #include <cassert>
 
 
-namespace shar::channel {
+namespace shar {
 
 namespace detail {
 
@@ -176,7 +176,7 @@ private:
   StatePtr m_state;
 };
 
-
+namespace channel {
 template<typename T>
 inline static std::pair<Sender<T>, Receiver<T>> bounded(std::size_t capacity) {
   using detail::Buffer;
@@ -189,5 +189,6 @@ inline static std::pair<Sender<T>, Receiver<T>> bounded(std::size_t capacity) {
 
   return {std::move(sender), std::move(receiver)};
 };
+}
 
 }

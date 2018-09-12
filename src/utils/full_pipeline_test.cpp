@@ -8,7 +8,7 @@
 #include "processors/packet_sender.hpp"
 #include "processors/packet_receiver.hpp"
 #include "processors/screen_capture.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 #include "processors/h264encoder.hpp"
 #include "processors/h264decoder.hpp"
 
@@ -18,11 +18,11 @@ namespace sc = SL::Screen_Capture;
 // "client":
 //    PacketReceiver[Server => Packets]
 //      -> H264Decoder[Packets => Frames]
-//        -> FrameDisplay[Frames => NULL]
+//        -> Display[Frames => NULL]
 
 // "server":
 //    ScreenCapture[WindowManager => Frames]
-//      -> FrameDisplay[Frames => Frames]
+//      -> Display[Frames => Frames]
 //        -> H264Encoder[Frames => Packets]
 //           -> PacketsSender
 
@@ -49,7 +49,7 @@ int main() {
   shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
 
   auto[captured_frames_sender, captured_frames_receiver] =
-    shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Frame>(120);
 
   auto[encoded_packets_sender, encoded_packets_receiver] =
     shar::channel::bounded<shar::Packet>(120);
@@ -58,7 +58,7 @@ int main() {
     shar::channel::bounded<shar::Packet>(120);
 
   auto[decoded_frames_sender, decoded_frames_receiver] =
-    shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Frame>(120);
 
   const auto config = shar::Config::make_default();
 
@@ -89,18 +89,15 @@ int main() {
   );
   auto decoder  = std::make_shared<shar::H264Decoder>(
       context.with_name("Decoder"),
+      frame_size,
       std::move(received_packets_receiver),
       std::move(decoded_frames_sender)
   );
 
-  using ImageSink = shar::channel::Sink<shar::Image>;
-  using Display = shar::FrameDisplay<ImageSink>;
-
-  Display display {
+  shar::Display display {
       context.with_name("Display"),
       window,
-      std::move(decoded_frames_receiver),
-      ImageSink {}
+      std::move(decoded_frames_receiver)
   };
 
   shar::Runner capture_runner {std::move(capture)};

@@ -6,8 +6,10 @@ add_executable(client
                ../texture.hpp
                ../window.cpp
                ../window.hpp
-               ../packet.cpp
-               ../packet.hpp
+               ../network/packet.cpp
+               ../network/packet.hpp
+               ../network/packet_parser.cpp
+               ../network/packet_parser.hpp
                ../metrics.cpp
                ../metrics.hpp
                ../metrics_reporter.cpp
@@ -20,8 +22,10 @@ add_executable(client
                ../processors/packet_receiver.hpp
                ../processors/h264decoder.cpp
                ../processors/h264decoder.hpp
-               ../primitives/image.cpp
-               ../primitives/image.hpp
+               ../processors/display.cpp
+               ../processors/display.hpp
+               ../primitives/frame.cpp
+               ../primitives/frame.hpp
                )
 
 target_include_directories(client
@@ -40,4 +44,5 @@ target_link_libraries(client
                       ${CONAN_LIBS_FMT}
                       )
 
-target_compile_options(client PRIVATE ${ENABLED_WARNINGS})
+target_compile_options(client PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(client PRIVATE ${SHAR_COMPILE_DEFINITIONS})

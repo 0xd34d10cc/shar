@@ -1,4 +1,4 @@
-#include "packet.hpp"
+#include "network/packet.hpp"
 
 
 namespace shar {

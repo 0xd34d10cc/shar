@@ -11,10 +11,8 @@ namespace po = boost::program_options;
 
 namespace {
 static shar::Options parse_options(const po::variables_map& vm) {
-  const std::string         input_host = vm["host"].as<std::string>();
-  boost::system::error_code ec;
-
-  const auto ip = IpAddress::from_string(input_host);
+  const std::string input_host = vm["host"].as<std::string>();
+  const auto        ip         = IpAddress::from_string(input_host);
 
   const std::size_t width  = vm["width"].as<size_t>();
   const std::size_t height = vm["height"].as<size_t>();

@@ -9,7 +9,7 @@
 #include "channels/bounded.hpp"
 #include "processors/source.hpp"
 #include "primitives/timer.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 
 
 namespace sc = SL::Screen_Capture;
@@ -22,17 +22,15 @@ using Milliseconds = std::chrono::milliseconds;
 
 namespace shar {
 
-using FramesSender = channel::Sender<Image>;
-
-class ScreenCapture : public Source<ScreenCapture, FramesSender> {
+class ScreenCapture : public Source<ScreenCapture, Sender<Frame>> {
 public:
-  using Base = Source<ScreenCapture, FramesSender>;
+  using Base = Source<ScreenCapture, Sender<Frame>>;
   using Context = typename Base::Context;
 
   ScreenCapture(Context context,
                 Milliseconds interval,
                 const sc::Monitor& monitor,
-                FramesSender output);
+                Sender<Frame> output);
   ScreenCapture(const ScreenCapture&) = delete;
   ScreenCapture(ScreenCapture&&) = default;
 

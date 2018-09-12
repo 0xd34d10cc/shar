@@ -70,6 +70,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
 endif ()
 
+set(SHAR_COMPILE_OPTIONS ${ENABLED_WARNINGS})
+
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("-- Building in debug mode")
+
+    set(SHAR_COMPILE_DEFINITIONS SHAR_DEBUG_BUILD)
+ENDIF()
+
 add_subdirectory(src/utils) 
 add_subdirectory(src/client)
 add_subdirectory(src/server)

@@ -6,7 +6,7 @@
 
 
 namespace shar {
-class Image;
+class Frame;
 }
 
 namespace shar::codecs {
@@ -33,7 +33,7 @@ Slice yuv420_to_bgra(const std::uint8_t* ys,
                      std::size_t y_pad, std::size_t uv_pad);
 
 
-std::array<Slice, 3> bgra_to_yuv420(const Image& image);
+std::array<Slice, 3> bgra_to_yuv420(const Frame& image);
 
 
 }

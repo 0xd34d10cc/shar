@@ -1,29 +1,26 @@
 #pragma once
 
 #include "config.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "processors/processor.hpp"
 #include "primitives/size.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "codecs/ffmpeg/encoder.hpp"
 #include "channels/bounded.hpp"
 
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Image>;
-using PacketsSender = channel::Sender<Packet>;
-
-class H264Encoder : public Processor<H264Encoder, FramesReceiver, PacketsSender> {
+class H264Encoder : public Processor<H264Encoder, Receiver<Frame>, Sender<Packet>> {
 public:
-  using Base = Processor<H264Encoder, FramesReceiver, PacketsSender>;
+  using Base = Processor<H264Encoder, Receiver<Frame>, Sender<Packet>>;
   using Context = typename Base::Context;
 
   H264Encoder(Context context, Size frame_size, const std::size_t fps, const Config& config,
-              FramesReceiver input, PacketsSender output);
+              Receiver<Frame> input, Sender<Packet> output);
   H264Encoder(const H264Encoder&) = delete;
 
-  void process(Image frame);
+  void process(Frame frame);
   void setup();
   void teardown();
 

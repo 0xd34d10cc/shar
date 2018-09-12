@@ -23,7 +23,7 @@ static AVPixelFormat get_format(AVCodecContext* /*ctx*/, const enum AVPixelForma
 
 namespace shar::codecs::ffmpeg {
 
-Decoder::Decoder(Logger logger)
+Decoder::Decoder(Size size, Logger logger)
     : m_context(nullptr)
     , m_decoder(nullptr)
     , m_logger(std::move(logger)) {
@@ -35,13 +35,10 @@ Decoder::Decoder(Logger logger)
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
 
   m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
-  // FIXME: unhardcode
-  m_context->width                   = 1920;
-  m_context->height                  = 1080;
-  m_context->max_pixels              = 1920 * 1080;
+  m_context->width                   = static_cast<int>(size.width());
+  m_context->height                  = static_cast<int>(size.height());
+  m_context->max_pixels              = static_cast<int>(size.width() * size.height());
   m_context->get_format              = get_format;
-  m_context->sample_aspect_ratio.num = 16;
-  m_context->sample_aspect_ratio.den = 9;
   m_context->get_buffer2             = avcodec_default_get_buffer2;
 
   AVDictionary* opts = nullptr;
@@ -57,7 +54,7 @@ Decoder::~Decoder() {
   m_decoder = nullptr;
 }
 
-Image Decoder::decode(shar::Packet packet) {
+Frame Decoder::decode(shar::Packet packet) {
   AVPacket av_packet;
   std::fill_n(reinterpret_cast<char*>(&av_packet), sizeof(av_packet), 0);
   av_packet.data = packet.data();
@@ -73,7 +70,7 @@ Image Decoder::decode(shar::Packet packet) {
 
   // not enough data to decode
   if (ret == AVERROR(EAGAIN)) {
-    return Image {};
+    return Frame {};
   }
 
   // error
@@ -97,7 +94,7 @@ Image Decoder::decode(shar::Packet packet) {
   auto bytes = yuv420_to_bgra(y, u, v, height, width, y_pad, uv_pad);
 
   av_frame_free(&frame);
-  return Image {std::move(bytes.data), Size {height, width}};
+  return Frame {std::move(bytes.data), Size {height, width}};
 }
 
 }

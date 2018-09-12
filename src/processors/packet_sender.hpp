@@ -8,7 +8,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "primitives/timer.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "metrics.hpp"
 #include "processors/sink.hpp"
 #include "channels/bounded.hpp"
@@ -16,16 +16,14 @@
 
 namespace shar {
 
-using PacketsReceiver = channel::Receiver<Packet>;
-
-class PacketSender : public Sink<PacketSender, PacketsReceiver> {
+class PacketSender : public Sink<PacketSender, Receiver<Packet>> {
 public:
-  using Base = Sink<PacketSender, PacketsReceiver>;
+  using Base = Sink<PacketSender, Receiver<Packet>>;
   using Context = typename Base::Context;
 
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(Context context, IpAddress ip, PacketsReceiver input);
+  PacketSender(Context context, IpAddress ip, Receiver<Packet> input);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -48,6 +46,7 @@ private:
       IDRReceived
     };
 
+    // TODO: move packet serialization outside of PacketSender
     enum class State {
       SendingLength,
       SendingContent

@@ -16,7 +16,7 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
+  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Frame>(120);
   auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
   auto context = shar::ProcessorContext {

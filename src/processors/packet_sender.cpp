@@ -1,4 +1,5 @@
 #include "processors/packet_sender.hpp"
+#include "network/consts.hpp"
 
 
 namespace shar {
@@ -21,7 +22,7 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(Context context, IpAddress ip, PacketsReceiver input)
+PacketSender::PacketSender(Context context, IpAddress ip, Receiver<Packet> input)
     : Sink(std::move(context), std::move(input))
     , m_ip(ip)
     , m_clients()
@@ -36,14 +37,13 @@ void PacketSender::process(Packet packet) {
   using namespace std::chrono_literals;
 
   const auto shared_packet = std::make_shared<Packet>(std::move(packet));
-//  std::cout << "Sending packet of size " << shared_packet->size() << std::endl;
   for (auto& client: m_clients) {
     client.second.m_packets.push(shared_packet);
     if (client.second.m_packets.size() == PACKETS_HIGH_WATERMARK) {
       m_overflown_count += 1;
       client.second.m_overflown = true;
 
-      m_logger.warning("Client {}: packets queue is overflown", client.first);
+      m_logger.warning("Client {}: packets queue overflow", client.first);
     }
 
     if (!client.second.is_running()) {
@@ -114,7 +114,7 @@ void PacketSender::run_client(ClientId id) {
                                         client.m_length.size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          m_logger.error("Failed to send packet length to client #{}: {}", id, ec.message());
+          m_logger.error("Client {}: failed to send packet length ({})", id, ec.message());
           reset_overflown_state(id);
           m_clients.erase(id);
           return;
@@ -130,7 +130,7 @@ void PacketSender::run_client(ClientId id) {
                                         packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
-          m_logger.error("Failed to send packet to client #{}: {}", id, ec.message());
+          m_logger.error("Client {}: failed to send packet ({})", id, ec.message());
           reset_overflown_state(id);
           m_clients.erase(id);
           return;
@@ -175,7 +175,6 @@ void PacketSender::handle_write(std::size_t bytes_sent, ClientId id) {
         if (client.m_overflown && client.m_packets.size() == PACKETS_LOW_WATERMARK) {
           m_overflown_count -= 1;
           client.m_overflown = false;
-          m_logger.warning("Client {}: packets queue is not overflown anymore", id);
         }
 
         m_metrics->increase(m_packets_sent_metric, 1);
@@ -209,11 +208,11 @@ void PacketSender::setup() {
   m_bytes_sent_metric   = m_metrics->add("PacketSender\tbytes", Metrics::Format::Bytes);
 
   namespace ip = boost::asio::ip;
-  ip::tcp::endpoint endpoint {m_ip, 1337};
+  ip::tcp::endpoint endpoint {m_ip, SERVER_DEFAULT_PORT};
   m_acceptor.open(endpoint.protocol());
   m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
-  m_acceptor.listen(100);
+  m_acceptor.listen(10);
   start_accepting();
 }
 

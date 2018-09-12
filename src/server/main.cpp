@@ -5,13 +5,14 @@
 #include "logger.hpp"
 #include "runner.hpp"
 #include "signal_handler.hpp"
-#include "forwarding.hpp"
+#include "network/forwarding.hpp"
 #include "metrics.hpp"
 #include "metrics_reporter.hpp"
 #include "channels/bounded.hpp"
+#include "network/consts.hpp"
 #include "processors/packet_sender.hpp"
 #include "processors/screen_capture.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 #include "processors/h264encoder.hpp"
 
 
@@ -19,12 +20,12 @@ namespace sc = SL::Screen_Capture;
 namespace ip = boost::asio::ip;
 
 static int run() {
-  auto logger = shar::Logger("server.log");
+  auto logger  = shar::Logger("server.log");
   auto metrics = std::make_shared<shar::Metrics>(20, logger);
   auto context = shar::ProcessorContext {
-    "",
-    logger,
-    metrics
+      "",
+      logger,
+      metrics
   };
 
   if (!shar::SignalHandler::setup()) {
@@ -34,7 +35,11 @@ static int run() {
   auto config = shar::Config::parse_from_file("config.json");
 
   // setup port forwarding
-  shar::forward_port(1337 /* local */, 1337 /* remote */, logger);
+  shar::forward_port(
+      shar::SERVER_DEFAULT_PORT /* local */,
+      shar::SERVER_DEFAULT_PORT /* remote */,
+      logger
+  );
 
   // TODO: allow monitor selection for capture
   auto        monitor = sc::GetMonitors().front();
@@ -57,9 +62,9 @@ static int run() {
   logger.info("Encoder config: {}", encoder_config.to_string());
 
   auto[captured_frames_sender, captured_frames_receiver] =
-    shar::channel::bounded<shar::Image>(120);
+  shar::channel::bounded<shar::Frame>(120);
   auto[encoded_packets_sender, encoded_packets_receiver] =
-    shar::channel::bounded<shar::Packet>(120);
+  shar::channel::bounded<shar::Packet>(120);
 
   // setup processors pipeline
   auto capture = std::make_shared<shar::ScreenCapture>(
@@ -82,11 +87,11 @@ static int run() {
       std::move(encoded_packets_receiver)
   );
 
-  shar::Runner capture_runner{std::move(capture)};
-  shar::Runner encoder_runner{std::move(encoder)};
-  shar::Runner sender_runner{std::move(sender)};
+  shar::Runner capture_runner {std::move(capture)};
+  shar::Runner encoder_runner {std::move(encoder)};
+  shar::Runner sender_runner {std::move(sender)};
 
-  shar::MetricsReporter reporter{metrics, 10};
+  shar::MetricsReporter reporter {metrics, 10};
   reporter.start();
 
   shar::SignalHandler::wait_for_sigint();
