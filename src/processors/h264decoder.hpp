@@ -14,7 +14,10 @@ using PacketsReceiver = channel::Receiver<Packet>;
 
 class H264Decoder : public Processor<H264Decoder, PacketsReceiver, FramesSender> {
 public:
-  H264Decoder(Logger logger, MetricsPtr metrics, PacketsReceiver input, FramesSender output);
+  using Base = Processor<H264Decoder, PacketsReceiver, FramesSender>;
+  using Context = typename Base::Context;
+
+  H264Decoder(Context context, PacketsReceiver input, FramesSender output);
 
   void setup();
   void teardown();

@@ -21,8 +21,8 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, MetricsPtr metrics)
-    : Sink("PacketSender", std::move(logger), std::move(metrics), std::move(input))
+PacketSender::PacketSender(Context context, IpAddress ip, PacketsReceiver input)
+    : Sink(std::move(context), std::move(input))
     , m_ip(ip)
     , m_clients()
     , m_context()

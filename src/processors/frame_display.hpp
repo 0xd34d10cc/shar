@@ -18,11 +18,12 @@ template<typename Output>
 class FrameDisplay : public Processor<FrameDisplay<Output>, FramesReceiver, Output> {
 public:
   using BaseProcessor = Processor<FrameDisplay<Output>, FramesReceiver, Output>;
+  using Context = typename BaseProcessor::Context;
 
   // NOTE: |window| should be initialized in same
   // thread from which run() will be called
-  FrameDisplay(Window& window, Logger logger, MetricsPtr metrics, FramesReceiver input, Output output)
-      : BaseProcessor("FrameDisplay", std::move(logger), std::move(metrics), std::move(input), std::move(output))
+  FrameDisplay(Context context, Window& window, FramesReceiver input, Output output)
+      : BaseProcessor(std::move(context), std::move(input), std::move(output))
       , m_fps_metric()
       , m_window(window)
       , m_texture(window.size()) {}

@@ -9,7 +9,7 @@
 
 
 int main() {
-  auto logger = shar::Logger("record.log");
+  auto logger  = shar::Logger("record.log");
 
   if (!shar::SignalHandler::setup()) {
     logger.error("Failed to register signal handler");
@@ -19,16 +19,27 @@ int main() {
   auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
   auto metrics = std::make_shared<shar::Metrics>(20, logger);
 
+  auto context = shar::ProcessorContext {
+      "",
+      logger,
+      metrics
+  };
+
   using namespace std::chrono_literals;
   std::size_t fps      = 30;
   auto        interval = 1000ms / fps;
   sc::Monitor monitor  = sc::GetMonitors().front();
 
   auto capture = std::make_shared<shar::ScreenCapture>(
-      interval, monitor, logger, metrics, std::move(frames_sender)
+      context.with_name("Capture"),
+      interval,
+      monitor,
+      std::move(frames_sender)
   );
-  auto writer = std::make_shared<shar::FrameFileWriter>(
-      "example.bgra", logger, metrics, std::move(frames_receiver)
+  auto writer  = std::make_shared<shar::FrameFileWriter>(
+      context.with_name("FileWriter"),
+      "example.bgra",
+      std::move(frames_receiver)
   );
 
   shar::Runner capture_runner {std::move(capture)};

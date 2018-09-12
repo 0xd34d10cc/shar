@@ -63,8 +63,8 @@ std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buf
   return packets;
 }
 
-PacketReceiver::PacketReceiver(IpAddress server, Logger logger, MetricsPtr metrics, PacketsSender output)
-    : Source("PacketReceiver", std::move(logger), std::move(metrics), std::move(output))
+PacketReceiver::PacketReceiver(Context context, IpAddress server, PacketsSender output)
+    : Source(std::move(context), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)

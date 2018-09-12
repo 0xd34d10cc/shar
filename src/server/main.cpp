@@ -20,6 +20,12 @@ namespace ip = boost::asio::ip;
 
 static int run() {
   auto logger = shar::Logger("server.log");
+  auto metrics = std::make_shared<shar::Metrics>(20, logger);
+  auto context = shar::ProcessorContext {
+    "",
+    logger,
+    metrics
+  };
 
   if (!shar::SignalHandler::setup()) {
     logger.error("Failed to setup signal handler");
@@ -55,30 +61,25 @@ static int run() {
   auto[encoded_packets_sender, encoded_packets_receiver] =
     shar::channel::bounded<shar::Packet>(120);
 
-  auto metrics = std::make_shared<shar::Metrics>(20, logger);
-
   // setup processors pipeline
   auto capture = std::make_shared<shar::ScreenCapture>(
+      context.with_name("Capture"),
       interval,
       monitor,
-      logger,
-      metrics,
       std::move(captured_frames_sender)
   );
   auto encoder = std::make_shared<shar::H264Encoder>(
+      context.with_name("Encoder"),
       frame_size,
       fps,
       encoder_config,
-      logger,
-      metrics,
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
   auto sender  = std::make_shared<shar::PacketSender>(
-      std::move(encoded_packets_receiver),
+      context.with_name("PacketSender"),
       ip,
-      logger,
-      metrics
+      std::move(encoded_packets_receiver)
   );
 
   shar::Runner capture_runner{std::move(capture)};

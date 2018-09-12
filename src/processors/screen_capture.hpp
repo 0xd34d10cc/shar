@@ -26,10 +26,12 @@ using FramesSender = channel::Sender<Image>;
 
 class ScreenCapture : public Source<ScreenCapture, FramesSender> {
 public:
-  ScreenCapture(const Milliseconds& interval,
+  using Base = Source<ScreenCapture, FramesSender>;
+  using Context = typename Base::Context;
+
+  ScreenCapture(Context context,
+                Milliseconds interval,
                 const sc::Monitor& monitor,
-                Logger logger,
-                MetricsPtr metrics,
                 FramesSender output);
   ScreenCapture(const ScreenCapture&) = delete;
   ScreenCapture(ScreenCapture&&) = default;

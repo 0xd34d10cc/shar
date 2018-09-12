@@ -17,6 +17,11 @@ int main(int argc, const char* argv[]) {
   auto       logger = shar::Logger("client.log");
   const auto opts   = shar::Options::from_args(argc, argv);
   auto metrics = std::make_shared<shar::Metrics>(20, logger);
+  auto context = shar::ProcessorContext {
+    "",
+    logger,
+    metrics
+  };
 
   logger.info("Starting with Host: {}, Screen {}x{}",
               opts.ip.to_string(), opts.width, opts.height);
@@ -31,22 +36,20 @@ int main(int argc, const char* argv[]) {
   using Display = shar::FrameDisplay<FrameSink>;
 
   auto receiver = std::make_shared<shar::PacketReceiver>(
+      context.with_name("PacketReceiver"),
       opts.ip,
-      logger,
-      metrics,
       std::move(packets_sender)
   );
 
   auto decoder = std::make_shared<shar::H264Decoder>(
-      logger,
-      metrics,
+      context.with_name("Decoder"),
       std::move(packets_receiver),
-      std::move(frames_sender));
+      std::move(frames_sender)
+  );
 
   Display display {
+      context.with_name("Display"),
       window,
-      logger,
-      metrics,
       std::move(frames_receiver),
       FrameSink {}
   };

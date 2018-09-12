@@ -3,15 +3,21 @@
 
 namespace shar {
 
-H264Encoder::H264Encoder(Size frame_size, std::size_t fps, const Config& config,
-                         Logger logger, MetricsPtr metrics, FramesReceiver input, PacketsSender output)
-    : Processor("H264Encoder", logger, std::move(metrics), std::move(input), std::move(output))
-    , m_encoder(frame_size, fps, std::move(logger), config)
+H264Encoder::H264Encoder(
+    Context context,
+    Size frame_size,
+    std::size_t fps,
+    const Config& config,
+    FramesReceiver input,
+    PacketsSender output
+)
+    : Processor(std::move(context), std::move(input), std::move(output))
+    , m_encoder(frame_size, fps, m_logger, config)
     , m_bytes_in()
     , m_bytes_out() {}
 
 void H264Encoder::setup() {
-  m_bytes_in = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);
+  m_bytes_in  = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);
   m_bytes_out = m_metrics->add("Encoder\tout", Metrics::Format::Bytes);
 }
 

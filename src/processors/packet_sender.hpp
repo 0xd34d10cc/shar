@@ -20,9 +20,12 @@ using PacketsReceiver = channel::Receiver<Packet>;
 
 class PacketSender : public Sink<PacketSender, PacketsReceiver> {
 public:
+  using Base = Sink<PacketSender, PacketsReceiver>;
+  using Context = typename Base::Context;
+
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, MetricsPtr metrics);
+  PacketSender(Context context, IpAddress ip, PacketsReceiver input);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -33,7 +36,7 @@ public:
 
 private:
   using Socket = boost::asio::ip::tcp::socket;
-  using Context = boost::asio::io_context;
+  using IOContext = boost::asio::io_context;
   using Acceptor = boost::asio::ip::tcp::acceptor;
   using ErrorCode = boost::system::error_code;
   using SharedPacket = std::shared_ptr<Packet>;
@@ -77,7 +80,7 @@ private:
 
   IpAddress m_ip;
   Clients   m_clients;
-  Context   m_context;
+  IOContext   m_context;
   Socket    m_current_socket;
   Acceptor  m_acceptor;
 

@@ -10,29 +10,52 @@
 
 namespace shar {
 
+namespace processor_detail {
+struct Context {
+  std::string m_name;
+  Logger      m_logger;
+  MetricsPtr  m_metrics;
+
+  bool valid() const {
+    return !m_name.empty() && m_metrics.get() != nullptr;
+  }
+
+  Context with_name(std::string name) {
+    return Context{
+      std::move(name),
+      m_logger,
+      m_metrics
+    };
+  }
+};
+}
+
+using ProcessorContext = processor_detail::Context;
+
 template<typename Process, typename Input, typename Output>
-class Processor {
+class Processor: protected processor_detail::Context {
 public:
-  Processor(std::string name, Logger logger, MetricsPtr metrics, Input input, Output output)
-      : m_logger(std::move(logger))
-      , m_metrics(std::move(metrics))
-      , m_name(std::move(name))
+  using Context = processor_detail::Context;
+
+  Processor(Context context, Input input, Output output)
+      : Context(std::move(context))
       , m_running(false)
       , m_input(std::move(input))
-      , m_output(std::move(output)) {}
+      , m_output(std::move(output)) {
+    assert(Context::valid());
+  }
 
   Processor(Processor&& other)
-      : m_logger(std::move(other.m_logger))
-      , m_metrics(std::move(other.m_metrics))
-      , m_name(std::move(other.m_name))
+      : Context(std::move(other))
       , m_running(false)
       , m_input(std::move(other.m_input))
       , m_output(std::move(other.m_output)) {
+    assert(Context::valid());
     assert(!other.m_running);
   }
 
   ~Processor() {
-    if (!m_name.empty()) {
+    if (Context::valid()) {
       m_logger.info("{} destroyed", m_name);
     }
   }
@@ -76,23 +99,13 @@ public:
 
 protected:
   void setup() {}
-
   void teardown() {}
-
-
-  Input& input() {
-    return m_input;
-  }
 
   Output& output() {
     return m_output;
   }
 
-  Logger     m_logger;
-  MetricsPtr m_metrics;
-
 private:
-  std::string       m_name;
   std::atomic<bool> m_running;
 
   Input  m_input;
