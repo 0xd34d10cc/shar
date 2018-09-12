@@ -20,6 +20,8 @@ add_executable(client
                ../processors/packet_receiver.hpp
                ../processors/h264decoder.cpp
                ../processors/h264decoder.hpp
+               ../processors/display.cpp
+               ../processors/display.hpp
                ../primitives/frame.cpp
                ../primitives/frame.hpp
                )

@@ -6,12 +6,10 @@
 #include "channels/bounded.hpp"
 #include "channels/sink.hpp"
 #include "processors/frame_file_reader.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 
 
 int main() {
-  using FramesSink = shar::channel::Sink<shar::Frame>;
-
   auto         logger = shar::Logger("play.log");
   shar::Size   size {1080, 1920};
   shar::Window window {size, logger};
@@ -35,8 +33,7 @@ int main() {
   auto display = shar::FrameDisplay {
       context.with_name("Display"),
       window,
-      std::move(frames_receiver),
-      FramesSink {}
+      std::move(frames_receiver)
   };
 
   shar::Runner reader_runner {std::move(reader)};

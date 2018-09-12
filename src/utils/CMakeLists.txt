@@ -8,6 +8,8 @@ add_executable(play
                ../metrics.hpp
                ../processors/frame_file_reader.cpp
                ../processors/frame_file_reader.hpp
+               ../processors/display.cpp
+               ../processors/display.hpp
                ../primitives/frame.cpp
                ../primitives/frame.hpp)
 
@@ -76,6 +78,8 @@ add_executable(pipeline_test
                ../processors/packet_sender.hpp
                ../processors/packet_receiver.cpp
                ../processors/packet_receiver.hpp
+               ../processors/display.cpp
+               ../processors/display.hpp
                ../primitives/frame.cpp
                ../primitives/frame.hpp)
 

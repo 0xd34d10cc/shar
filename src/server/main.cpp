@@ -11,7 +11,7 @@
 #include "channels/bounded.hpp"
 #include "processors/packet_sender.hpp"
 #include "processors/screen_capture.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 #include "processors/h264encoder.hpp"
 
 

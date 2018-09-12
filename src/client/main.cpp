@@ -9,7 +9,7 @@
 #include "channels/bounded.hpp"
 #include "channels/sink.hpp"
 #include "processors/packet_receiver.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 #include "processors/h264decoder.hpp"
 
 
@@ -32,9 +32,6 @@ int main(int argc, const char* argv[]) {
   auto[packets_sender, packets_receiver] = shar::channel::bounded<shar::Packet>(120);
   auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Frame>(120);
 
-  using FrameSink = shar::channel::Sink<shar::Frame>;
-  using Display = shar::FrameDisplay<FrameSink>;
-
   auto receiver = std::make_shared<shar::PacketReceiver>(
       context.with_name("PacketReceiver"),
       opts.ip,
@@ -47,11 +44,10 @@ int main(int argc, const char* argv[]) {
       std::move(frames_sender)
   );
 
-  Display display {
+  shar::FrameDisplay display {
       context.with_name("Display"),
       window,
-      std::move(frames_receiver),
-      FrameSink {}
+      std::move(frames_receiver)
   };
 
   shar::Runner receiver_runner{std::move(receiver)};

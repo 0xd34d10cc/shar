@@ -8,7 +8,7 @@
 #include "processors/packet_sender.hpp"
 #include "processors/packet_receiver.hpp"
 #include "processors/screen_capture.hpp"
-#include "processors/frame_display.hpp"
+#include "processors/display.hpp"
 #include "processors/h264encoder.hpp"
 #include "processors/h264decoder.hpp"
 
@@ -93,14 +93,10 @@ int main() {
       std::move(decoded_frames_sender)
   );
 
-  using ImageSink = shar::channel::Sink<shar::Frame>;
-  using Display = shar::FrameDisplay<ImageSink>;
-
-  Display display {
+  shar::FrameDisplay display {
       context.with_name("Display"),
       window,
-      std::move(decoded_frames_receiver),
-      ImageSink {}
+      std::move(decoded_frames_receiver)
   };
 
   shar::Runner capture_runner {std::move(capture)};
