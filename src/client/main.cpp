@@ -40,6 +40,7 @@ int main(int argc, const char* argv[]) {
 
   auto decoder = std::make_shared<shar::H264Decoder>(
       context.with_name("Decoder"),
+      frame_size,
       std::move(packets_receiver),
       std::move(frames_sender)
   );

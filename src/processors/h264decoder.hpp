@@ -1,5 +1,6 @@
 #pragma once
 
+#include "primitives/size.hpp"
 #include "network/packet.hpp"
 #include "primitives/frame.hpp"
 #include "processors/processor.hpp"
@@ -14,7 +15,7 @@ public:
   using Base = Processor<H264Decoder, Receiver<Packet>, Sender<Frame>>;
   using Context = typename Base::Context;
 
-  H264Decoder(Context context, Receiver<Packet> input, Sender<Frame> output);
+  H264Decoder(Context context, Size size, Receiver<Packet> input, Sender<Frame> output);
 
   void setup();
   void teardown();

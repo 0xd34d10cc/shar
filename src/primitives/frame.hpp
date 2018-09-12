@@ -17,6 +17,7 @@ public:
   Frame& operator=(Frame&&) noexcept;
   ~Frame() = default;
 
+  static const std::size_t PIXEL_SIZE = 4;
 
   bool empty() const noexcept {
     return m_bytes.get() == nullptr || m_size.is_empty();
@@ -31,7 +32,11 @@ public:
   }
 
   std::size_t total_pixels() const noexcept {
-    return m_size.width() * m_size.height();
+    return m_size.total_pixels();
+  }
+
+  std::size_t size_bytes() const noexcept {
+    return total_pixels() * PIXEL_SIZE;
   }
 
   shar::Size size() const noexcept {

@@ -22,13 +22,10 @@ void FrameFileWriter::teardown() {
 }
 
 bool FrameFileWriter::write_frame(const shar::Frame& frame) {
-  static const std::size_t PIXEL_SIZE = 4;
-
-  auto total_bytes = static_cast<std::streamsize>(frame.total_pixels() * PIXEL_SIZE);
+  auto total_bytes = static_cast<std::streamsize>(frame.size_bytes());
   auto* ptr = reinterpret_cast<const char*>(frame.bytes());
   m_stream.write(ptr, total_bytes);
-  // TODO: handle m_stream.bad()
-  return true;
+  return !m_stream.bad();
 }
 
 }

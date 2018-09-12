@@ -25,6 +25,10 @@ public:
     return m_height;
   }
 
+  std::size_t total_pixels() const noexcept {
+    return width() * height();
+  }
+
   bool is_empty() const noexcept {
     return m_height == 0 || m_width == 0;
   }

@@ -28,7 +28,7 @@ void H264Encoder::teardown() {
 
 void H264Encoder::process(shar::Frame frame) {
   auto packets = m_encoder.encode(frame);
-  m_metrics->increase(m_bytes_in, frame.total_pixels() * 4);
+  m_metrics->increase(m_bytes_in, frame.size_bytes());
   for (auto& packet: packets) {
     m_metrics->increase(m_bytes_out, packet.size());
     output().send(std::move(packet));

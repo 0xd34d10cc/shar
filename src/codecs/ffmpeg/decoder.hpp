@@ -12,7 +12,7 @@ namespace shar::codecs::ffmpeg {
 
 class Decoder {
 public:
-  Decoder(Logger logger);
+  Decoder(Size size, Logger logger);
   ~Decoder();
 
   Frame decode(Packet packet);
