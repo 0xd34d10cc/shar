@@ -4,14 +4,14 @@
 #include "packet.hpp"
 #include "processors/processor.hpp"
 #include "primitives/size.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "codecs/ffmpeg/encoder.hpp"
 #include "channels/bounded.hpp"
 
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Image>;
+using FramesReceiver = channel::Receiver<Frame>;
 using PacketsSender = channel::Sender<Packet>;
 
 class H264Encoder : public Processor<H264Encoder, FramesReceiver, PacketsSender> {
@@ -23,7 +23,7 @@ public:
               FramesReceiver input, PacketsSender output);
   H264Encoder(const H264Encoder&) = delete;
 
-  void process(Image frame);
+  void process(Frame frame);
   void setup();
   void teardown();
 

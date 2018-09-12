@@ -35,13 +35,13 @@ private:
   using Buffer = std::vector<std::uint8_t>;
 
   // TODO: rename to PacketParser
-  struct PacketReader {
+  struct PacketParser {
     enum class State {
       ReadingLength,
       ReadingContent
     };
 
-    PacketReader();
+    PacketParser();
 
     std::vector<Packet> update(const Buffer& buffer, std::size_t size);
 
@@ -51,7 +51,7 @@ private:
     Buffer      m_buffer;
   };
 
-  PacketReader                 m_reader;
+  PacketParser                 m_reader;
   Buffer                       m_buffer;
   boost::asio::ip::address     m_server_address;
   boost::asio::io_context      m_context;

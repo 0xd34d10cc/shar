@@ -21,8 +21,8 @@ add_executable(server
                ../processors/packet_sender.hpp
                ../processors/h264encoder.cpp
                ../processors/h264encoder.hpp
-               ../primitives/image.cpp
-               ../primitives/image.hpp
+               ../primitives/frame.cpp
+               ../primitives/frame.hpp
                )
 
 target_include_directories(server

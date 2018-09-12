@@ -6,13 +6,13 @@ namespace shar {
 // The packet format is pretty simple: [content_length] [content]
 // where [content_length] is 4-byte integer in little endian.
 // [content] is just array of bytes
-PacketReceiver::PacketReader::PacketReader()
+PacketReceiver::PacketParser::PacketParser()
     : m_state(State::ReadingLength)
     , m_packet_size(0)
     , m_remaining(4) // we need to read 4 more bytes to get length of first packet
     , m_buffer(4096, 0) {}
 
-std::vector<shar::Packet> PacketReceiver::PacketReader::update(const Buffer& buffer, std::size_t size) {
+std::vector<shar::Packet> PacketReceiver::PacketParser::update(const Buffer& buffer, std::size_t size) {
   std::vector<shar::Packet> packets;
   std::size_t               bytes_read = 0;
 

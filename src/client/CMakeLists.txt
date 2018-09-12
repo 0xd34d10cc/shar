@@ -20,8 +20,8 @@ add_executable(client
                ../processors/packet_receiver.hpp
                ../processors/h264decoder.cpp
                ../processors/h264decoder.hpp
-               ../primitives/image.cpp
-               ../primitives/image.hpp
+               ../primitives/frame.cpp
+               ../primitives/frame.hpp
                )
 
 target_include_directories(client

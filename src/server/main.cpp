@@ -57,7 +57,7 @@ static int run() {
   logger.info("Encoder config: {}", encoder_config.to_string());
 
   auto[captured_frames_sender, captured_frames_receiver] =
-    shar::channel::bounded<shar::Image>(120);
+    shar::channel::bounded<shar::Frame>(120);
   auto[encoded_packets_sender, encoded_packets_receiver] =
     shar::channel::bounded<shar::Packet>(120);
 

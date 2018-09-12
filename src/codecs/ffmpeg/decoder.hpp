@@ -1,6 +1,6 @@
 #pragma once
 
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "packet.hpp"
 #include "logger.hpp"
 
@@ -15,7 +15,7 @@ public:
   Decoder(Logger logger);
   ~Decoder();
 
-  Image decode(Packet packet);
+  Frame decode(Packet packet);
 private:
 
   AVCodecContext* m_context;

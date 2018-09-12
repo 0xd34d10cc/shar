@@ -9,13 +9,13 @@
 
 namespace shar {
 
-class Image { // in BGRA format
+class Frame { // in BGRA format
 public:
-  Image() noexcept;
-  Image(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size);
-  Image(Image&&) noexcept;
-  Image& operator=(Image&&) noexcept;
-  ~Image() = default;
+  Frame() noexcept;
+  Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size);
+  Frame(Frame&&) noexcept;
+  Frame& operator=(Frame&&) noexcept;
+  ~Frame() = default;
 
 
   bool empty() const noexcept {

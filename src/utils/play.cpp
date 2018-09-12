@@ -2,7 +2,7 @@
 
 #include "window.hpp"
 #include "runner.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "channels/bounded.hpp"
 #include "channels/sink.hpp"
 #include "processors/frame_file_reader.hpp"
@@ -10,7 +10,7 @@
 
 
 int main() {
-  using FramesSink = shar::channel::Sink<shar::Image>;
+  using FramesSink = shar::channel::Sink<shar::Frame>;
 
   auto         logger = shar::Logger("play.log");
   shar::Size   size {1080, 1920};
@@ -25,7 +25,7 @@ int main() {
     metrics
   };
 
-  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
+  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Frame>(120);
 
   auto reader  = std::make_shared<shar::FrameFileReader>(
       context.with_name("FileReader"),

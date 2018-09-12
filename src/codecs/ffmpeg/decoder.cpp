@@ -57,7 +57,7 @@ Decoder::~Decoder() {
   m_decoder = nullptr;
 }
 
-Image Decoder::decode(shar::Packet packet) {
+Frame Decoder::decode(shar::Packet packet) {
   AVPacket av_packet;
   std::fill_n(reinterpret_cast<char*>(&av_packet), sizeof(av_packet), 0);
   av_packet.data = packet.data();
@@ -73,7 +73,7 @@ Image Decoder::decode(shar::Packet packet) {
 
   // not enough data to decode
   if (ret == AVERROR(EAGAIN)) {
-    return Image {};
+    return Frame {};
   }
 
   // error
@@ -97,7 +97,7 @@ Image Decoder::decode(shar::Packet packet) {
   auto bytes = yuv420_to_bgra(y, u, v, height, width, y_pad, uv_pad);
 
   av_frame_free(&frame);
-  return Image {std::move(bytes.data), Size {height, width}};
+  return Frame {std::move(bytes.data), Size {height, width}};
 }
 
 }

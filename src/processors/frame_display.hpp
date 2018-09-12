@@ -4,16 +4,16 @@
 #include "texture.hpp"
 #include "primitives/point.hpp"
 #include "primitives/size.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "processors/processor.hpp"
 #include "channels/bounded.hpp"
 
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Image>;
+using FramesReceiver = channel::Receiver<Frame>;
 
-// Note: OutputQueue should be frames sender
+// TODO: remove generic parameter
 template<typename Output>
 class FrameDisplay : public Processor<FrameDisplay<Output>, FramesReceiver, Output> {
 public:
@@ -38,7 +38,7 @@ public:
     BaseProcessor::m_metrics->remove(m_fps_metric);
   }
 
-  void process(Image frame) {
+  void process(Frame frame) {
     BaseProcessor::m_metrics->increase(m_fps_metric, 1);
     m_texture.update(Point::origin(),
                      frame.size(),

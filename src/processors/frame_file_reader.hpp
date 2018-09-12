@@ -6,7 +6,7 @@
 
 #include "primitives/size.hpp"
 #include "primitives/timer.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "channels/bounded.hpp"
 #include "processors/source.hpp"
 
@@ -19,7 +19,7 @@ struct FileParams {
   std::size_t fps;
 };
 
-using FramesSender = channel::Sender<Image>;
+using FramesSender = channel::Sender<Frame>;
 
 class FrameFileReader : public Source<FrameFileReader, FramesSender> {
 public:
@@ -34,7 +34,7 @@ public:
   void process(FalseInput /* dummy input */);
 
 private:
-  shar::Image read_frame();
+  shar::Frame read_frame();
 
   FileParams    m_file_params;
   std::ifstream m_stream;

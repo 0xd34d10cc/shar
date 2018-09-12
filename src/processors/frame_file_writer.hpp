@@ -4,7 +4,7 @@
 #include <string>
 
 #include "primitives/size.hpp"
-#include "primitives/image.hpp"
+#include "primitives/frame.hpp"
 #include "channels/bounded.hpp"
 #include "processors/processor.hpp"
 #include "processors/sink.hpp"
@@ -12,7 +12,7 @@
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Image>;
+using FramesReceiver = channel::Receiver<Frame>;
 
 class FrameFileWriter : public Sink<FrameFileWriter, FramesReceiver> {
 public:
@@ -20,11 +20,11 @@ public:
   using Context = typename Base::Context;
 
   FrameFileWriter(Context context, const std::string& path, FramesReceiver input);
-  void process(shar::Image frame);
+  void process(shar::Frame frame);
   void teardown();
 
 private:
-  bool write_frame(const shar::Image&);
+  bool write_frame(const shar::Frame&);
   std::ofstream m_stream;
 };
 

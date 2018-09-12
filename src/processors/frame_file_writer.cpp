@@ -9,7 +9,7 @@ FrameFileWriter::FrameFileWriter(Context context, const std::string& path, Frame
     : Sink(std::move(context), std::move(input))
     , m_stream(path, mode::out | mode::binary) {}
 
-void FrameFileWriter::process(Image frame) {
+void FrameFileWriter::process(Frame frame) {
   if (!write_frame(frame)) {
     // io error
     Processor::stop();
@@ -21,7 +21,7 @@ void FrameFileWriter::teardown() {
   m_stream.close();
 }
 
-bool FrameFileWriter::write_frame(const shar::Image& frame) {
+bool FrameFileWriter::write_frame(const shar::Frame& frame) {
   static const std::size_t PIXEL_SIZE = 4;
 
   auto total_bytes = static_cast<std::streamsize>(frame.total_pixels() * PIXEL_SIZE);

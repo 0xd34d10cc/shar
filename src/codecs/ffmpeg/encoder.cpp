@@ -138,7 +138,7 @@ Encoder::~Encoder() {
   m_encoder = nullptr;
 }
 
-std::vector<Packet> Encoder::encode(const shar::Image& image) {
+std::vector<Packet> Encoder::encode(const shar::Frame& image) {
   auto[y, u, v] = bgra_to_yuv420(image);
 
   AVFrame* frame = av_frame_alloc();

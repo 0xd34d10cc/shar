@@ -3,7 +3,7 @@
 
 namespace {
 
-shar::Image convert(const sc::Image& image) noexcept {
+shar::Frame convert(const sc::Image& image) noexcept {
   std::size_t width  = static_cast<std::size_t>(Width(image));
   std::size_t height = static_cast<std::size_t>(Height(image));
   std::size_t pixels = width * height;
@@ -16,7 +16,7 @@ shar::Image convert(const sc::Image& image) noexcept {
   assert(bytes.get() != nullptr);
   sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
 
-  return shar::Image {std::move(bytes), size};
+  return shar::Frame {std::move(bytes), size};
 }
 
 
@@ -34,7 +34,7 @@ struct FrameHandler {
     }
     ++m_fps;
 
-    shar::Image buffer = convert(frame);
+    shar::Frame buffer = convert(frame);
     // ignore return value here, if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
     m_frames_consumer.send(std::move(buffer));

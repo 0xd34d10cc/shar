@@ -30,9 +30,9 @@ int main(int argc, const char* argv[]) {
   shar::Window     window {frame_size, logger};;
 
   auto[packets_sender, packets_receiver] = shar::channel::bounded<shar::Packet>(120);
-  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Image>(120);
+  auto[frames_sender, frames_receiver] = shar::channel::bounded<shar::Frame>(120);
 
-  using FrameSink = shar::channel::Sink<shar::Image>;
+  using FrameSink = shar::channel::Sink<shar::Frame>;
   using Display = shar::FrameDisplay<FrameSink>;
 
   auto receiver = std::make_shared<shar::PacketReceiver>(
