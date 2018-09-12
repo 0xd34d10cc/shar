@@ -70,8 +70,8 @@ PacketReceiver::PacketReceiver(IpAddress server, Logger logger, MetricsPtr metri
     , m_server_address(server)
     , m_context()
     , m_receiver(m_context)
-    , m_packets_received_metric(INVALID_METRIC_ID)
-    , m_bytes_received_metric(INVALID_METRIC_ID) {}
+    , m_packets_received_metric()
+    , m_bytes_received_metric() {}
 
 void PacketReceiver::process(FalseInput) {
   m_context.run_for(std::chrono::milliseconds(250));

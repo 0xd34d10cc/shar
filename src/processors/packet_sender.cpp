@@ -29,8 +29,8 @@ PacketSender::PacketSender(PacketsReceiver input, IpAddress ip, Logger logger, M
     , m_current_socket(m_context)
     , m_acceptor(m_context)
     , m_overflown_count(0)
-    , m_packets_sent_metric(INVALID_METRIC_ID)
-    , m_bytes_sent_metric(INVALID_METRIC_ID) {}
+    , m_packets_sent_metric()
+    , m_bytes_sent_metric() {}
 
 void PacketSender::process(Packet packet) {
   using namespace std::chrono_literals;

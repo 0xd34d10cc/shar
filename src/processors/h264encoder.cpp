@@ -7,8 +7,8 @@ H264Encoder::H264Encoder(Size frame_size, std::size_t fps, const Config& config,
                          Logger logger, MetricsPtr metrics, FramesReceiver input, PacketsSender output)
     : Processor("H264Encoder", logger, std::move(metrics), std::move(input), std::move(output))
     , m_encoder(frame_size, fps, std::move(logger), config)
-    , m_bytes_in(INVALID_METRIC_ID)
-    , m_bytes_out(INVALID_METRIC_ID) {}
+    , m_bytes_in()
+    , m_bytes_out() {}
 
 void H264Encoder::setup() {
   m_bytes_in = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);

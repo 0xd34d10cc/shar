@@ -23,7 +23,7 @@ public:
   // thread from which run() will be called
   FrameDisplay(Window& window, Logger logger, MetricsPtr metrics, FramesReceiver input, Output output)
       : BaseProcessor("FrameDisplay", std::move(logger), std::move(metrics), std::move(input), std::move(output))
-      , m_fps_metric(INVALID_METRIC_ID)
+      , m_fps_metric()
       , m_window(window)
       , m_texture(window.size()) {}
 
