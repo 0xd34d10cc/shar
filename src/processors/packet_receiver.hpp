@@ -7,7 +7,8 @@
 #include <boost/asio.hpp>
 #include "disable_warnings_pop.hpp"
 
-#include "packet.hpp"
+#include "network/packet.hpp"
+#include "network/packet_parser.hpp"
 #include "processors/source.hpp"
 #include "channels/bounded.hpp"
 
@@ -32,23 +33,6 @@ private:
   void start_read();
 
   using Buffer = std::vector<std::uint8_t>;
-
-  // TODO: rename to PacketParser
-  struct PacketParser {
-    enum class State {
-      ReadingLength,
-      ReadingContent
-    };
-
-    PacketParser();
-
-    std::vector<Packet> update(const Buffer& buffer, std::size_t size);
-
-    State       m_state;
-    std::size_t m_packet_size;
-    std::size_t m_remaining;
-    Buffer      m_buffer;
-  };
 
   PacketParser                 m_reader;
   Buffer                       m_buffer;

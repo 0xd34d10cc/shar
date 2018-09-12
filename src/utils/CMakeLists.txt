@@ -54,8 +54,10 @@ target_compile_definitions(record PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 # full pipeline test
 add_executable(pipeline_test
                full_pipeline_test.cpp
-               ../packet.cpp
-               ../packet.hpp
+               ../network/packet.cpp
+               ../network/packet.hpp
+               ../network/packet_parser.cpp
+               ../network/packet_parser.hpp
                ../texture.cpp
                ../texture.hpp
                ../window.cpp

@@ -1,9 +1,9 @@
 add_executable(server
                main.cpp
-               ../packet.cpp
-               ../packet.hpp
-               ../forwarding.cpp
-               ../forwarding.hpp
+               ../network/packet.cpp
+               ../network/packet.hpp
+               ../network/forwarding.cpp
+               ../network/forwarding.hpp
                ../metrics.cpp
                ../metrics.hpp
                ../metrics_reporter.cpp

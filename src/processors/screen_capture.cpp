@@ -22,26 +22,15 @@ shar::Frame convert(const sc::Image& image) noexcept {
 
 struct FrameHandler {
   FrameHandler(shar::Sender<shar::Frame>& frames_consumer)
-      : m_metrics_timer(std::chrono::seconds(1))
-      , m_fps(0)
-      , m_frames_consumer(frames_consumer) {}
+      : m_frames_consumer(frames_consumer) {}
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
-    if (m_metrics_timer.expired()) {
-//      std::cout << "ScreenCapture::fps = " << m_fps << std::endl;
-      m_fps = 0;
-      m_metrics_timer.restart();
-    }
-    ++m_fps;
-
     shar::Frame buffer = convert(frame);
     // ignore return value here, if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
     m_frames_consumer.send(std::move(buffer));
   }
 
-  shar::Timer m_metrics_timer;
-  std::size_t m_fps;
   shar::Sender<shar::Frame>& m_frames_consumer;
 };
 

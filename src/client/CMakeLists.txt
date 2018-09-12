@@ -6,8 +6,10 @@ add_executable(client
                ../texture.hpp
                ../window.cpp
                ../window.hpp
-               ../packet.cpp
-               ../packet.hpp
+               ../network/packet.cpp
+               ../network/packet.hpp
+               ../network/packet_parser.cpp
+               ../network/packet_parser.hpp
                ../metrics.cpp
                ../metrics.hpp
                ../metrics_reporter.cpp

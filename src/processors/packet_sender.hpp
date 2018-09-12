@@ -8,7 +8,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "primitives/timer.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "metrics.hpp"
 #include "processors/sink.hpp"
 #include "channels/bounded.hpp"
@@ -46,6 +46,7 @@ private:
       IDRReceived
     };
 
+    // TODO: move packet serialization outside of PacketSender
     enum class State {
       SendingLength,
       SendingContent

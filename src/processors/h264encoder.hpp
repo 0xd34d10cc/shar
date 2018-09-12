@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "processors/processor.hpp"
 #include "primitives/size.hpp"
 #include "primitives/frame.hpp"

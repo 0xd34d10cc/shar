@@ -5,7 +5,7 @@
 #include "primitives/size.hpp"
 #include "primitives/frame.hpp"
 #include "logger.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "config.hpp"
 
 

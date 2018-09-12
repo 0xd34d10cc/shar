@@ -1,6 +1,6 @@
 #pragma once
 
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "primitives/frame.hpp"
 #include "processors/processor.hpp"
 #include "channels/bounded.hpp"

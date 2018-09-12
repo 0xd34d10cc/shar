@@ -1,7 +1,7 @@
 #pragma once
 
 #include "primitives/frame.hpp"
-#include "packet.hpp"
+#include "network/packet.hpp"
 #include "logger.hpp"
 
 struct AVCodecContext;
