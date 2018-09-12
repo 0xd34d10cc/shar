@@ -90,7 +90,6 @@ static int run() {
 
   shar::SignalHandler::wait_for_sigint();
   sender_runner.stop();
-  reporter.stop();
 
   return EXIT_SUCCESS;
 }
