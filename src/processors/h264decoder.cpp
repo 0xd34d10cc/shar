@@ -3,7 +3,11 @@
 
 namespace shar {
 
-H264Decoder::H264Decoder(Context context, PacketsReceiver input, FramesSender output)
+H264Decoder::H264Decoder(
+    Context context,
+    Receiver<Packet> input,
+    Sender<Frame> output
+)
     : Processor(std::move(context), std::move(input), std::move(output))
     , m_decoder(m_logger) {}
 

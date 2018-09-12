@@ -15,14 +15,13 @@
 namespace shar {
 
 using IpAddress = boost::asio::ip::address;
-using PacketsSender = channel::Sender<Packet>;
 
-class PacketReceiver : public Source<PacketReceiver, PacketsSender> {
+class PacketReceiver : public Source<PacketReceiver, Sender<Packet>> {
 public:
-  using Base = Source<PacketReceiver, PacketsSender>;
+  using Base = Source<PacketReceiver, Sender<Packet>>;
   using Context = typename Base::Context;
 
-  PacketReceiver(Context context, IpAddress server, PacketsSender output);
+  PacketReceiver(Context context, IpAddress server, Sender<Packet> output);
   PacketReceiver(PacketReceiver&&) = default;
 
   void setup();

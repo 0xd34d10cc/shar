@@ -11,16 +11,13 @@
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Frame>;
-using PacketsSender = channel::Sender<Packet>;
-
-class H264Encoder : public Processor<H264Encoder, FramesReceiver, PacketsSender> {
+class H264Encoder : public Processor<H264Encoder, Receiver<Frame>, Sender<Packet>> {
 public:
-  using Base = Processor<H264Encoder, FramesReceiver, PacketsSender>;
+  using Base = Processor<H264Encoder, Receiver<Frame>, Sender<Packet>>;
   using Context = typename Base::Context;
 
   H264Encoder(Context context, Size frame_size, const std::size_t fps, const Config& config,
-              FramesReceiver input, PacketsSender output);
+              Receiver<Frame> input, Sender<Packet> output);
   H264Encoder(const H264Encoder&) = delete;
 
   void process(Frame frame);

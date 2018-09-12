@@ -9,15 +9,12 @@
 
 namespace shar {
 
-using FramesSender = channel::Sender<Frame>;
-using PacketsReceiver = channel::Receiver<Packet>;
-
-class H264Decoder : public Processor<H264Decoder, PacketsReceiver, FramesSender> {
+class H264Decoder : public Processor<H264Decoder, Receiver<Packet>, Sender<Frame>> {
 public:
-  using Base = Processor<H264Decoder, PacketsReceiver, FramesSender>;
+  using Base = Processor<H264Decoder, Receiver<Packet>, Sender<Frame>>;
   using Context = typename Base::Context;
 
-  H264Decoder(Context context, PacketsReceiver input, FramesSender output);
+  H264Decoder(Context context, Receiver<Packet> input, Sender<Frame> output);
 
   void setup();
   void teardown();

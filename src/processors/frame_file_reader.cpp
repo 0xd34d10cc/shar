@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 
 FrameFileReader::FrameFileReader(Context context,
                                  FileParams file_params,
-                                 FramesSender output)
+                                 Sender<Frame> output)
     : Source(std::move(context), std::move(output))
     , m_file_params(std::move(file_params))
     , m_stream(m_file_params.path, mode::in | mode::binary)

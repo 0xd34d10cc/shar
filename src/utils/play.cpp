@@ -30,7 +30,7 @@ int main() {
       params,
       std::move(frames_sender)
   );
-  auto display = shar::FrameDisplay {
+  auto display = shar::Display {
       context.with_name("Display"),
       window,
       std::move(frames_receiver)

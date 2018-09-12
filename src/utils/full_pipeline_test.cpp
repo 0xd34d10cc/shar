@@ -18,11 +18,11 @@ namespace sc = SL::Screen_Capture;
 // "client":
 //    PacketReceiver[Server => Packets]
 //      -> H264Decoder[Packets => Frames]
-//        -> FrameDisplay[Frames => NULL]
+//        -> Display[Frames => NULL]
 
 // "server":
 //    ScreenCapture[WindowManager => Frames]
-//      -> FrameDisplay[Frames => Frames]
+//      -> Display[Frames => Frames]
 //        -> H264Encoder[Frames => Packets]
 //           -> PacketsSender
 
@@ -93,7 +93,7 @@ int main() {
       std::move(decoded_frames_sender)
   );
 
-  shar::FrameDisplay display {
+  shar::Display display {
       context.with_name("Display"),
       window,
       std::move(decoded_frames_receiver)

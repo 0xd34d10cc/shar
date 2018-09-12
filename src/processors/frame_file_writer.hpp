@@ -12,14 +12,12 @@
 
 namespace shar {
 
-using FramesReceiver = channel::Receiver<Frame>;
-
-class FrameFileWriter : public Sink<FrameFileWriter, FramesReceiver> {
+class FrameFileWriter : public Sink<FrameFileWriter, Receiver<Frame>> {
 public:
-  using Base = Sink<FrameFileWriter, FramesReceiver>;
+  using Base = Sink<FrameFileWriter, Receiver<Frame>>;
   using Context = typename Base::Context;
 
-  FrameFileWriter(Context context, const std::string& path, FramesReceiver input);
+  FrameFileWriter(Context context, const std::string& path, Receiver<Frame> input);
   void process(shar::Frame frame);
   void teardown();
 

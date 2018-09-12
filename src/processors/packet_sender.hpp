@@ -16,16 +16,14 @@
 
 namespace shar {
 
-using PacketsReceiver = channel::Receiver<Packet>;
-
-class PacketSender : public Sink<PacketSender, PacketsReceiver> {
+class PacketSender : public Sink<PacketSender, Receiver<Packet>> {
 public:
-  using Base = Sink<PacketSender, PacketsReceiver>;
+  using Base = Sink<PacketSender, Receiver<Packet>>;
   using Context = typename Base::Context;
 
   using IpAddress = boost::asio::ip::address;
 
-  PacketSender(Context context, IpAddress ip, PacketsReceiver input);
+  PacketSender(Context context, IpAddress ip, Receiver<Packet> input);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;

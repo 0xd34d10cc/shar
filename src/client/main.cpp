@@ -44,7 +44,7 @@ int main(int argc, const char* argv[]) {
       std::move(frames_sender)
   );
 
-  shar::FrameDisplay display {
+  shar::Display display {
       context.with_name("Display"),
       window,
       std::move(frames_receiver)

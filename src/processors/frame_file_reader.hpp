@@ -19,14 +19,12 @@ struct FileParams {
   std::size_t fps;
 };
 
-using FramesSender = channel::Sender<Frame>;
-
-class FrameFileReader : public Source<FrameFileReader, FramesSender> {
+class FrameFileReader : public Source<FrameFileReader, Sender<Frame>> {
 public:
-  using Base = Source<FrameFileReader, FramesSender>;
+  using Base = Source<FrameFileReader, Sender<Frame>>;
   using Context = typename Base::Context;
 
-  FrameFileReader(Context context, FileParams params, FramesSender output);
+  FrameFileReader(Context context, FileParams params, Sender<Frame> output);
 
   FrameFileReader(const FrameFileReader&) = delete;
   FrameFileReader(FrameFileReader&& other) = default;

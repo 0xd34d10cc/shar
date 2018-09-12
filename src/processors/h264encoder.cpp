@@ -8,8 +8,8 @@ H264Encoder::H264Encoder(
     Size frame_size,
     std::size_t fps,
     const Config& config,
-    FramesReceiver input,
-    PacketsSender output
+    Receiver<Frame> input,
+    Sender<Packet> output
 )
     : Processor(std::move(context), std::move(input), std::move(output))
     , m_encoder(frame_size, fps, m_logger, config)

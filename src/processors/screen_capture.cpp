@@ -21,7 +21,7 @@ shar::Frame convert(const sc::Image& image) noexcept {
 
 
 struct FrameHandler {
-  FrameHandler(shar::FramesSender& frames_consumer)
+  FrameHandler(shar::Sender<shar::Frame>& frames_consumer)
       : m_metrics_timer(std::chrono::seconds(1))
       , m_fps(0)
       , m_frames_consumer(frames_consumer) {}
@@ -40,9 +40,9 @@ struct FrameHandler {
     m_frames_consumer.send(std::move(buffer));
   }
 
-  shar::Timer         m_metrics_timer;
-  std::size_t         m_fps;
-  shar::FramesSender& m_frames_consumer;
+  shar::Timer m_metrics_timer;
+  std::size_t m_fps;
+  shar::Sender<shar::Frame>& m_frames_consumer;
 };
 
 }
@@ -52,7 +52,7 @@ namespace shar {
 ScreenCapture::ScreenCapture(Context context,
                              Milliseconds interval,
                              const sc::Monitor& monitor,
-                             FramesSender output)
+                             Sender<Frame> output)
     : Source(std::move(context), std::move(output))
     , m_interval(std::move(interval))
     , m_wakeup_timer(std::chrono::seconds(1))

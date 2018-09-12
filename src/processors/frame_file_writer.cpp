@@ -5,7 +5,7 @@ using mode = std::ios_base;
 
 namespace shar {
 
-FrameFileWriter::FrameFileWriter(Context context, const std::string& path, FramesReceiver input)
+FrameFileWriter::FrameFileWriter(Context context, const std::string& path, Receiver<Frame> input)
     : Sink(std::move(context), std::move(input))
     , m_stream(path, mode::out | mode::binary) {}
 
