@@ -6,7 +6,7 @@ class Shar(ConanFile):
     requires        = ("ScreenCaptureLite/16.1.0@0xd34d10cc/testing",
                        "glfw/3.2.1.20180327@bincrafters/stable",
                        "boost/1.67.0@conan/stable",
-                       "ffmpeg/4.0@bincrafters/stable",
+                       "ffmpeg/4.0@pl0q1n/testing",
                        "spdlog/0.17.0@bincrafters/stable",
                        "miniupnpc/2.1@0xd34d10cc/testing")
 
@@ -41,6 +41,7 @@ class Shar(ConanFile):
                        "boost:without_type_erasure   = True",
                        "boost:shared                 = False",
                        "ffmpeg:iconv                 = False",
+                       "ffmpeg:amf                   = False",
                        "ffmpeg:x264                  = True",
                        "ffmpeg:mp3lame               = False",
                        "ffmpeg:vpx                   = False",
