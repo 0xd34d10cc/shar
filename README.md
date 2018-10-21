@@ -1,7 +1,8 @@
 # shar
 Yet another tool for video streaming (WIP)
-## Build
+## Build ##
 ...
+
 $ git clone
 
 $ conan install
@@ -9,7 +10,7 @@ $ conan install
 $ cmake build
 
 ...
-## Usage
+## Usage ##
 ...
 
    Build solution
