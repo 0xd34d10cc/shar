@@ -62,27 +62,19 @@ static int get_pts()
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger& logger) {
-  static std::array<const char*, 5> codecs = {
-      "h264_nvenc",
-      "h264_amf",
-      //"h264_vaapi", // not supported yet
-      "h264_qsv",
-      //"h264_v4l2m2m", // not supported yet
-      "h264_videotoolbox",
-      "h264_omx"
-  };
-
-  for (const char* name: codecs) {
-    if (auto* codec = avcodec_find_encoder_by_name(name)) {
-      logger.info("Using {} encoder", name);
-      return codec;
-    }
-  }
-  logger.info("Using default h264 encoder");
-  return avcodec_find_encoder(AV_CODEC_ID_H264);
+static AVCodec* select_codec(Logger& logger,const Config& config)
+{
+	const std::string name = config.get<std::string>("codec", "");
+	if (auto* codec = avcodec_find_encoder_by_name(name.c_str()))
+	{
+		logger.info("Using {} encoder", name);
+		return codec;
+	}
+	else {
+		logger.info("Using default h264 encoder");
+		return avcodec_find_encoder(AV_CODEC_ID_H264);
+	}
 }
-
 
 Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
@@ -90,14 +82,13 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
     , m_logger(std::move(logger)) {
 
   // TODO: allow manual codec selection
-  m_encoder = select_codec(m_logger);
+  m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
   const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
-
   m_context->bit_rate                = static_cast<int>(kbits * 1024);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
