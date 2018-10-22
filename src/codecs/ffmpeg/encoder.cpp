@@ -70,10 +70,8 @@ static AVCodec* select_codec(Logger& logger,const Config& config)
 		logger.info("Using {} encoder", name);
 		return codec;
 	}
-	else {
-		logger.info("Using default h264 encoder");
-		return avcodec_find_encoder(AV_CODEC_ID_H264);
-	}
+	logger.info("Using default h264 encoder");
+	return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
 Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
@@ -81,7 +79,6 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
     , m_encoder(nullptr)
     , m_logger(std::move(logger)) {
 
-  // TODO: allow manual codec selection
   m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
 
