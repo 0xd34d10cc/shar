@@ -62,6 +62,7 @@ static int get_pts()
 
 namespace shar::codecs::ffmpeg {
 
+
 static AVCodec* select_codec(Logger& logger,const Config& config)
 {
 	const std::string name = config.get<std::string>("codec", "");
@@ -74,6 +75,7 @@ static AVCodec* select_codec(Logger& logger,const Config& config)
 	return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
+
 Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
     , m_encoder(nullptr)
@@ -82,7 +84,7 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
 
-  assert(m_encoder);
+  assert(m_encoder);S
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
   const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
