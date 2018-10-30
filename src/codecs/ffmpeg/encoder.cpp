@@ -65,13 +65,16 @@ namespace shar::codecs::ffmpeg {
 static AVCodec* select_codec(Logger& logger,const Config& config)
 {
 	const std::string name = config.get<std::string>("codec", "");
-	if (auto* codec = avcodec_find_encoder_by_name(name.c_str())){
+	if (auto* codec = avcodec_find_encoder_by_name(name.c_str()))
+	{
 		logger.info("Using {} encoder", name);
 		return codec;
 	}
-	else {
+	else 
+	{
 		name == "" ? logger.info("Encoder reading error") : logger.info("Encoder not found");
-		static std::array<const char*, 5> codecs = {
+		static std::array<const char*, 5> codecs = 
+		{
 	  "h264_nvenc",
 	  "h264_amf",
 	  "h264_qsv",
@@ -79,8 +82,10 @@ static AVCodec* select_codec(Logger& logger,const Config& config)
 	  "h264_omx"
 		};
 
-		for (const char* name : codecs) {
-			if (auto* codec = avcodec_find_encoder_by_name(name)) {
+		for (const char* name : codecs) 
+		{
+			if (auto* codec = avcodec_find_encoder_by_name(name)) 
+			{
 				logger.info("Using {} encoder", name);
 				return codec;
 			}
