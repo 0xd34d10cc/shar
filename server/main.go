@@ -10,6 +10,8 @@ import (
 	"net"
 )
 
+const packetsQueueSize = 30
+
 // Packet - shar network packet
 type Packet struct {
 	Data []byte
@@ -116,6 +118,7 @@ func (client *SenderClient) run(finished chan int) error {
 	defer func() {
 		log.Printf("[sender] Client %v [%v] disconnected", client.conn.RemoteAddr(), client.id)
 		client.conn.Close()
+		finished <- client.id
 		close(client.packetsChannel)
 	}()
 
@@ -123,7 +126,6 @@ func (client *SenderClient) run(finished chan int) error {
 		packet := <-client.packetsChannel
 		err := packet.writeTo(writer)
 		if err != nil {
-			finished <- client.id
 			return err
 		}
 	}
@@ -141,7 +143,7 @@ func sendPackets(packetsChannel chan Packet) {
 		select {
 		case conn := <-listeners:
 			log.Printf("[sender] Sending packets to %v [%v]", conn.RemoteAddr(), id)
-			c := make(chan Packet, 30)
+			c := make(chan Packet, packetsQueueSize)
 			clients[id] = c
 
 			client := SenderClient{
@@ -165,7 +167,7 @@ func sendPackets(packetsChannel chan Packet) {
 }
 
 func main() {
-	packetsChannel := make(chan Packet, 30)
+	packetsChannel := make(chan Packet, packetsQueueSize)
 	go receivePackets(packetsChannel)
 	sendPackets(packetsChannel)
 }
