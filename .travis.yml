@@ -35,6 +35,7 @@ before_script:
 
 
 script:
+  - cd client
   - mkdir build
   - cd build
   - conan install --build=missing -s compiler.libcxx=libc++ .. 
