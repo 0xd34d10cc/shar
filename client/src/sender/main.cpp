@@ -10,9 +10,8 @@
 #include "metrics_reporter.hpp"
 #include "channels/bounded.hpp"
 #include "network/consts.hpp"
-#include "processors/packet_sender.hpp"
+#include "processors/packet_forwarder.hpp"
 #include "processors/screen_capture.hpp"
-#include "processors/display.hpp"
 #include "processors/h264encoder.hpp"
 
 
@@ -30,6 +29,7 @@ static int run() {
 
   if (!shar::SignalHandler::setup()) {
     logger.error("Failed to setup signal handler");
+    return EXIT_FAILURE;
   }
 
   auto config = shar::Config::parse_from_file("config.json");
@@ -81,8 +81,8 @@ static int run() {
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
-  auto sender  = std::make_shared<shar::PacketSender>(
-      context.with_name("PacketSender"),
+  auto sender  = std::make_shared<shar::PacketForwarder>(
+      context.with_name("PacketForwarder"),
       ip,
       std::move(encoded_packets_receiver)
   );
