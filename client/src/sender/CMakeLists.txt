@@ -1,4 +1,4 @@
-add_executable(server
+add_executable(sender
                main.cpp
                ../network/packet.cpp
                ../network/packet.hpp
@@ -17,15 +17,15 @@ add_executable(server
                ../codecs/ffmpeg/encoder.hpp
                ../processors/screen_capture.cpp
                ../processors/screen_capture.hpp
-               ../processors/packet_sender.cpp
-               ../processors/packet_sender.hpp
+               ../processors/packet_forwarder.cpp
+               ../processors/packet_forwarder.hpp
                ../processors/h264encoder.cpp
                ../processors/h264encoder.hpp
                ../primitives/frame.cpp
                ../primitives/frame.hpp
                )
 
-target_include_directories(server
+target_include_directories(sender
                            PRIVATE ..
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
@@ -33,7 +33,7 @@ target_include_directories(server
                            PRIVATE SYSTEM %{CONAN_INCLUDE_DIRS_MINIUPNPC}
                            )
 
-target_link_libraries(server
+target_link_libraries(sender
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${CONAN_LIBS_FFMPEG}
@@ -44,11 +44,11 @@ target_link_libraries(server
                       )
 
 if (WIN32)
-  target_link_libraries(server ws2_32 iphlpapi)
+  target_link_libraries(sender ws2_32 iphlpapi)
 endif ()
 
-target_compile_definitions(server
+target_compile_definitions(sender
                            PRIVATE MINIUPNP_STATICLIB
                            PRIVATE ${SHAR_COMPILE_DEFINITIONS})
-target_compile_options(server PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_options(sender PRIVATE ${SHAR_COMPILE_OPTIONS})
 
