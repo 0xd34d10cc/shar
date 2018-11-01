@@ -40,8 +40,8 @@ class Shar(ConanFile):
                        "boost:without_test           = True",
                        "boost:without_type_erasure   = True",
                        "boost:shared                 = False",
+                       "ffmpeg:fPIC                  = True",
                        "ffmpeg:iconv                 = False",
-                       "ffmpeg:amf                   = False",
                        "ffmpeg:x264                  = True",
                        "ffmpeg:mp3lame               = False",
                        "ffmpeg:vpx                   = False",
@@ -58,6 +58,7 @@ class Shar(ConanFile):
     def requirements(self):
         if self.settings.os == "Windows":
             self.options["ffmpeg"].qsv = False
+            self.options["ffmpeg"].amf = True
         elif self.settings.os == "Linux":
             self.options["ffmpeg"].pulse = False
             self.options["ffmpeg"].vaapi = False
