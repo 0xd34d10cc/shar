@@ -8,16 +8,34 @@ import (
 
 // StreamSender - sends packets from |packetsChannel| for clients connecting to |addr|
 type StreamSender struct {
-	packetsChannel chan Packet
+	packetsChannel chan Packet // input channel
 	addr           string
+	clients        map[int]chan Packet
+	id             int
+
+	// clients should send clientID in this channel
+	// if they don't need to receive packets anymore
+	finished chan int
 }
 
 // NewSender - create new StreamSender with given |addr| and |packetsChannel|
 func NewSender(packetsChannel chan Packet, addr string) StreamSender {
 	return StreamSender{
-		packetsChannel,
-		addr,
+		packetsChannel: packetsChannel,
+		addr:           addr,
+		clients:        make(map[int]chan Packet),
+		id:             0,
+		finished:       make(chan int, 1),
 	}
+}
+
+// Subscribe - subscribe for packets
+func (sender *StreamSender) Subscribe(consumer chan Packet) (int, chan int) {
+	id := sender.id
+	sender.clients[id] = consumer
+	sender.id = sender.id + 1
+
+	return id, sender.finished
 }
 
 // Run - run StreamSender
@@ -25,31 +43,28 @@ func (sender *StreamSender) Run() {
 	listeners := make(chan net.Conn)
 	go runAcceptor(listeners, sender.addr)
 
-	id := 0
-	clients := make(map[int]chan Packet)
-	closedClients := make(chan int, 1)
-
 	for {
 		select {
+		// new client connected
 		case conn := <-listeners:
-			log.Printf("[sender] Sending packets to %v [%v]", conn.RemoteAddr(), id)
 			c := make(chan Packet, packetsQueueSize)
-			clients[id] = c
-
+			id, finished := sender.Subscribe(c)
 			client := SenderClient{
 				packetsChannel: c,
 				conn:           conn,
 				id:             id,
 			}
 
-			go client.run(closedClients)
-			id = id + 1
+			log.Printf("[sender] Sending packets to %v [%v]", conn.RemoteAddr(), id)
+			go client.run(finished)
 
-		case clientID := <-closedClients:
-			delete(clients, clientID)
+		// some client has unsubscribed from packets
+		case clientID := <-sender.finished:
+			delete(sender.clients, clientID)
 
+		// broadcast packet for all clients
 		case packet := <-sender.packetsChannel:
-			for _, client := range clients {
+			for _, client := range sender.clients {
 				client <- packet
 			}
 		}
