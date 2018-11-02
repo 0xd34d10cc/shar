@@ -104,7 +104,7 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
 
-  assert(m_encoder);S
+  assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
   const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
