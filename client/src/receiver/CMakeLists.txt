@@ -1,4 +1,4 @@
-add_executable(client
+add_executable(receiver
                main.cpp
                options.cpp
                options.hpp
@@ -28,14 +28,14 @@ add_executable(client
                ../primitives/frame.hpp
                )
 
-target_include_directories(client
+target_include_directories(receiver
                            PRIVATE ..
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            )
 
-target_link_libraries(client
+target_link_libraries(receiver
                       ${OPENGL_gl_LIBRARY}
                       ${CONAN_LIBS_GLFW}
                       ${CONAN_LIBS_FFMPEG}
@@ -44,5 +44,5 @@ target_link_libraries(client
                       ${CONAN_LIBS_FMT}
                       )
 
-target_compile_options(client PRIVATE ${SHAR_COMPILE_OPTIONS})
-target_compile_definitions(client PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(receiver PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(receiver PRIVATE ${SHAR_COMPILE_DEFINITIONS})

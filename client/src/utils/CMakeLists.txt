@@ -89,7 +89,7 @@ target_include_directories(pipeline_test
                            PRIVATE ..
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
-                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_OPENH264}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            )
 
@@ -97,7 +97,6 @@ target_link_libraries(pipeline_test
                       ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_GLFW}
-                      ${CONAN_LIBS_OPENH264}
                       ${OPENGL_gl_LIBRARY}
                       ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_LIBX264}
