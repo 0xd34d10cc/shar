@@ -54,50 +54,58 @@ private:
 
 }
 
-static int get_pts()
-{
+static int get_pts() {
   static int static_pts = 0;
   return static_pts++;
 }
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger& logger) {
+static AVCodec* select_codec(Logger& logger, const Config& config){
+  const std::string codec_name = config.get<std::string>("codec", "");
+  if (codec_name != "") {
+    if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
+      logger.info("Using {} encoder from config", codec_name);
+      return codec;
+    }
+
+    logger.warning("Encoder {} requested but not found", codec_name);
+  }
+
   static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
-      //"h264_vaapi", // not supported yet
       "h264_qsv",
-      //"h264_v4l2m2m", // not supported yet
+      // TODO: implement
+      //"h264_vaapi",
+      //"h264_v4l2m2m",
       "h264_videotoolbox",
       "h264_omx"
   };
 
-  for (const char* name: codecs) {
+  for (const char* name : codecs){
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
       logger.info("Using {} encoder", name);
       return codec;
     }
   }
-  logger.info("Using default h264 encoder");
+
+  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
-
 
 Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
     : m_context(nullptr)
     , m_encoder(nullptr)
     , m_logger(std::move(logger)) {
 
-  // TODO: allow manual codec selection
-  m_encoder = select_codec(m_logger);
+  m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
   const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
-
   m_context->bit_rate                = static_cast<int>(kbits * 1024);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
