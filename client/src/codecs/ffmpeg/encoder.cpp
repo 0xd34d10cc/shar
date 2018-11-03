@@ -69,7 +69,7 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
       return codec;
     }
 
-    logger.warning("Encoder {} requested but not found", name);
+    logger.warning("Encoder {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 5> codecs = {
@@ -81,13 +81,13 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
   };
 
   for (const char* name : codecs){
-    if (auto* codec = avcodec_find_encoder_by_name(name)){
+    if (auto* codec = avcodec_find_encoder_by_name(name)) {
       logger.info("Using {} encoder", name);
       return codec;
     }
   }
 
-  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder")
+  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
