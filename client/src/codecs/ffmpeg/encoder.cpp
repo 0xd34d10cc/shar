@@ -76,6 +76,9 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
       "h264_nvenc",
       "h264_amf",
       "h264_qsv",
+      // TODO: implement
+      //"h264_vaapi",
+      //"h264_v4l2m2m",
       "h264_videotoolbox",
       "h264_omx"
   };
