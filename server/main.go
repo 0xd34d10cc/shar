@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	rtp "github.com/wernerd/GoRTP/src/net/rtp"
 )
 
 const packetsQueueSize = 30
@@ -28,6 +30,14 @@ func waitForCtrlC() {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	rtp.PayloadFormatMap[96] = &rtp.PayloadFormat{
+		TypeNumber: 96,
+		MediaType:  rtp.Video,
+		ClockRate:  90000,
+		Channels:   1,
+		Name:       "H264",
+	}
+
 	start := time.Now()
 
 	packetsChannel := make(chan Packet, packetsQueueSize)
@@ -42,7 +52,7 @@ func main() {
 	go sender.Run()
 
 	ip, _ := net.ResolveIPAddr("ip", "127.0.0.1")
-	rtp, err := NewRTP(ip, 1335)
+	rtp, err := NewRTP(ip, 1334)
 	if err != nil {
 		log.Fatalf("Failed to start RTP service: %v", err)
 	}

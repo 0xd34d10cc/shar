@@ -47,8 +47,7 @@ func NewRTP(ip *net.IPAddr, port uint16) (RTPSender, error) {
 
 	log.Printf("[RTP] Created session %v on %v:%v", streamID, ip, port)
 
-	// what is 0 payload?
-	session.SsrcStreamOutForIndex(streamID).SetPayloadType(0)
+	session.SsrcStreamOutForIndex(streamID).SetPayloadType(96)
 	return RTPSender{
 		transport,
 		session,
@@ -74,6 +73,9 @@ func (sender *RTPSender) sendPackets(packets chan Packet) {
 
 	for packet := range packets {
 		dataPacket := sender.session.NewDataPacket(timestamp)
+		dataPacket.SetPayloadType(96)
+
+		// FIXME: packets should be split into FUs (fragmentation units) as described in RFC 6184
 		dataPacket.SetPayload(packet.Data)
 		sender.session.WriteData(dataPacket)
 		dataPacket.FreePacket()
