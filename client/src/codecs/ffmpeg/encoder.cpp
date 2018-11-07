@@ -54,8 +54,7 @@ private:
 
 }
 
-static int get_pts()
-{
+static int get_pts() {
   static int static_pts = 0;
   return static_pts++;
 }
@@ -63,10 +62,11 @@ static int get_pts()
 namespace shar::codecs::ffmpeg {
 
 static AVCodec* select_codec(Logger& logger, const Config& config){
-  const std::string name = config.get<std::string>("codec", "");
-  if (name != "") {
-    if (auto* codec = avcodec_find_encoder_by_name(name.c_str())) {
-      logger.info("Using {} encoder from config", name);
+<<<<<<< HEAD:src/codecs/ffmpeg/encoder.cpp
+  const std::string codec_name = config.get<std::string>("codec", "");
+  if (codec_name != "") {
+    if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
+      logger.info("Using {} encoder from config", codec_name);
       return codec;
     }
     logger.info("Encoder not found");
@@ -81,11 +81,37 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
     };
   for (const char* name : codecs){
     if (auto* codec = avcodec_find_encoder_by_name(name)){
+=======
+  const std::string codec_name = config.get<std::string>("codec", "");
+  if (codec_name != "") {
+    if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
+      logger.info("Using {} encoder from config", codec_name);
+      return codec;
+    }
+
+    logger.warning("Encoder {} requested but not found", codec_name);
+  }
+
+  static std::array<const char*, 5> codecs = {
+      "h264_nvenc",
+      "h264_amf",
+      "h264_qsv",
+      // TODO: implement
+      //"h264_vaapi",
+      //"h264_v4l2m2m",
+      "h264_videotoolbox",
+      "h264_omx"
+  };
+
+  for (const char* name : codecs){
+    if (auto* codec = avcodec_find_encoder_by_name(name)) {
+>>>>>>> 526f52583ac58e7bfd81dcc4c81a7c88fcdaa4b5:client/src/codecs/ffmpeg/encoder.cpp
       logger.info("Using {} encoder", name);
       return codec;
     }
   }
-  logger.info("Using default h264 encoder");
+
+  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 

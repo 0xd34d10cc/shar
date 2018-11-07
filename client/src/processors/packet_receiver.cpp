@@ -23,7 +23,7 @@ void PacketReceiver::setup() {
   m_bytes_received_metric   = m_metrics->add("PacketReceiver\tbytes", Metrics::Format::Bytes);
 
   using Endpoint = boost::asio::ip::tcp::endpoint;
-  Endpoint endpoint {m_server_address, SERVER_DEFAULT_PORT};
+  Endpoint endpoint {m_server_address, SERVER_DEFAULT_PORT + 1};
   m_receiver.connect(endpoint);
 
   start_read();

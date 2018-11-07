@@ -79,5 +79,5 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 ENDIF()
 
 add_subdirectory(src/utils) 
-add_subdirectory(src/client)
-add_subdirectory(src/server)
+add_subdirectory(src/receiver)
+add_subdirectory(src/sender)
