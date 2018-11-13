@@ -11,6 +11,7 @@ namespace shar {
 
 struct Options {
   IpAddress   ip;
+  std::uint16_t port;
   std::size_t width;
   std::size_t height;
 

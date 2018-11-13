@@ -22,7 +22,7 @@ public:
   using Base = Source<PacketReceiver, Sender<Packet>>;
   using Context = typename Base::Context;
 
-  PacketReceiver(Context context, IpAddress server, Sender<Packet> output);
+  PacketReceiver(Context context, IpAddress server, std::uint16_t port, Sender<Packet> output);
   PacketReceiver(PacketReceiver&&) = default;
 
   void setup();
@@ -37,6 +37,7 @@ private:
   PacketParser                 m_reader;
   Buffer                       m_buffer;
   boost::asio::ip::address     m_server_address;
+  std::uint16_t                m_port;
   boost::asio::io_context      m_context;
   boost::asio::ip::tcp::socket m_receiver;
 

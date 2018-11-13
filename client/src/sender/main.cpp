@@ -53,6 +53,7 @@ static int run() {
   const auto        interval = 1000ms / fps;
   const auto        ip_str   = config.get<std::string>("host", "127.0.0.1");
   const ip::address ip       = ip::address::from_string(ip_str);
+  const std::uint16_t port = config.get<std::uint16_t>("port", 1337);
 
   logger.info("Capturing {} {}x{}", monitor.Name, width, height);
   logger.info("FPS: {}", fps);
@@ -84,6 +85,7 @@ static int run() {
   auto sender  = std::make_shared<shar::PacketForwarder>(
       context.with_name("PacketForwarder"),
       ip,
+      port,
       std::move(encoded_packets_receiver)
   );
 
