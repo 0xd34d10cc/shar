@@ -68,8 +68,10 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
       logger.info("Using {} encoder from config", codec_name);
       return codec;
     }
-    logger.info("Encoder not found");
+
+    logger.warning("Encoder {} requested but not found", codec_name);
   }
+
   static std::array<const char*, 5> codecs = {
       "h264_nvenc",
       "h264_amf",
