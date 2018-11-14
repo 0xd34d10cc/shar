@@ -1,202 +1,107 @@
-#include <cassert>
-#include <cstdlib>
-#include <vector>
-#include <numeric>
-
-#include "disable_warnings_push.hpp"
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-#include "disable_warnings_pop.hpp"
-
-#include "codecs/convert.hpp"
-#include "codecs/ffmpeg/encoder.hpp"
+#include "convert.hpp"
+#include "primitives/frame.hpp"
 
 
-namespace {
+namespace shar::codecs {
 
-    class Options {
-    public:
-        Options()
-                : m_opts(nullptr)
-        {}
+    static Slice alloc(std::size_t size) {
+        return {std::make_unique<std::uint8_t[]>(size), size};
+    }
 
-        ~Options() {
-            av_dict_free(&m_opts);
-        }
 
-        std::size_t count() {
-            return static_cast<std::size_t>(av_dict_count(m_opts));
-        }
+    std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
+        Slice ys = alloc(image.total_pixels());
+        Slice us = alloc(image.total_pixels() / 4);
+        Slice vs = alloc(image.total_pixels() / 4);
 
-        bool set(const char* key, const char* value) {
-            return av_dict_set(&m_opts, key, value, 0 /* flags */) >= 0;
-        }
-
-        AVDictionary*& get_ptr() {
-            return m_opts;
-        }
-
-        std::string to_string() {
-            char* buffer = nullptr;
-            if (av_dict_get_string(m_opts, &buffer, '=', ',') < 0) {
-                std::free(buffer);
-                return {};
-            }
-
-            std::string opts{buffer};
-            return opts;
-        }
-
-    private:
-        AVDictionary* m_opts;
-    };
-
-}
-
-static int get_pts() {
-    static int static_pts = 0;
-    return static_pts++;
-}
-
-namespace shar::codecs::ffmpeg {
-
-    static AVCodec* select_codec(Logger& logger, const Config& config){
-        const std::string codec_name = config.get<std::string>("codec", "");
-        if (codec_name != "") {
-            if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
-                logger.info("Using {} encoder from config", codec_name);
-                return codec;
-            }
-
-            logger.warning("Encoder {} requested but not found", codec_name);
-        }
-
-        static std::array<const char*, 5> codecs = {
-                "h264_nvenc",
-                "h264_amf",
-                "h264_qsv",
-                // TODO: implement
-                //"h264_vaapi",
-                //"h264_v4l2m2m",
-                "h264_videotoolbox",
-                "h264_omx"
+        const auto luma = [](uint8_t r, uint8_t g, uint8_t b) {
+            return static_cast<uint8_t >(((66 * r + 129 * g + 25 * b) >> 8) + 16);
         };
 
-        for (const char* name : codecs){
-            if (auto* codec = avcodec_find_encoder_by_name(name)) {
-                logger.info("Using {} encoder", name);
-                return codec;
+        const std::uint8_t* raw_image = image.bytes();
+        std::size_t i  = 0;
+        std::size_t ui = 0;
+
+        for (std::size_t line = 0; line < image.height(); ++line) {
+            if (line % 2 == 0) {
+                for (std::size_t x = 0; x < image.width(); x += 2) {
+                    uint8_t r = raw_image[4 * i + 2];
+                    uint8_t g = raw_image[4 * i + 1];
+                    uint8_t b = raw_image[4 * i];
+
+                    uint8_t y = luma(r, g, b);
+                    uint8_t u = static_cast<uint8_t >(((-38 * r + -74 * g + 112 * b) >> 8) + 128);
+                    uint8_t v = static_cast<uint8_t >(((112 * r + -94 * g + -18 * b) >> 8) + 128);
+
+                    ys.data[i]  = y;
+                    us.data[ui] = u;
+                    vs.data[ui] = v;
+
+                    i++;
+                    ui++;
+
+                    r = raw_image[4 * i + 2];
+                    g = raw_image[4 * i + 1];
+                    b = raw_image[4 * i];
+
+                    y = luma(r, g, b);
+                    ys.data[i] = y;
+                    i++;
+                }
+            }
+            else {
+                for (size_t x = 0; x < image.width(); x += 1) {
+                    uint8_t r = raw_image[4 * i + 2];
+                    uint8_t g = raw_image[4 * i + 1];
+                    uint8_t b = raw_image[4 * i];
+
+                    uint8_t y = luma(r, g, b);
+                    ys.data[i] = y;
+                    i++;
+                }
             }
         }
 
-        logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
-        return avcodec_find_encoder(AV_CODEC_ID_H264);
+        return {std::move(ys), std::move(us), std::move(vs)};
     }
 
-    Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
-            : m_context(nullptr)
-            , m_encoder(nullptr)
-            , m_logger(std::move(logger)) {
+    Slice yuv420_to_bgra(const std::uint8_t* ys,
+                         const std::uint8_t* us,
+                         const std::uint8_t* vs,
+                         std::size_t height, std::size_t width,
+                         std::size_t y_pad, std::size_t uv_pad) {
 
-        m_encoder = select_codec(m_logger, config);
-        m_context = avcodec_alloc_context3(m_encoder);
+        std::size_t y_width = width + y_pad;
+        std::size_t u_width = width / 2 + uv_pad;
+        std::size_t i       = 0;
 
-        assert(m_encoder);
-        assert(m_context);
-        std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-        const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
-        m_context->bit_rate                = static_cast<int>(kbits * 1024);
-        m_context->time_base.num           = 1;
-        m_context->time_base.den           = static_cast<int>(fps);
-        m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
-        m_context->width                   = static_cast<int>(frame_size.width());
-        m_context->height                  = static_cast<int>(frame_size.height());
-        m_context->max_pixels              = m_context->width * m_context->height;
+        auto bgra = alloc(height * width * 4);
 
-        std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
-        m_context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
-        m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
+        for (std::size_t line = 0; line < height; ++line) {
+            for (std::size_t coll = 0; coll < width; ++coll) {
 
-        Options opts{};
-        for (const auto& iter: config.get_subconfig("options")) {
-            const char* key = iter.first.c_str();
-            const std::string value = iter.second.get_value<std::string>();
+                uint8_t y = ys[line * y_width + coll];
+                uint8_t u = us[(line / 2) * u_width + (coll / 2)];
+                uint8_t v = vs[(line / 2) * u_width + (coll / 2)];
 
-            if (!opts.set(key, value.c_str())) {
-                m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
+                int c = y - 16;
+                int d = u - 128;
+                int e = v - 128;
+
+                uint8_t r = static_cast<uint8_t>(shar::codecs::clamp((298 * c + 409 * e + 128) >> 8, 0, 255));
+                uint8_t g = static_cast<uint8_t>(shar::codecs::clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255));
+                uint8_t b = static_cast<uint8_t>(shar::codecs::clamp((298 * c + 516 * d + 128) >> 8, 0, 255));
+
+                bgra.data[i + 0] = b;
+                bgra.data[i + 1] = g;
+                bgra.data[i + 2] = r;
+                bgra.data[i + 3] = 0;
+
+                i += 4;
             }
         }
 
-        if (avcodec_open2(m_context, m_encoder, &opts.get_ptr()) < 0) {
-            assert(false);
-        }
-
-        if (opts.count() != 0) {
-            m_logger.warning("Following {} options were not found: {}",
-                             opts.count(), opts.to_string());
-        }
-    }
-
-
-    Encoder::~Encoder() {
-        avcodec_close(m_context);
-        avcodec_free_context(&m_context);
-
-        m_context = nullptr;
-        m_encoder = nullptr;
-    }
-
-    std::vector<Packet> Encoder::encode(const shar::Frame& image) {
-        auto[y, u, v] = bgra_to_yuv420(image);
-
-        AVFrame* frame = av_frame_alloc();
-        std::fill_n(reinterpret_cast<char*>(frame), sizeof(AVFrame), 0);
-        frame->format = AV_PIX_FMT_YUV420P;
-        frame->height = static_cast<int>(image.height());
-        frame->width  = static_cast<int>(image.width());
-
-        frame->data[0] = y.data.get();
-        frame->data[1] = u.data.get();
-        frame->data[2] = v.data.get();
-
-        frame->linesize[0] = static_cast<int>(image.width());
-        frame->linesize[1] = static_cast<int>(image.width() / 2);
-        frame->linesize[2] = static_cast<int>(image.width() / 2);
-        frame->pts = get_pts();
-
-        int ret = avcodec_send_frame(m_context, frame);
-        std::vector<Packet> packets;
-
-        assert(ret == 0);
-        if (ret == 0) {
-
-            AVPacket packet;
-            std::fill_n(reinterpret_cast<char*>(&packet), sizeof(AVPacket), 0);
-
-            ret = avcodec_receive_packet(m_context, &packet);
-            while (ret != AVERROR(EAGAIN)) {
-                std::size_t size = static_cast<std::size_t>(packet.size);
-                auto        data = std::make_unique<std::uint8_t[]>(size);
-                std::copy(packet.data, packet.data + size, data.get());
-
-                const bool is_IDR = (packet.flags & AV_PKT_FLAG_KEY) != 0;
-                const auto type   = is_IDR ? Packet::Type::IDR : Packet::Type::Unknown;
-
-                packets.emplace_back(std::move(data), size, type);
-
-                // reset packet
-                // NOTE: according to docs avcodec_receive_packet should call av_packet_unref
-                // before doing anything else, but who trust docs?
-                av_packet_unref(&packet);
-                ret = avcodec_receive_packet(m_context, &packet);
-            }
-
-            av_packet_unref(&packet);
-        }
-
-        av_frame_free(&frame);
-        return packets;
+        return bgra;
     }
 
 }
