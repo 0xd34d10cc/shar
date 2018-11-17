@@ -4,7 +4,7 @@
 
 namespace shar {
 
-PacketForwarder::PacketForwarder(Context context, IpAddress ip, std::uint16_t port, Receiver<Packet> input)
+PacketForwarder::PacketForwarder(Context context, IpAddress ip, Port port, Receiver<Packet> input)
     : Base(std::move(context), std::move(input))
     , m_ip(std::move(ip))
     , m_port(port)

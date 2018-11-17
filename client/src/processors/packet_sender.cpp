@@ -22,7 +22,7 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(Context context, IpAddress ip, std::uint16_t port, Receiver<Packet> input)
+PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input)
     : Sink(std::move(context), std::move(input))
     , m_ip(ip)
     , m_port(port)

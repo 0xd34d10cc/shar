@@ -13,7 +13,7 @@ namespace {
 static shar::Options parse_options(const po::variables_map& vm) {
   const std::string input_host = vm["host"].as<std::string>();
   const auto        ip         = IpAddress::from_string(input_host);
-  const std::uint16_t port = vm["port"].as<std::uint16_t>();
+  Port        port       = vm["port"].as<std::uint16_t>();
 
   const std::size_t width  = vm["width"].as<size_t>();
   const std::size_t height = vm["height"].as<size_t>();
@@ -29,7 +29,7 @@ static shar::Options read_options(int argc, const char* argv[]) {
           ("width", po::value<size_t>()->default_value(1920), "Width of the screen")
           ("height", po::value<size_t>()->default_value(1080), "Height of the screen")
           ("host", po::value<std::string>()->default_value("127.0.0.1"), "IP of the server");
-
+          ("port", po::value<std::uint16_t>()->default_value(shar::SERVER_DEFAULT_PORT), "Using port");
   po::variables_map vm;
   po::store(parse_command_line(argc, argv, desc), vm);
   po::notify(vm);

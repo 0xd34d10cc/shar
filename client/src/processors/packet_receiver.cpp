@@ -4,7 +4,7 @@
 
 namespace shar {
 
-PacketReceiver::PacketReceiver(Context context, IpAddress server, std::uint16_t port, Sender<Packet> output)
+PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port, Sender<Packet> output)
     : Source(std::move(context), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
