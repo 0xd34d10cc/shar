@@ -20,8 +20,9 @@ public:
     using Endpoint = boost::asio::ip::tcp::endpoint;
     using IpAddress = boost::asio::ip::address;
     using ErrorCode = boost::system::error_code;
+    using Port = const std::uint16_t;
 
-    PacketForwarder(Context context, IpAddress ip, Receiver<Packet> input);
+    PacketForwarder(Context context, IpAddress ip, Port port, Receiver<Packet> input);
     PacketForwarder(const PacketForwarder&) = delete;
     PacketForwarder& operator=(const PacketForwarder&) = delete;
     PacketForwarder(PacketForwarder&&) = delete;
@@ -39,6 +40,7 @@ private:
     using IOContext = boost::asio::io_context;
 
     IpAddress m_ip;
+    Port m_port;
     IOContext m_context;
     Socket    m_socket;
 

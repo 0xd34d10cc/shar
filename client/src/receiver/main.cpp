@@ -23,8 +23,8 @@ int main(int argc, const char* argv[]) {
     metrics
   };
 
-  logger.info("Starting with Host: {}, Screen {}x{}",
-              opts.ip.to_string(), opts.width, opts.height);
+  logger.info("Starting with Host and Port: {}:{}, Screen {}x{}",
+              opts.ip.to_string(), opts.port, opts.width, opts.height);
 
   const shar::Size frame_size {opts.height, opts.width};
   shar::Window     window {frame_size, logger};;
@@ -35,6 +35,7 @@ int main(int argc, const char* argv[]) {
   auto receiver = std::make_shared<shar::PacketReceiver>(
       context.with_name("PacketReceiver"),
       opts.ip,
+      opts.port,
       std::move(packets_sender)
   );
 

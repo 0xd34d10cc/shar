@@ -47,7 +47,7 @@ int main() {
   const std::size_t fps      = 30;
   const auto        interval = 1000ms / fps;
   shar::IpAddress   ip       = boost::asio::ip::address::from_string("127.0.0.1");
-
+  const std::uint16_t port = 1337;
   auto[captured_frames_sender, captured_frames_receiver] =
     shar::channel::bounded<shar::Frame>(120);
 
@@ -80,11 +80,13 @@ int main() {
   auto sender   = std::make_shared<shar::PacketSender>(
       context.with_name("PacketSender"),
       ip,
+      port,
       std::move(encoded_packets_receiver)
   );
   auto receiver = std::make_shared<shar::PacketReceiver>(
       context.with_name("PacketReceiver"),
       ip,
+      port,
       std::move(received_packets_sender)
   );
   auto decoder  = std::make_shared<shar::H264Decoder>(

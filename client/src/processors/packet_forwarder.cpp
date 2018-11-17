@@ -4,9 +4,10 @@
 
 namespace shar {
 
-PacketForwarder::PacketForwarder(Context context, IpAddress ip, Receiver<Packet> input)
+PacketForwarder::PacketForwarder(Context context, IpAddress ip, Port port, Receiver<Packet> input)
     : Base(std::move(context), std::move(input))
     , m_ip(std::move(ip))
+    , m_port(port)
     , m_context()
     , m_socket(m_context)
     , m_current_packet()
@@ -24,7 +25,7 @@ void PacketForwarder::process(Packet packet) {
 }
 
 void PacketForwarder::setup() {
-    Endpoint endpoint {m_ip, SERVER_DEFAULT_PORT};
+    Endpoint endpoint {m_ip, m_port};
     m_socket.connect(endpoint);
 }
 
