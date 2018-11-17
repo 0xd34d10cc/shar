@@ -2,10 +2,9 @@ package main
 
 import (
 	"errors"
+	"github.com/wernerd/GoRTP/src/net/rtp"
 	"log"
 	"net"
-
-	"github.com/wernerd/GoRTP/src/net/rtp"
 )
 
 // RTPSender - provides RTP stream

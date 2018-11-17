@@ -6,7 +6,7 @@ import (
 
 const NALTypeFUA = 28
 const FUPayloadSize = 1100
-const NALUHeaderSize = 1
+const NALUHeaderSize = 2
 const NALUNotFound = ^uint64(0)
 
 type FUIndicator struct {
@@ -36,23 +36,35 @@ func findNextNALUnit(data []byte) uint64 {
 		return NALUNotFound
 	}
 
-	// skip zeros
-	return uint64(ind + 2)
+	if ind != 0 && data[ind - 1] == 0 {
+		return uint64(ind - 1)
+	}
+
+	return uint64(ind)
 }
 
 func nalFragmentize(data []byte) []FUPacket {
 	var packets []FUPacket
 
 	start := findNextNALUnit(data)
+
+	for data[start] == 0 {
+		start = start + 1
+	}
+	start = start + 1
 	end := findNextNALUnit(data[start:])
+	end = end + start
 	for start != NALUNotFound {
 		raw_packets := nalUnitFramgentize(data[start:end])
 		packets = append(packets, raw_packets...)
 
 		start = findNextNALUnit(data[end:])
-
 		if start != NALUNotFound {
 			start = start + end
+			for data[start] == 0 {
+				start = start + 1
+			}
+			start = start + 1
 			end = findNextNALUnit(data[start:])
 			if end == NALUNotFound {
 				end = uint64(len(data))
@@ -67,8 +79,8 @@ func nalFragmentize(data []byte) []FUPacket {
 func nalUnitFramgentize(packet []byte) []FUPacket {
 	var packets []FUPacket
 
-	var nal_unit_type = packet[1] & 0x1F
-	var NRI = packet[1] % 0x60
+	var nal_unit_type = packet[0] & 0x1F
+	var NRI = (packet[0] & 0x60) >> 5
 	if nal_unit_type != 1 {
 		//fmt.Printf("NUT: %v\n", nal_unit_type)
 	}
@@ -143,3 +155,5 @@ func (packet FUPacket) Serialize() []byte {
 	data := append(headers[:], packet.Payload...)
 	return data
 }
+
+
