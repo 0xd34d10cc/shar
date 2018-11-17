@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	rtp "github.com/wernerd/GoRTP/src/net/rtp"
+	"github.com/wernerd/GoRTP/src/net/rtp"
 )
 
 // RTPSender - provides RTP stream
@@ -72,20 +72,22 @@ func (sender *RTPSender) sendPackets(packets chan Packet) {
 	n := 0
 
 	for packet := range packets {
-		dataPacket := sender.session.NewDataPacket(timestamp)
-		dataPacket.SetPayloadType(96)
+		for _, fu_packet := range nalFragmentize(packet.Data) {
+			dataPacket := sender.session.NewDataPacket(timestamp)
+			dataPacket.SetPayloadType(96)
 
-		// FIXME: packets should be split into FUs (fragmentation units) as described in RFC 6184
-		dataPacket.SetPayload(packet.Data)
-		sender.session.WriteData(dataPacket)
-		dataPacket.FreePacket()
+			// FIXME: packets should be split into FUs (fragmentation units) as described in RFC 6184
+			dataPacket.SetPayload(fu_packet.Serialize())
+			sender.session.WriteData(dataPacket)
+			dataPacket.FreePacket()
 
-		n = n + 1
-		timestamp = timestamp + 100
+			n = n + 1
 
-		if (n % 100) == 0 {
-			log.Printf("[RTP] Sent %v packets", n)
+			if (n % 100) == 0 {
+				log.Printf("[RTP] Sent %v packets", n)
+			}
 		}
+		timestamp = timestamp + 100
 	}
 }
 
