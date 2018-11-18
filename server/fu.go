@@ -6,7 +6,7 @@ import (
 
 const nalTypeFUA = 28
 const fuPayloadSize = 1100
-const nalUHeaderSize = 2
+const nalUHeaderSize = 1
 const nalUNotFound = ^uint64(0)
 
 // FUIndicator - fragmentation unit indicator
@@ -45,8 +45,10 @@ func findNextNALUnit(data []byte) uint64 {
 	return uint64(ind)
 }
 
+// fragment NAL (aggregation unit) into FU-A packets
 func nalFragmentize(data []byte) []FUPacket {
 	var packets []FUPacket
+	nalUnits := 0
 
 	start := findNextNALUnit(data)
 
@@ -56,6 +58,7 @@ func nalFragmentize(data []byte) []FUPacket {
 	start = start + 1
 	end := findNextNALUnit(data[start:])
 	end = end + start
+
 	for start != nalUNotFound {
 		rawPackets := nalUnitFramgentize(data[start:end])
 		packets = append(packets, rawPackets...)
@@ -68,74 +71,69 @@ func nalFragmentize(data []byte) []FUPacket {
 			}
 			start = start + 1
 			end = findNextNALUnit(data[start:])
+
 			if end == nalUNotFound {
 				end = uint64(len(data))
 			} else {
 				end = start + end
 			}
 		}
+
+		nalUnits = nalUnits + 1
 	}
+
+	// fmt.Printf("NalUnits: %v Packets: %v\n", nalUnits, len(packets))
 	return packets
 }
 
+// fragment single NAL unit into FU-A packets
 func nalUnitFramgentize(packet []byte) []FUPacket {
 	var packets []FUPacket
 
-	var nalUnitType = packet[0] & 0x1F
-	var NRI = (packet[0] & 0x60) >> 5
+	i := 0
+
+	nalUnitType := packet[i] & 0x1F
+	NRI := packet[i] & 0x60
 	if nalUnitType != 1 {
-		//fmt.Printf("NUT: %v\n", nal_unit_type)
+		// fmt.Printf("NAL unit type: %v\n", nalUnitType)
 	}
 	//fmt.Printf("packet: %v, NUT %v", packet[0:10], packet[1]&0x1F)
 	NAUSize := uint32(len(packet)) - nalUHeaderSize
+	byteCounter := nalUHeaderSize
 
-	if NAUSize < fuPayloadSize {
-		firstPacket := FUPacket{
+	rightBound := byteCounter + fuPayloadSize
+	size := fuPayloadSize
+	if len(packet) < rightBound {
+		rightBound = len(packet)
+		size = len(packet) - nalUHeaderSize
+	}
+
+	firstPacket := FUPacket{
+		Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
+		Header:    FUHeader{S: 1, E: 0, R: 0, Type: nalUnitType},
+		Payload:   packet[byteCounter:rightBound],
+	}
+	packets = append(packets, firstPacket)
+	NAUSize = NAUSize - uint32(size)
+	byteCounter = rightBound
+
+	for NAUSize > fuPayloadSize {
+		packet := FUPacket{
 			Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
-			Header:    FUHeader{S: 1, E: 0, R: 0, Type: nalUnitType},
-			Payload:   packet[nalUHeaderSize : NAUSize+nalUHeaderSize],
+			Header:    FUHeader{S: 0, E: 0, R: 0, Type: nalUnitType},
+			Payload:   packet[byteCounter : byteCounter+fuPayloadSize],
 		}
-
-		lastPacket := FUPacket{
-			Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
-			Header:    FUHeader{S: 0, E: 1, R: 0, Type: nalUnitType},
-			Payload:   []byte{},
-		}
-
-		packets = append(packets, firstPacket)
-		packets = append(packets, lastPacket)
-
-	} else {
-		byteCounter := nalUHeaderSize
-
-		firstPacket := FUPacket{
-			Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
-			Header:    FUHeader{S: 1, E: 0, R: 0, Type: nalUnitType},
-			Payload:   packet[nalUHeaderSize : byteCounter+fuPayloadSize],
-		}
-		packets = append(packets, firstPacket)
+		packets = append(packets, packet)
 		NAUSize = NAUSize - fuPayloadSize
 		byteCounter = byteCounter + fuPayloadSize
-
-		for NAUSize > fuPayloadSize {
-			packet := FUPacket{
-				Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
-				Header:    FUHeader{S: 0, E: 0, R: 0, Type: nalUnitType},
-				Payload:   packet[byteCounter : byteCounter+fuPayloadSize],
-			}
-			packets = append(packets, packet)
-			NAUSize = NAUSize - fuPayloadSize
-			byteCounter = byteCounter + fuPayloadSize
-		}
-
-		lastPacket := FUPacket{
-			Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
-			Header:    FUHeader{S: 0, E: 1, R: 0, Type: nalUnitType},
-			Payload:   packet[byteCounter:],
-		}
-		packets = append(packets, lastPacket)
-
 	}
+
+	lastPacket := FUPacket{
+		Indicator: FUIndicator{F: 0, NRI: NRI, Type: nalTypeFUA},
+		Header:    FUHeader{S: 0, E: 1, R: 0, Type: nalUnitType},
+		Payload:   packet[byteCounter:],
+	}
+	packets = append(packets, lastPacket)
 
 	return packets
 }
@@ -145,15 +143,15 @@ func (packet FUPacket) Serialize() []byte {
 	var headers [2]byte
 	// indicator
 	headers[0] = 0
-	headers[0] |= packet.Indicator.F
-	headers[0] |= packet.Indicator.NRI << 1
-	headers[0] |= packet.Indicator.Type << 3
+	headers[0] |= packet.Indicator.F << 7
+	headers[0] |= packet.Indicator.NRI
+	headers[0] |= packet.Indicator.Type
 
 	headers[1] = 0
-	headers[1] |= packet.Header.S
-	headers[1] |= packet.Header.E << 1
-	headers[1] |= packet.Header.R << 2
-	headers[1] |= packet.Header.Type << 3
+	headers[1] |= packet.Header.S << 7
+	headers[1] |= packet.Header.E << 6
+	headers[1] |= packet.Header.R << 5
+	headers[1] |= packet.Header.Type
 
 	data := append(headers[:], packet.Payload...)
 	return data

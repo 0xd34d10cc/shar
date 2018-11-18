@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net"
+	"time"
 
 	"github.com/wernerd/GoRTP/src/net/rtp"
 )
@@ -73,6 +74,8 @@ func (sender *RTPSender) sendPackets(packets chan Packet) {
 
 	for packet := range packets {
 		for _, fuPacket := range nalFragmentize(packet.Data) {
+			time.Sleep(100 * time.Microsecond)
+
 			dataPacket := sender.session.NewDataPacket(timestamp)
 			dataPacket.SetPayloadType(96)
 
@@ -84,7 +87,7 @@ func (sender *RTPSender) sendPackets(packets chan Packet) {
 
 			n = n + 1
 
-			if (n % 100) == 0 {
+			if (n % 250) == 0 {
 				log.Printf("[RTP] Sent %v packets", n)
 			}
 		}
