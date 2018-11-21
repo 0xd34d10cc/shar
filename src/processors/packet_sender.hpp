@@ -22,8 +22,9 @@ public:
   using Context = typename Base::Context;
 
   using IpAddress = boost::asio::ip::address;
+  using Port      = const std::uint16_t;
 
-  PacketSender(Context context, IpAddress ip, Receiver<Packet> input);
+  PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input);
   PacketSender(const PacketSender&) = delete;
   PacketSender(PacketSender&&) = default;
   ~PacketSender() = default;
@@ -78,8 +79,9 @@ private:
   void reset_overflown_state(ClientId id);
 
   IpAddress m_ip;
+  Port      m_port;
   Clients   m_clients;
-  IOContext   m_context;
+  IOContext m_context;
   Socket    m_current_socket;
   Acceptor  m_acceptor;
 

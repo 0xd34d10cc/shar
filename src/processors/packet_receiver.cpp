@@ -4,11 +4,12 @@
 
 namespace shar {
 
-PacketReceiver::PacketReceiver(Context context, IpAddress server, Sender<Packet> output)
+PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port, Sender<Packet> output)
     : Source(std::move(context), std::move(output))
     , m_reader()
     , m_buffer(4096, 0)
     , m_server_address(server)
+    , m_port(port)
     , m_context()
     , m_receiver(m_context)
     , m_packets_received_metric()
@@ -23,7 +24,7 @@ void PacketReceiver::setup() {
   m_bytes_received_metric   = m_metrics->add("PacketReceiver\tbytes", Metrics::Format::Bytes);
 
   using Endpoint = boost::asio::ip::tcp::endpoint;
-  Endpoint endpoint {m_server_address, SERVER_DEFAULT_PORT + 1};
+  Endpoint endpoint {m_server_address, m_port};
   m_receiver.connect(endpoint);
 
   start_read();

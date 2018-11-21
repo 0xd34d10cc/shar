@@ -22,9 +22,10 @@ bool PacketSender::Client::is_running() const {
   return m_is_running;
 }
 
-PacketSender::PacketSender(Context context, IpAddress ip, Receiver<Packet> input)
+PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input)
     : Sink(std::move(context), std::move(input))
     , m_ip(ip)
+    , m_port(port)
     , m_clients()
     , m_context()
     , m_current_socket(m_context)
@@ -208,7 +209,7 @@ void PacketSender::setup() {
   m_bytes_sent_metric   = m_metrics->add("PacketSender\tbytes", Metrics::Format::Bytes);
 
   namespace ip = boost::asio::ip;
-  ip::tcp::endpoint endpoint {m_ip, SERVER_DEFAULT_PORT};
+  ip::tcp::endpoint endpoint {m_ip, m_port};
   m_acceptor.open(endpoint.protocol());
   m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
