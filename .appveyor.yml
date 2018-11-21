@@ -10,7 +10,6 @@ matrix:
   fast_finish: true
   
 install:
-  - cmd: cd client
   - cmd: echo "Downloading conan..."
   - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
   - cmd: pip.exe install conan
@@ -29,6 +28,6 @@ build_script:
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
 
 cache:
-  - C:\Users\Appveyor\.conan -> client/conanfile.py
-  - C:\.conan -> client/conanfile.py
-  - C:\Users\Appveyor\conanCache -> client/conanfile.py
+  - C:\Users\Appveyor\.conan -> conanfile.py
+  - C:\.conan -> conanfile.py
+  - C:\Users\Appveyor\conanCache -> conanfile.py
