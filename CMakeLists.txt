@@ -32,17 +32,8 @@ else ()
             )
 endif ()
 
+set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
-
-IF (!WIN32)
-    # to get nice debug info
-    set(CMAKE_CXX_FLAGS "-g3 -fno-omit-frame-pointer")
-    # enable LTO
-    set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
-
-    target_link_libraries(shar dl)
-endif ()
-
 
 # Setup warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

@@ -48,3 +48,12 @@ target_compile_definitions(shar
                            PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(shar PRIVATE ${SHAR_COMPILE_OPTIONS})
 
+IF (NOT WIN32)
+    message("-- Enabling unix-specific options")
+
+    # to get nice debug info
+    set(CMAKE_CXX_FLAGS "-g3 -fno-omit-frame-pointer")
+    # enable LTO
+    set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+endif ()
+
