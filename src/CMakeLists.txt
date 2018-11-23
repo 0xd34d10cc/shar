@@ -34,6 +34,7 @@ target_link_libraries(shar
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${CONAN_LIBS_FFMPEG}
+                      ${CONAN_LIBS_LIBX264}
                       ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_FMT}
                       )
