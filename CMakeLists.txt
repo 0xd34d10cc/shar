@@ -78,5 +78,4 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(SHAR_COMPILE_DEFINITIONS SHAR_DEBUG_BUILD)
 ENDIF()
 
-add_subdirectory(src/utils) 
-add_subdirectory(src/sender)
+add_subdirectory(src)
