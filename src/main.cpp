@@ -5,7 +5,6 @@
 #include "logger.hpp"
 #include "runner.hpp"
 #include "signal_handler.hpp"
-#include "network/forwarding.hpp"
 #include "network/consts.hpp"
 #include "metrics.hpp"
 #include "metrics_reporter.hpp"
@@ -34,13 +33,6 @@ static int run() {
   }
 
   auto config = shar::Config::parse_from_file("config.json");
-
-  // setup port forwarding
-  shar::forward_port(
-      shar::SERVER_DEFAULT_PORT /* local */,
-      shar::SERVER_DEFAULT_PORT /* remote */,
-      logger
-  );
 
   // TODO: allow monitor selection for capture
   auto        monitor = sc::GetMonitors().front();

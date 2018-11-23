@@ -44,7 +44,6 @@ IF (!WIN32)
 endif ()
 
 
-
 # Setup warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using Clang
@@ -78,5 +77,4 @@ IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(SHAR_COMPILE_DEFINITIONS SHAR_DEBUG_BUILD)
 ENDIF()
 
-add_subdirectory(src/utils) 
-add_subdirectory(src/sender)
+add_subdirectory(src)

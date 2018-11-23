@@ -4,11 +4,9 @@ class Shar(ConanFile):
     settings        = "os",  "compiler",  "build_type"
 
     requires        = ("ScreenCaptureLite/16.1.0@0xd34d10cc/testing",
-                       "glfw/3.2.1.20180327@bincrafters/stable",
                        "boost/1.67.0@conan/stable",
                        "ffmpeg/4.0@0xd34d10cc/testing",
-                       "spdlog/0.17.0@bincrafters/stable",
-                       "miniupnpc/2.1@0xd34d10cc/testing")
+                       "spdlog/0.17.0@bincrafters/stable")
 
     generators      = "cmake",  "gcc",  "txt"
 
