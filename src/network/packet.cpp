@@ -18,7 +18,7 @@ Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type
     , m_size(size)
     , m_type(type) {}
 
-Packet::Packet(Packet&& from)
+Packet::Packet(Packet&& from) noexcept
     : m_bytes(std::move(from.m_bytes))
     , m_size(from.m_size)
     , m_type(from.m_type) {
@@ -26,7 +26,7 @@ Packet::Packet(Packet&& from)
   from.m_type = Type::Unknown;
 }
 
-Packet& Packet::operator=(Packet&& from) {
+Packet& Packet::operator=(Packet&& from) noexcept {
   if (this != &from) {
     m_bytes = std::move(from.m_bytes);
     m_size  = from.m_size;

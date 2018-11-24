@@ -11,17 +11,15 @@
 static const auto SIGNAL_ERROR = SIG_ERR;
 #include "disable_warnings_pop.hpp"
 
-namespace {
+
 static std::mutex              mutex;
 static std::condition_variable signal_to_exit;
 static std::atomic<bool>       is_running = false;
-
 
 static void signal_handler(int /*signum*/) {
   std::lock_guard<std::mutex> lock(mutex);
   is_running = false;
   signal_to_exit.notify_all();
-}
 }
 
 namespace shar {

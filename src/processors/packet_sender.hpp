@@ -40,7 +40,7 @@ private:
     using IOContext = boost::asio::io_context;
 
     IpAddress m_ip;
-    Port m_port;
+    Port      m_port;
     IOContext m_context;
     Socket    m_socket;
 

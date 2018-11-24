@@ -4,16 +4,16 @@
 namespace {
 
 shar::Frame convert(const sc::Image& image) noexcept {
-  std::size_t width  = static_cast<std::size_t>(Width(image));
-  std::size_t height = static_cast<std::size_t>(Height(image));
-  std::size_t pixels = width * height;
+  const auto width  = static_cast<std::size_t>(Width(image));
+  const auto height = static_cast<std::size_t>(Height(image));
+  const std::size_t pixels = width * height;
 
   const std::size_t PIXEL_SIZE = 4;
 
   auto bytes = std::make_unique<uint8_t[]>(pixels * PIXEL_SIZE);
   auto size  = shar::Size {height, width};
 
-  assert(bytes.get() != nullptr);
+  assert(bytes != nullptr);
   sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
 
   return shar::Frame {std::move(bytes), size};
@@ -21,7 +21,7 @@ shar::Frame convert(const sc::Image& image) noexcept {
 
 
 struct FrameHandler {
-  FrameHandler(shar::Sender<shar::Frame>& frames_consumer)
+  explicit FrameHandler(shar::Sender<shar::Frame>& frames_consumer)
       : m_frames_consumer(frames_consumer) {}
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
@@ -43,7 +43,7 @@ ScreenCapture::ScreenCapture(Context context,
                              const sc::Monitor& monitor,
                              Sender<Frame> output)
     : Source(std::move(context), std::move(output))
-    , m_interval(std::move(interval))
+    , m_interval(interval)
     , m_wakeup_timer(std::chrono::seconds(1))
     , m_config(nullptr)
     , m_capture(nullptr) {

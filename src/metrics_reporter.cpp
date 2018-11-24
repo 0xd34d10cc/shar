@@ -8,10 +8,7 @@ namespace shar {
 MetricsReporter::MetricsReporter(MetricsPtr metrics, std::size_t report_period_seconds)
     : m_metrics(std::move(metrics))
     , m_period_seconds(report_period_seconds)
-    , m_mutex()
-    , m_condvar()
-    , m_running(false)
-    , m_thread() {}
+    , m_running(false) {}
 
 MetricsReporter::~MetricsReporter() {
   stop();
