@@ -1,5 +1,48 @@
 from conans import ConanFile, CMake
 
+
+BOOST_LIBS = [
+    'math', 
+    'wave', 
+    'container', 
+    'contract', 
+    'exception', 
+    'graph', 
+    'iostreams', 
+    'locale', 
+    'log',
+    'program_options', 
+    'random', 
+    'regex', 
+    'mpi', 
+    'serialization', 
+    'signals',
+    'coroutine', 
+    'fiber', 
+    'context', 
+    'timer', 
+    'thread', 
+    'chrono', 
+    'date_time',
+    'atomic', 
+    'filesystem', 
+    'system', 
+    'graph_parallel', 
+    'python',
+    'stacktrace', 
+    'test', 
+    'type_erasure'
+]
+
+ENABLED_BOOST_LIBS = [
+    "system" # required for asio
+]
+
+BOOST_OPTIONS = tuple(['boost:without_{}=True'.format(lib) 
+                       for lib in BOOST_LIBS 
+                       if lib not in ENABLED_BOOST_LIBS])
+
+
 class Shar(ConanFile):
     settings        = "os",  "compiler",  "build_type"
 
@@ -10,49 +53,22 @@ class Shar(ConanFile):
 
     generators      = "cmake",  "gcc",  "txt"
 
-    default_options = ("boost:without_math            = True",
-                       "boost:without_wave            = True",
-                       "boost:without_container       = True",
-                       "boost:without_exception       = True",
-                       "boost:without_graph           = True",
-                       "boost:without_iostreams       = True",
-                       "boost:without_locale          = True",
-                       "boost:without_log             = True",
-                       "boost:without_random          = True",
-                       "boost:without_regex           = True",
-                       "boost:without_mpi             = True",
-                       "boost:without_serialization   = True",
-                       "boost:without_signals         = True",
-                       "boost:without_coroutine       = True",
-                       "boost:without_fiber           = True",
-                       "boost:without_context         = True",
-                       "boost:without_timer           = True",
-                       "boost:without_thread          = True",
-                       "boost:without_chrono          = True",
-                       "boost:without_date_time       = True",
-                       "boost:without_atomic          = True",
-                       "boost:without_filesystem      = True",
-                       "boost:without_graph_parallel  = True",
-                       "boost:without_python          = True",
-                       "boost:without_stacktrace      = True",
-                       "boost:without_test            = True",
-                       "boost:without_type_erasure    = True",
-                       "boost:without_program_options = True",
-                       "boost:shared                  = False",
-                       "ffmpeg:fPIC                   = True",
-                       "ffmpeg:iconv                  = False",
-                       "ffmpeg:x264                   = True",
-                       "ffmpeg:mp3lame                = False",
-                       "ffmpeg:vpx                    = False",
-                       "ffmpeg:fdk_aac                = False",
-                       "ffmpeg:opus                   = False",
-                       "ffmpeg:vorbis                 = False",
-                       "ffmpeg:x265                   = False",
-                       "ffmpeg:openh264               = False",
-                       "ffmpeg:openjpeg               = False",
-                       "ffmpeg:zlib                   = False",
-                       "ffmpeg:bzlib                  = False",
-                       "ffmpeg:lzma                   = False")
+    default_options = BOOST_OPTIONS +\
+                      ("boost:shared    = False",
+                       "ffmpeg:fPIC     = True",
+                       "ffmpeg:iconv    = False",
+                       "ffmpeg:x264     = True",
+                       "ffmpeg:mp3lame  = False",
+                       "ffmpeg:vpx      = False",
+                       "ffmpeg:fdk_aac  = False",
+                       "ffmpeg:opus     = False",
+                       "ffmpeg:vorbis   = False",
+                       "ffmpeg:x265     = False",
+                       "ffmpeg:openh264 = False",
+                       "ffmpeg:openjpeg = False",
+                       "ffmpeg:zlib     = False",
+                       "ffmpeg:bzlib    = False",
+                       "ffmpeg:lzma     = False")
 
     def requirements(self):
         if self.settings.os == "Windows":
