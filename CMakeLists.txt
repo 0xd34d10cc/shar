@@ -62,10 +62,15 @@ endif ()
 
 set(SHAR_COMPILE_OPTIONS ${ENABLED_WARNINGS})
 
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(NOT CMAKE_BUILD_TYPE)
+    message("-- CMAKE_BUILD_TYPE was not set")
+   set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Building in debug mode")
 
     set(SHAR_COMPILE_DEFINITIONS SHAR_DEBUG_BUILD)
-ENDIF()
+endif()
 
 add_subdirectory(src)
