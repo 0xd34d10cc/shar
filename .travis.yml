@@ -36,7 +36,7 @@ before_script:
 script:
   - mkdir build
   - cd build
-  - conan install --build=missing -s built_type=Debug -s compiler.libcxx=libc++ .. 
+  - conan install --build=missing -s build_type=Debug -s compiler.libcxx=libc++ .. 
   - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
 
