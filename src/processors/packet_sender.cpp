@@ -1,10 +1,10 @@
-#include "processors/packet_forwarder.hpp"
+#include "processors/packet_sender.hpp"
 #include "network/consts.hpp"
 
 
 namespace shar {
 
-PacketForwarder::PacketForwarder(Context context, IpAddress ip, Port port, Receiver<Packet> input)
+PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input)
     : Base(std::move(context), std::move(input))
     , m_ip(std::move(ip))
     , m_port(port)
@@ -16,7 +16,7 @@ PacketForwarder::PacketForwarder(Context context, IpAddress ip, Port port, Recei
     , m_bytes_sent(0)
     {}
 
-void PacketForwarder::process(Packet packet) {
+void PacketSender::process(Packet packet) {
     reset_state(std::move(packet));
     m_context.reset();
 
@@ -24,17 +24,17 @@ void PacketForwarder::process(Packet packet) {
     m_context.run();
 }
 
-void PacketForwarder::setup() {
+void PacketSender::setup() {
     Endpoint endpoint {m_ip, m_port};
     m_socket.connect(endpoint);
 }
 
-void PacketForwarder::teardown() {
+void PacketSender::teardown() {
     m_socket.shutdown(boost::asio::socket_base::shutdown_both);
     m_socket.close();
 }
 
-void PacketForwarder::reset_state(Packet packet) {
+void PacketSender::reset_state(Packet packet) {
     m_current_packet = std::move(packet);
     m_state = State::SendingLength;
 
@@ -48,7 +48,7 @@ void PacketForwarder::reset_state(Packet packet) {
     m_bytes_sent = 0;
 }
 
-void PacketForwarder::send() {
+void PacketSender::send() {
     switch (m_state) {
         case State::SendingLength: {
             auto buffer = boost::asio::buffer(

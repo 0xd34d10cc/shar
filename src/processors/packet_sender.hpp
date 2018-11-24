@@ -13,20 +13,20 @@
 
 namespace shar {
 
-class PacketForwarder:  public Sink<PacketForwarder, Receiver<Packet>> {
+class PacketSender:  public Sink<PacketSender, Receiver<Packet>> {
 public:
-    using Base = Sink<PacketForwarder, Receiver<Packet>>;
+    using Base = Sink<PacketSender, Receiver<Packet>>;
     using Context = typename Base::Context;
     using Endpoint = boost::asio::ip::tcp::endpoint;
     using IpAddress = boost::asio::ip::address;
     using ErrorCode = boost::system::error_code;
     using Port = const std::uint16_t;
 
-    PacketForwarder(Context context, IpAddress ip, Port port, Receiver<Packet> input);
-    PacketForwarder(const PacketForwarder&) = delete;
-    PacketForwarder& operator=(const PacketForwarder&) = delete;
-    PacketForwarder(PacketForwarder&&) = delete;
-    ~PacketForwarder() = default;
+    PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input);
+    PacketSender(const PacketSender&) = delete;
+    PacketSender& operator=(const PacketSender&) = delete;
+    PacketSender(PacketSender&&) = delete;
+    ~PacketSender() = default;
 
     void setup();
     void process(Packet packet);
