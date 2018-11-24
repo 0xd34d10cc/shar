@@ -15,8 +15,8 @@ add_executable(shar
                codecs/ffmpeg/encoder.hpp
                processors/screen_capture.cpp
                processors/screen_capture.hpp
-               processors/packet_forwarder.cpp
-               processors/packet_forwarder.hpp
+               processors/packet_sender.cpp
+               processors/packet_sender.hpp
                processors/h264encoder.cpp
                processors/h264encoder.hpp
                primitives/frame.cpp

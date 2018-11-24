@@ -10,7 +10,7 @@
 #include "metrics_reporter.hpp"
 #include "channels/bounded.hpp"
 #include "network/consts.hpp"
-#include "processors/packet_forwarder.hpp"
+#include "processors/packet_sender.hpp"
 #include "processors/screen_capture.hpp"
 #include "processors/h264encoder.hpp"
 
@@ -56,9 +56,10 @@ static int run() {
   logger.info("Encoder config: {}", encoder_config.to_string());
 
   auto[captured_frames_sender, captured_frames_receiver] =
-  shar::channel::bounded<shar::Frame>(120);
+    shar::channel::bounded<shar::Frame>(120);
+
   auto[encoded_packets_sender, encoded_packets_receiver] =
-  shar::channel::bounded<shar::Packet>(120);
+    shar::channel::bounded<shar::Packet>(120);
 
   // setup processors pipeline
   auto capture = std::make_shared<shar::ScreenCapture>(
@@ -75,8 +76,8 @@ static int run() {
       std::move(captured_frames_receiver),
       std::move(encoded_packets_sender)
   );
-  auto sender  = std::make_shared<shar::PacketForwarder>(
-      context.with_name("PacketForwarder"),
+  auto sender  = std::make_shared<shar::PacketSender>(
+      context.with_name("PacketSender"),
       ip,
       port,
       std::move(encoded_packets_receiver)
