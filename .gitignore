@@ -1,1 +1,6 @@
 build/
+debug/
+release
+*.exe
+*.dll
+*.pdb
