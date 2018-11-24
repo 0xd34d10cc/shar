@@ -31,13 +31,12 @@ before_script:
   - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-  - conan remote add --force p1q https://api.bintray.com/conan/p1q/ffmpeg
 
 
 script:
   - mkdir build
   - cd build
-  - conan install --build=missing -s compiler.libcxx=libc++ .. 
+  - conan install --build=missing -s built_type=Debug -s compiler.libcxx=libc++ .. 
   - cmake -D CMAKE_CXX_COMPILER="ccache" -D CMAKE_CXX_COMPILER_ARG1="clang++" -D CMAKE_C_COMPILER="ccache" -D CMAKE_C_COMPILER_ARG1="clang" ..
   - make
 
