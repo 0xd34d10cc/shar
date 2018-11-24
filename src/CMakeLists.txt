@@ -53,7 +53,10 @@ IF (NOT WIN32)
 
     # to get nice debug info
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -fno-omit-frame-pointer")
-    # enable LTO
-    set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+
+    if (NOT CMAKE_BUILD_TYPE EQUAL "DEBUG")
+      # enable LTO
+      set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+    endif ()
 endif ()
 
