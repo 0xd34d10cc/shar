@@ -12,9 +12,7 @@ H264Encoder::H264Encoder(
     Sender<Packet> output
 )
     : Processor(std::move(context), std::move(input), std::move(output))
-    , m_encoder(frame_size, fps, m_logger, config)
-    , m_bytes_in()
-    , m_bytes_out() {}
+    , m_encoder(frame_size, fps, m_logger, config) {}
 
 void H264Encoder::setup() {
   m_bytes_in  = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);

@@ -30,8 +30,8 @@ std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
         uint8_t b = raw_image[4 * i];
 
         uint8_t y = luma(r, g, b);
-        uint8_t u = static_cast<uint8_t >(((-38 * r + -74 * g + 112 * b) >> 8) + 128);
-        uint8_t v = static_cast<uint8_t >(((112 * r + -94 * g + -18 * b) >> 8) + 128);
+        auto u = static_cast<uint8_t>(((-38 * r + -74 * g + 112 * b) >> 8) + 128);
+        auto v = static_cast<uint8_t>(((112 * r + -94 * g + -18 * b) >> 8) + 128);
 
         ys.data[i]  = y;
         us.data[ui] = u;

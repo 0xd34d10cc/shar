@@ -17,9 +17,9 @@ namespace {
 
 class Options {
 public:
-  Options()
-      : m_opts(nullptr)
-  {}
+  Options() = default;
+  Options(const Options&) = delete;
+  Options& operator=(const Options&) = delete;
 
   ~Options() {
     av_dict_free(&m_opts);
@@ -49,7 +49,7 @@ public:
   }
 
 private:
-  AVDictionary* m_opts;
+  AVDictionary* m_opts = nullptr;
 };
 
 }
@@ -63,7 +63,7 @@ namespace shar::codecs::ffmpeg {
 
 static AVCodec* select_codec(Logger& logger, const Config& config){
   const std::string codec_name = config.get<std::string>("codec", "");
-  if (codec_name != "") {
+  if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
       logger.info("Using {} encoder from config", codec_name);
       return codec;
@@ -176,8 +176,8 @@ std::vector<Packet> Encoder::encode(const shar::Frame& image) {
 
     ret = avcodec_receive_packet(m_context, &packet);
     while (ret != AVERROR(EAGAIN)) {
-      std::size_t size = static_cast<std::size_t>(packet.size);
-      auto        data = std::make_unique<std::uint8_t[]>(size);
+      auto size = static_cast<std::size_t>(packet.size);
+      auto data = std::make_unique<std::uint8_t[]>(size);
       std::copy(packet.data, packet.data + size, data.get());
 
       const bool is_IDR = (packet.flags & AV_PKT_FLAG_KEY) != 0;

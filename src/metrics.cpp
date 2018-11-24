@@ -20,17 +20,17 @@ std::tuple<std::size_t, std::size_t, const char*> human_readable_bytes(std::size
   std::size_t i   = 0;
   std::size_t rem = 0;
 
-  static const std::size_t MAX  = 1 << 10;
+  static const std::size_t MAX  = 1u << 10u;
   static const std::size_t MASK = MAX - 1;
 
   while (value >= MAX) {
     rem = value & MASK;
-    value >>= 10;
+    value >>= 10u;
     ++i;
   }
 
   const char* suffix = i < suffixes.size() ? suffixes[i] : "too much for you";
-  std::size_t fraction = static_cast<std::size_t>((rem / 1024.0) * 10.0);
+  const auto fraction = static_cast<std::size_t>((rem / 1024.0) * 10.0);
   return {value, fraction, suffix};
 };
 
@@ -85,10 +85,10 @@ void Metrics::decrease(shar::MetricId id, std::size_t delta) {
 void Metrics::report() {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  for (std::size_t i = 0; i < m_metrics.size(); ++i) {
-    if (m_metrics[i]) {
-      m_metrics[i]->report(m_logger);
-      m_metrics[i]->m_value = 0;
+  for (auto& metric: m_metrics) {
+    if (metric) {
+      metric->report(m_logger);
+      metric->m_value = 0;
     }
   }
 }

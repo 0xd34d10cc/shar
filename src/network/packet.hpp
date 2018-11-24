@@ -20,8 +20,8 @@ public:
   Packet(void* data, std::size_t size);
   Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type=Type::Unknown);
 
-  Packet(Packet&&);
-  Packet& operator=(Packet&&);
+  Packet(Packet&&) noexcept;
+  Packet& operator=(Packet&&) noexcept;
   ~Packet() = default;
 
   bool empty() const;

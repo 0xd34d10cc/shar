@@ -10,7 +10,6 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Pa
     , m_port(port)
     , m_context()
     , m_socket(m_context)
-    , m_current_packet()
     , m_state(State::SendingLength)
     , m_length()
     , m_bytes_sent(0)
@@ -40,10 +39,10 @@ void PacketSender::reset_state(Packet packet) {
 
     const auto size = m_current_packet.size();
     m_length = {
-        static_cast<std::uint8_t>((size >> 0) & 0xff),
-        static_cast<std::uint8_t>((size >> 8) & 0xff),
-        static_cast<std::uint8_t>((size >> 16) & 0xff),
-        static_cast<std::uint8_t>((size >> 24) & 0xff)
+        static_cast<std::uint8_t>((size >> 0) & 0xffu),
+        static_cast<std::uint8_t>((size >> 8) & 0xffu),
+        static_cast<std::uint8_t>((size >> 16) & 0xffu),
+        static_cast<std::uint8_t>((size >> 24) & 0xffu)
     };
     m_bytes_sent = 0;
 }
