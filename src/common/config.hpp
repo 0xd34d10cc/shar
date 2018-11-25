@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstring>
+#include <memory>
 
 #include "disable_warnings_push.hpp"
 #include <boost/property_tree/ptree.hpp>
@@ -11,18 +12,21 @@
 
 namespace shar {
 
+class Config;
+using ConfigPtr = std::shared_ptr<Config>;
+
 namespace pt = boost::property_tree;
 
 class Config {
 public:
-  static Config parse_from_file(const std::string& path) {
+  static ConfigPtr parse_from_file(const std::string& path) {
     pt::ptree config;
     pt::read_json(path, config);
 
-    return Config {std::move(config)};
+    return std::make_shared<Config>(std::move(config));
   }
 
-  static Config make_default() {
+  static ConfigPtr make_default() {
     const char* json = "{\"encoder\": {\"options\": {}}}";
     std::size_t len = std::strlen(json);
 
@@ -31,7 +35,7 @@ public:
     ss.write(json, static_cast<std::streamsize>(len));
     pt::read_json(ss, config);
 
-    return Config {std::move(config)};
+    return std::make_shared<Config>(std::move(config));
   }
 
   Config(const Config&) = delete;
@@ -42,8 +46,9 @@ public:
     return m_tree.get<T>(path, def);
   }
 
-  Config get_subconfig(const char* path) const {
-    return Config {m_tree.get_child(path)};
+  ConfigPtr get_subconfig(const char* path) const {
+    pt::ptree subtree = m_tree.get_child(path);
+    return std::make_shared<Config>(std::move(subtree));
   }
 
   auto begin() const {
@@ -60,14 +65,15 @@ public:
     return ss.str();
   }
 
-private:
-  Config() = default;
 
   Config(const pt::ptree& tree)
       : m_tree(tree) {}
 
   Config(pt::ptree&& tree)
       : m_tree(std::move(tree)) {}
+
+protected:
+  Config() = default;
 
   pt::ptree m_tree;
 };

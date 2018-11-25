@@ -9,8 +9,8 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
-#include "codecs/convert.hpp"
-#include "codecs/ffmpeg/encoder.hpp"
+#include "convert.hpp"
+#include "ffmpeg.hpp"
 
 
 namespace {
@@ -61,8 +61,8 @@ static int get_pts() {
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger& logger, const Config& config){
-  const std::string codec_name = config.get<std::string>("codec", "");
+static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
+  const std::string codec_name = config->get<std::string>("codec", "");
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
       logger.info("Using {} encoder from config", codec_name);
@@ -94,7 +94,7 @@ static AVCodec* select_codec(Logger& logger, const Config& config){
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
-Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& config)
+Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
     : m_context(nullptr)
     , m_encoder(nullptr)
     , m_logger(std::move(logger)) {
@@ -105,7 +105,7 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   assert(m_encoder);
   assert(m_context);
   std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-  const std::size_t kbits = config.get<std::size_t>("bitrate", 5000);
+  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
   m_context->bit_rate                = static_cast<int>(kbits * 1024);
   m_context->time_base.num           = 1;
   m_context->time_base.den           = static_cast<int>(fps);
@@ -119,7 +119,8 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
   m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
 
   Options opts{};
-  for (const auto& iter: config.get_subconfig("options")) {
+  auto options = config->get_subconfig("options");
+  for (const auto& iter: *options) {
     const char* key = iter.first.c_str();
     const std::string value = iter.second.get_value<std::string>();
 
@@ -139,7 +140,7 @@ Encoder::Encoder(Size frame_size, std::size_t fps, Logger logger, const Config& 
 }
 
 
-Encoder::~Encoder() {
+Codec::~Codec() {
   avcodec_close(m_context);
   avcodec_free_context(&m_context);
 
@@ -147,7 +148,7 @@ Encoder::~Encoder() {
   m_encoder = nullptr;
 }
 
-std::vector<Packet> Encoder::encode(const shar::Frame& image) {
+std::vector<Packet> Codec::encode(const shar::Frame& image) {
   auto[y, u, v] = bgra_to_yuv420(image);
 
   AVFrame* frame = av_frame_alloc();

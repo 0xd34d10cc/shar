@@ -2,13 +2,14 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include "disable_warnings_pop.hpp"
 
-#include "processors/packet_sender.hpp"
-#include "network/consts.hpp"
+#include "context.hpp"
+#include "network.hpp"
+#include "consts.hpp"
 
 namespace shar {
 
-PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Packet> input)
-    : Base(std::move(context), std::move(input))
+Network::Network(Context context, IpAddress ip, Port port)
+    : Context(std::move(context))
     , m_ip(std::move(ip))
     , m_port(port)
     , m_context()
@@ -19,22 +20,29 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port, Receiver<Pa
     , m_bytes_sent(0) 
     {}
 
-void PacketSender::process(Packet packet) {
-    set_packet(std::move(packet));
-    m_context.reset();
+void Network::run(Receiver<Packet> packets) {
+    m_running = true;
 
-    schedule();
-    m_context.run();
-}
+    while (auto packet = packets.receive()) {
+        set_packet(std::move(*packet));
+        m_context.reset();
 
-void PacketSender::teardown() {
+        schedule();
+        m_context.run();
+    }
+
+    shutdown();
     if (m_state != State::Disconnected) {
         m_socket.shutdown(boost::asio::socket_base::shutdown_both);
         m_socket.close();
     }
 }
 
-void PacketSender::set_packet(Packet packet) {
+void Network::shutdown() {
+    m_running = false;
+}
+
+void Network::set_packet(Packet packet) {
     m_current_packet = std::move(packet);
 
     const auto size = m_current_packet.size();
@@ -47,7 +55,11 @@ void PacketSender::set_packet(Packet packet) {
     m_bytes_sent = 0;
 }
 
-void PacketSender::schedule() {
+void Network::schedule() {
+    if (!m_running) {
+        return;
+    }
+
     switch (m_state) {
         case State::Disconnected:
             connect();
@@ -61,12 +73,8 @@ void PacketSender::schedule() {
     }
 }
 
-void PacketSender::connect() {
+void Network::connect() {
     assert(m_state == State::Disconnected);
-
-    if (!is_running()) {
-        return;
-    }
 
     Endpoint endpoint {m_ip, m_port};
     m_socket.async_connect(endpoint, [this](const ErrorCode& ec) {
@@ -92,7 +100,7 @@ void PacketSender::connect() {
     });
 }
 
-void PacketSender::send_length() {
+void Network::send_length() {
     assert(m_state == State::SendingLength);
     
     auto buffer = boost::asio::buffer(
@@ -127,7 +135,7 @@ void PacketSender::send_length() {
     });
 }
 
-void PacketSender::send_content() {
+void Network::send_content() {
     assert(m_state == State::SendingContent);
 
     auto buffer = boost::asio::buffer(
