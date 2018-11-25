@@ -8,7 +8,11 @@ add_executable(shar
                # common code
                common/metrics.cpp
                common/metrics.hpp
+               common/logger.hpp
                common/config.hpp
+               common/context.hpp
+               common/channel.hpp
+               common/size.hpp
                # utils
                utils/disable_warnings_push.hpp
                utils/disable_warnings_pop.hpp
