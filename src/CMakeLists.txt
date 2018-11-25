@@ -1,30 +1,41 @@
 add_executable(shar
-               main.cpp
+               # application-level code               
+               app/main.cpp
+               app/metrics_reporter.cpp
+               app/metrics_reporter.hpp
+               app/signal_handler.cpp
+               app/signal_handler.hpp
+               # common code
+               common/metrics.cpp
+               common/metrics.hpp
+               common/config.hpp
+               # utils
+               utils/disable_warnings_push.hpp
+               utils/disable_warnings_pop.hpp
+               utils/newtype.hpp
+               # encoder subsystem
+               encoder/convert.cpp
+               encoder/convert.hpp
+               encoder/ffmpeg.cpp
+               encoder/ffmpeg.hpp
+               encoder/encoder.cpp
+               encoder/encoder.hpp
+               # capture subsystem
+               capture/capture.cpp
+               capture/capture.hpp
+               capture/frame.cpp
+               capture/frame.hpp
+               # network subsystem
+               network/network.cpp
+               network/network.hpp
                network/packet.cpp
                network/packet.hpp
-               metrics.cpp
-               metrics.hpp
-               metrics_reporter.cpp
-               metrics_reporter.hpp
-               signal_handler.cpp
-               signal_handler.hpp
-               config.hpp
-               codecs/convert.cpp
-               codecs/convert.hpp
-               codecs/ffmpeg/encoder.cpp
-               codecs/ffmpeg/encoder.hpp
-               processors/screen_capture.cpp
-               processors/screen_capture.hpp
-               processors/packet_sender.cpp
-               processors/packet_sender.hpp
-               processors/h264encoder.cpp
-               processors/h264encoder.hpp
-               primitives/frame.cpp
-               primitives/frame.hpp
                )
 
 target_include_directories(shar
                            PRIVATE .
+                           PRIVATE ./utils
+                           PRIVATE ./common
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}

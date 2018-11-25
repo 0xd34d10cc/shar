@@ -1,5 +1,5 @@
 #include "convert.hpp"
-#include "primitives/frame.hpp"
+#include "capture/frame.hpp"
 
 
 namespace shar::codecs {

@@ -86,11 +86,11 @@ class Receiver {
 public:
   using StatePtr = std::shared_ptr<detail::State<T>>;
 
-  Receiver(StatePtr state)
+  explicit Receiver(StatePtr state)
       : m_state(std::move(state)) {}
 
   Receiver(const Receiver&) = delete;
-  Receiver(Receiver&&) = default;
+  Receiver(Receiver&& other) = default;
   Receiver& operator=(const Receiver&) = delete;
   Receiver& operator=(Receiver&&) = default;
 
@@ -133,7 +133,7 @@ class Sender {
 public:
   using StatePtr = std::shared_ptr<detail::State<T>>;
 
-  Sender(StatePtr state)
+  explicit Sender(StatePtr state)
       : m_state(std::move(state)) {}
 
   Sender(const Sender&) = delete;
@@ -176,9 +176,8 @@ private:
   StatePtr m_state;
 };
 
-namespace channel {
 template<typename T>
-inline static std::pair<Sender<T>, Receiver<T>> bounded(std::size_t capacity) {
+inline static std::pair<Sender<T>, Receiver<T>> channel(std::size_t capacity) {
   using detail::Buffer;
   using detail::State;
 
@@ -189,6 +188,5 @@ inline static std::pair<Sender<T>, Receiver<T>> bounded(std::size_t capacity) {
 
   return {std::move(sender), std::move(receiver)};
 };
-}
 
 }
