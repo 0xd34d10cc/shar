@@ -4,14 +4,11 @@
 namespace shar {
 
 Packet::Packet()
-    : m_bytes(nullptr)
-    , m_size(0)
-    , m_type(Type::Unknown) {}
+    : m_bytes(nullptr) {}
 
 Packet::Packet(void* data, std::size_t size)
     : m_bytes(static_cast<std::uint8_t*>(data))
-    , m_size(size)
-    , m_type(Type::Unknown) {}
+    , m_size(size) {}
 
 Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type)
     : m_bytes(std::move(data))

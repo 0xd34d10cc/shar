@@ -13,6 +13,10 @@ namespace shar {
 class MetricsReporter {
 public:
   MetricsReporter(MetricsPtr metrics, std::size_t report_period_seconds);
+  MetricsReporter(const MetricsReporter&) = delete;
+  MetricsReporter(MetricsReporter&&) = delete;
+  MetricsReporter& operator=(const MetricsReporter&) = delete;
+  MetricsReporter& operator=(MetricsReporter&&) = delete;
   ~MetricsReporter();
 
   MetricsPtr metrics();

@@ -17,9 +17,10 @@ namespace detail {
 template<typename T>
 struct Buffer {
   std::unique_ptr<std::optional<T>[]> ptr;
-  std::size_t                         start;
-  std::size_t                         size;
-  std::size_t                         capacity;
+
+  std::size_t start{0};
+  std::size_t size{0};
+  std::size_t capacity{0};
 
   static Buffer with_capacity(std::size_t capacity) {
     Buffer buffer;
@@ -61,7 +62,7 @@ struct Buffer {
 
 template<typename T>
 struct State {
-  State(Buffer<T> buffer_)
+  explicit State(Buffer<T> buffer_)
       : buffer(std::move(buffer_))
       , disconnected(false) {}
 
@@ -90,9 +91,9 @@ public:
       : m_state(std::move(state)) {}
 
   Receiver(const Receiver&) = delete;
-  Receiver(Receiver&& other) = default;
+  Receiver(Receiver&& other) noexcept = default;
   Receiver& operator=(const Receiver&) = delete;
-  Receiver& operator=(Receiver&&) = default;
+  Receiver& operator=(Receiver&&) noexcept = default;
 
   ~Receiver() {
     if (m_state) {
@@ -137,9 +138,9 @@ public:
       : m_state(std::move(state)) {}
 
   Sender(const Sender&) = delete;
-  Sender(Sender&&) = default;
+  Sender(Sender&&) noexcept = default;
   Sender& operator=(const Sender&) = default;
-  Sender& operator=(Sender&&) = default;
+  Sender& operator=(Sender&&) noexcept = default;
 
   ~Sender() {
     if (m_state) {

@@ -13,14 +13,16 @@ class Frame { // in BGRA format
 public:
   Frame() noexcept;
   Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size);
+  Frame(const Frame&) = delete;
   Frame(Frame&&) noexcept;
+  Frame& operator=(const Frame&) = delete;
   Frame& operator=(Frame&&) noexcept;
   ~Frame() = default;
 
   static const std::size_t PIXEL_SIZE = 4;
 
   bool empty() const noexcept {
-    return m_bytes.get() == nullptr || m_size.is_empty();
+    return m_bytes == nullptr || m_size.is_empty();
   }
 
   std::uint8_t* bytes() noexcept {

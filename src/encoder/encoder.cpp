@@ -6,6 +6,7 @@ Encoder::Encoder(Context context,
                  Size frame_size,
                  std::size_t fps)
     : Context(std::move(context))
+    , m_running(false)
     , m_codec(frame_size, fps, m_logger, m_config->get_subconfig("encoder")) {}
 
 void Encoder::run(Receiver<Frame> input, Sender<Packet> output) {

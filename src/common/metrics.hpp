@@ -31,7 +31,7 @@ public:
   friend class Metrics;
 
 protected:
-  MetricId(std::size_t index)
+  explicit MetricId(std::size_t index)
       : NewType(index) {}
 };
 

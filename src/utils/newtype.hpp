@@ -9,13 +9,14 @@ template <typename T>
 class NewType {
 public:
   NewType() = delete;
-  NewType(T value)
+  explicit NewType(T value)
       : m_value(std::move(value))
   {}
   NewType(const NewType&) = default;
-  NewType(NewType&&) = default;
+  NewType(NewType&&) noexcept = default;
   NewType& operator=(const NewType&) = default;
-  NewType& operator=(NewType&&) = default;
+  NewType& operator=(NewType&&) noexcept = default;
+  ~NewType() = default;
 
   T& get() & {
     return m_value;

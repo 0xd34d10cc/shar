@@ -10,6 +10,7 @@ namespace shar {
 
 Network::Network(Context context, IpAddress ip, Port port)
     : Context(std::move(context))
+    , m_running(false)
     , m_ip(std::move(ip))
     , m_port(port)
     , m_context()

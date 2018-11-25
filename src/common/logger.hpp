@@ -13,7 +13,7 @@ namespace shar {
 
 class Logger {
 public:
-  Logger(const std::string& file_path) {
+  explicit Logger(const std::string& file_path) {
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
@@ -22,6 +22,12 @@ public:
     spdlog::register_logger(m_logger);
     m_logger->info("Logger has been initialized");
   }
+
+  Logger(const Logger&) = default;
+  Logger(Logger&&) noexcept = default;
+  Logger& operator=(const Logger&) = default;
+  Logger& operator=(Logger&&) noexcept = default;
+  ~Logger() = default;
 
   template<typename... Args>
   void trace(const Args&... args) {
@@ -52,9 +58,6 @@ public:
   void critical(const Args&... args) {
     m_logger->critical(args...);
   }
-  
-  Logger(const Logger&) = default;
-  Logger(Logger&&) = default;
 
 private:
   Logger() = default;

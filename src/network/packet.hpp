@@ -20,8 +20,10 @@ public:
   Packet(void* data, std::size_t size);
   Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type=Type::Unknown);
 
+  Packet(const Packet&) = delete;
   Packet(Packet&&) noexcept;
   Packet& operator=(Packet&&) noexcept;
+  Packet& operator=(const Packet&) = delete;
   ~Packet() = default;
 
   bool empty() const;
@@ -32,8 +34,8 @@ public:
 
 private:
   std::unique_ptr<std::uint8_t[]> m_bytes;
-  std::size_t                     m_size;
-  Type                            m_type;
+  std::size_t m_size{0};
+  Type        m_type{Type::Unknown};
 };
 
 }

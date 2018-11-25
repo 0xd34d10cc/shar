@@ -19,6 +19,15 @@ namespace pt = boost::property_tree;
 
 class Config {
 public:
+  explicit Config(const pt::ptree& tree)
+      : m_tree(tree) {}
+
+  Config(const Config&) = delete;
+  Config(Config&&) = default;
+  Config& operator=(const Config&) = default;
+  Config& operator=(Config&&) = default;
+  ~Config() = default;
+
   static ConfigPtr parse_from_file(const std::string& path) {
     pt::ptree config;
     pt::read_json(path, config);
@@ -27,19 +36,16 @@ public:
   }
 
   static ConfigPtr make_default() {
-    const char* json = "{\"encoder\": {\"options\": {}}}";
-    std::size_t len = std::strlen(json);
+    // {"encoder": {"options": {}}}
 
-    pt::ptree         config;
-    std::stringstream ss;
-    ss.write(json, static_cast<std::streamsize>(len));
-    pt::read_json(ss, config);
+    pt::ptree encoder;
+    encoder.add_child("options", pt::ptree{});
+
+    pt::ptree config;
+    config.add_child("encoder", encoder);
 
     return std::make_shared<Config>(std::move(config));
   }
-
-  Config(const Config&) = delete;
-  Config(Config&&) = default;
 
   template<typename T>
   auto get(const char* path, const T& def) const {
@@ -65,12 +71,6 @@ public:
     return ss.str();
   }
 
-
-  Config(const pt::ptree& tree)
-      : m_tree(tree) {}
-
-  Config(pt::ptree&& tree)
-      : m_tree(std::move(tree)) {}
 
 protected:
   Config() = default;

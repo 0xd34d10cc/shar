@@ -23,10 +23,11 @@ public:
     Network(Context context, IpAddress ip, Port port);
     Network(const Network&) = delete;
     Network& operator=(const Network&) = delete;
+    Network& operator=(Network&&) = delete;
     Network(Network&&) = delete;
     ~Network() = default;
 
-    void run(Receiver<Packet> input);
+    void run(Receiver<Packet> packets);
     void shutdown();
 
 private:

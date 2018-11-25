@@ -11,7 +11,10 @@ public:
       , m_width(width) {}
 
   Size(const Size&) = default;
+  Size(Size&&) noexcept = default;
   Size& operator=(const Size&) = default;
+  Size& operator=(Size&&) noexcept = default;
+  ~Size() = default;
 
   static Size empty() {
     return Size{0, 0};

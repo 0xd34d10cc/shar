@@ -28,6 +28,9 @@ public:
           sc::Monitor monitor);
   Capture(const Capture&) = delete;
   Capture(Capture&&) = default;
+  Capture& operator=(const Capture&) = delete;
+  Capture& operator=(Capture&&) noexcept = default;
+  ~Capture() = default;
 
   void run(Sender<Frame> output);
   void shutdown();

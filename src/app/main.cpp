@@ -32,9 +32,7 @@ static CapturePtr create_capture(Context context) {
                       monitor.Name, monitor.Width, monitor.Height);
   context.m_logger.info("FPS: {}", fps);
 
-  return std::make_shared<Capture>(std::move(context), 
-                                   std::move(interval), 
-                                   std::move(monitor));  
+  return std::make_shared<Capture>(std::move(context), interval, monitor);  
 }
 
 static EncoderPtr create_encoder(Context context) {
@@ -50,8 +48,8 @@ static EncoderPtr create_encoder(Context context) {
 
 static NetworkPtr create_network(Context context) {
   const auto ip_str = context.m_config->get<std::string>("host", "127.0.0.1");
-  const ip::address  ip = ip::address::from_string(ip_str);
-  const std::uint16_t port = context.m_config->get<std::uint16_t>("port", shar::SERVER_DEFAULT_PORT);
+  auto  ip = ip::address::from_string(ip_str);
+  const auto port = context.m_config->get<std::uint16_t>("port", shar::SERVER_DEFAULT_PORT);
 
   context.m_logger.info("IP: {}", ip_str);
   return std::make_shared<Network>(std::move(context), 

@@ -16,8 +16,12 @@ class Encoder : private Context {
 public:
   Encoder(Context context, 
           Size frame_size, 
-          const std::size_t fps);
+          std::size_t fps);
   Encoder(const Encoder&) = delete;
+  Encoder(Encoder&&) = delete;
+  Encoder& operator=(const Encoder&) = delete;
+  Encoder& operator=(Encoder&&) = delete;
+  ~Encoder() = default;
 
   void run(Receiver<Frame> input, Sender<Packet> output);
   void shutdown();
