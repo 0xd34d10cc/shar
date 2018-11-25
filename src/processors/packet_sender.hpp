@@ -28,25 +28,30 @@ public:
     PacketSender(PacketSender&&) = delete;
     ~PacketSender() = default;
 
-    void setup();
     void process(Packet packet);
     void teardown();
 
 private:
-    void reset_state(Packet packet);
-    void send();
+    void set_packet(Packet packet);
+    void schedule();
+    void connect();
+    void send_length();
+    void send_content();
 
     using Socket = boost::asio::ip::tcp::socket;
     using IOContext = boost::asio::io_context;
+    using Timer = boost::asio::deadline_timer;
 
     IpAddress m_ip;
     Port      m_port;
     IOContext m_context;
     Socket    m_socket;
+    Timer     m_timer;
 
     Packet    m_current_packet;
 
     enum class State {
+        Disconnected,
         SendingLength,
         SendingContent
     };
