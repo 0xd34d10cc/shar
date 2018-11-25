@@ -59,7 +59,6 @@ if (WIN32)
 endif ()
 
 target_compile_definitions(shar
-                           PRIVATE MINIUPNP_STATICLIB
                            PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(shar PRIVATE ${SHAR_COMPILE_OPTIONS})
 
