@@ -26,12 +26,16 @@ public:
   Codec& operator=(Codec&&) = delete;
   ~Codec();
 
+  // PTS calculation formula: (1 / FPS) * sample rate * frame number
+  int get_pts();
+
   std::vector<Packet> encode(const Frame& image);
 
 private:
   AVCodecContext* m_context;
   AVCodec       * m_encoder;
   Logger          m_logger;
+  std::uint32_t   m_frame_counter;
 };
 
 }

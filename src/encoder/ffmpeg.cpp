@@ -57,12 +57,6 @@ private:
 
 }
 
-// PTS calculation formula: (1 / FPS) * sample rate * frame number
-int get_pts(const int fps) {
-  static int frame_number = 0;
-  return (1 / static_cast<double>(fps)) * CLOCK_RATE * frame_number++;
-}
-
 namespace shar::codecs::ffmpeg {
 
 static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
@@ -101,7 +95,8 @@ static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
 Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
     : m_context(nullptr)
     , m_encoder(nullptr)
-    , m_logger(std::move(logger)) {
+    , m_logger(std::move(logger))
+    , m_frame_counter(0) {
 
   m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
@@ -168,7 +163,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
   frame->linesize[0] = static_cast<int>(image.width());
   frame->linesize[1] = static_cast<int>(image.width() / 2);
   frame->linesize[2] = static_cast<int>(image.width() / 2);
-  frame->pts = get_pts(m_context->time_base.den);
+  frame->pts = get_pts();
 
   int ret = avcodec_send_frame(m_context, frame);
   std::vector<Packet> packets;
@@ -202,6 +197,11 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
   av_frame_free(&frame);
   return packets;
+}
+
+// PTS calculation formula: (1 / FPS) * sample rate * frame number
+int Codec::get_pts() {
+  return static_cast<int>((1 / static_cast<double>(m_context->time_base.den)) * CLOCK_RATE * m_frame_counter++);
 }
 
 }
