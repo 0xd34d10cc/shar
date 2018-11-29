@@ -50,7 +50,7 @@ class Shar(ConanFile):
                        "boost/1.67.0@conan/stable",
                        "ffmpeg/4.0@0xd34d10cc/testing",
                        "spdlog/0.17.0@bincrafters/stable",
-					   "prometheus-cpp/0.6.0@d34dpkgs/testing")
+                       "prometheus-cpp/0.6.0@d34dpkgs/testing")
 
     generators      = "cmake",  "gcc",  "txt"
 

@@ -3,8 +3,8 @@ add_executable(shar
                app/main.cpp
                app/signal_handler.cpp
                app/signal_handler.hpp
-			   app/counter.cpp
-			   app/counter.hpp
+               app/counter.cpp
+               app/counter.hpp
                # common code
                common/metrics.cpp
                common/metrics.hpp
@@ -43,9 +43,9 @@ target_include_directories(shar
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
-						   PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
-						   PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
-						   PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/core/include"
+                           PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
+                           PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
+                           PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/core/include"
                            )
 
 target_link_libraries(shar
@@ -55,7 +55,7 @@ target_link_libraries(shar
                       ${CONAN_LIBS_LIBX264}
                       ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_FMT}
-					  ${CONAN_LIBS_PROMETHEUS-CPP}
+                      ${CONAN_LIBS_PROMETHEUS-CPP}
                       )
 
 if (WIN32)
