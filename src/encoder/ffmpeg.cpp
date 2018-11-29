@@ -16,7 +16,7 @@ extern "C" {
 namespace {
 
 // Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
-static const int CLOCK_RATE = 90000;
+static const unsigned int CLOCK_RATE = 90000;
 
 class Options {
 public:
