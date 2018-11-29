@@ -201,7 +201,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
 // PTS calculation formula: (1 / FPS) * sample rate * frame number
 int Codec::get_pts() {
-  return static_cast<int>(CLOCK_RATE / m_context->time_base.den * m_frame_counter++);
+  return static_cast<int>(CLOCK_RATE / static_cast<unsigned int>(m_context->time_base.den) * m_frame_counter++);
 }
 
 }
