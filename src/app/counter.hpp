@@ -12,8 +12,8 @@ using GaugeFamily = prometheus::Family<prometheus::Gauge>;
 
 class Counter {
   prometheus::Gauge*    m_gauge;
-public:
   GaugeFamily*          m_family;
+public:
   Counter();
   Counter(prometheus::Gauge* gauge, GaugeFamily* m_family);
   Counter(const Counter&) = delete;
