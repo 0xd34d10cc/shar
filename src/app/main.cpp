@@ -2,8 +2,12 @@
 
 #include <chrono>
 
+#include "disable_warnings_push.hpp"
+#include "prometheus/registry.h"
+#include "prometheus/exposer.h"
+#include "disable_warnings_pop.hpp"
+
 #include "signal_handler.hpp"
-#include "metrics_reporter.hpp"
 #include "channel.hpp"
 
 #include "context.hpp"
@@ -11,7 +15,6 @@
 #include "encoder/encoder.hpp"
 #include "network/network.hpp"
 #include "network/consts.hpp"
-
 
 namespace sc = SL::Screen_Capture;
 namespace ip = boost::asio::ip;
@@ -60,16 +63,19 @@ static NetworkPtr create_network(Context context) {
 static Context make_context() {
   auto config = shar::Config::parse_from_file("config.json");
   auto logger  = Logger("server.log");
-  auto metrics = std::make_shared<shar::Metrics>(20, logger);
+  auto metrics = std::make_shared<shar::Metrics>(logger);
 
   return Context{config, logger, metrics};
 }
 
 static int run() {
+  prometheus::Exposer exposer("127.0.0.1:8080");
+
   auto context = make_context();
   auto capture = create_capture(context);
   auto encoder = create_encoder(context);
   auto network = create_network(context);
+  context.m_metrics->register_on(exposer);
 
   if (!shar::SignalHandler::setup()) {
     context.m_logger.error("Failed to setup signal handler");
@@ -91,9 +97,6 @@ static int run() {
                                rx{std::move(packets_rx)}] () mutable {
     network->run(std::move(rx));
   }};
-
-  shar::MetricsReporter reporter {context.m_metrics, 10};
-  reporter.start();
 
   shar::SignalHandler::wait_for_sigint();
   

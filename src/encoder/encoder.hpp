@@ -7,6 +7,7 @@
 #include "size.hpp"
 #include "capture/frame.hpp"
 #include "ffmpeg.hpp"
+#include "app/counter.hpp"
 #include "channel.hpp"
 
 
@@ -32,8 +33,8 @@ private:
   std::atomic<bool> m_running;
   codecs::ffmpeg::Codec m_codec;
 
-  MetricId m_bytes_in;
-  MetricId m_bytes_out;
+  Counter m_bytes_in;
+  Counter m_bytes_out;
 };
 
 }

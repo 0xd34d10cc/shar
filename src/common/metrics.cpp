@@ -39,75 +39,26 @@ std::tuple<std::size_t, std::size_t, const char*> human_readable_bytes(std::size
 
 namespace shar {
 
-Metrics::Metrics(std::size_t size, Logger logger)
+Metrics::Metrics(Logger logger)
     : m_logger(std::move(logger))
-    , m_metrics(size) {}
+    , m_registry(std::make_shared<prometheus::Registry>()){
 
-bool Metrics::valid(shar::MetricId id) const noexcept {
-  return id.valid() && id.get() < m_metrics.size() && m_metrics[id.get()].has_value();
 }
 
-MetricId Metrics::add(std::string name, Format format) noexcept {
-  std::lock_guard<std::mutex> lock(m_mutex);
 
-  for (std::size_t i = 0; i < m_metrics.size(); ++i) {
-    if (!m_metrics[i]) {
-      m_metrics[i].emplace(std::move(name), format);
-      return MetricId(i);
-    }
-  }
-
-  return MetricId();
+Counter Metrics::add(const std::string& name, const std::string& help) noexcept {
+  auto& gauge_family = prometheus::BuildGauge()
+                                            .Name(name)
+                                            .Help(help)
+                                            .Labels({ {"label","value"} })
+                                            .Register(*m_registry);
+  auto& gauge = gauge_family.Add({ { "another_label", "value" }, {"yet_another_label", "value"} });
+  return Counter(&gauge, &gauge_family);
 }
 
-void Metrics::remove(MetricId id) noexcept {
-  assert(valid(id));
-  if (valid(id)) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_metrics[id.get()].reset();
-  }
-}
-
-void Metrics::increase(shar::MetricId id, std::size_t delta) {
-  assert(valid(id));
-  if (valid(id)) {
-    m_metrics[id.get()]->m_value.fetch_add(delta, std::memory_order_relaxed);
-  }
-}
-
-void Metrics::decrease(shar::MetricId id, std::size_t delta) {
-  assert(valid(id));
-  if (valid(id)) {
-    m_metrics[id.get()]->m_value.fetch_sub(delta, std::memory_order_relaxed);
-  }
-}
-
-void Metrics::report() {
-  std::lock_guard<std::mutex> lock(m_mutex);
-
-  for (auto& metric: m_metrics) {
-    if (metric) {
-      metric->report(m_logger);
-      metric->m_value = 0;
-    }
-  }
-}
-
-Metrics::Metric::Metric(std::string name, Format format)
-    : m_name(std::move(name))
-    , m_format(format)
-    , m_value(0) {}
-
-void Metrics::Metric::report(shar::Logger& logger) {
-  switch (m_format) {
-    case Format::Count:
-      logger.info("{}\t{}", m_name, m_value);
-      break;
-    case Format::Bytes:
-      auto[value, fraction, suffix] = human_readable_bytes(m_value);
-      logger.info("{}\t{}.{}{}", m_name, value, fraction, suffix);
-      break;
-  }
+void Metrics::register_on(prometheus::Exposer & exposer)
+{
+  exposer.RegisterCollectable(m_registry);
 }
 
 }
