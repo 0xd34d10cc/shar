@@ -15,6 +15,9 @@ extern "C" {
 
 namespace {
 
+// Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
+static const unsigned int CLOCK_RATE = 90000;
+
 class Options {
 public:
   Options() = default;
@@ -52,11 +55,6 @@ private:
   AVDictionary* m_opts = nullptr;
 };
 
-}
-
-static int get_pts() {
-  static int static_pts = 0;
-  return static_pts++;
 }
 
 namespace shar::codecs::ffmpeg {
@@ -97,7 +95,8 @@ static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
 Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
     : m_context(nullptr)
     , m_encoder(nullptr)
-    , m_logger(std::move(logger)) {
+    , m_logger(std::move(logger))
+    , m_frame_counter(0) {
 
   m_encoder = select_codec(m_logger, config);
   m_context = avcodec_alloc_context3(m_encoder);
@@ -198,6 +197,11 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
   av_frame_free(&frame);
   return packets;
+}
+
+// PTS calculation formula: (1 / FPS) * sample rate * frame number
+int Codec::get_pts() {
+  return static_cast<int>(CLOCK_RATE / static_cast<unsigned int>(m_context->time_base.den) * m_frame_counter++);
 }
 
 }

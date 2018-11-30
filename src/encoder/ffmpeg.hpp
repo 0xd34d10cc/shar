@@ -29,9 +29,12 @@ public:
   std::vector<Packet> encode(const Frame& image);
 
 private:
+  int get_pts();
+
   AVCodecContext* m_context;
   AVCodec       * m_encoder;
   Logger          m_logger;
+  std::uint32_t   m_frame_counter;
 };
 
 }
