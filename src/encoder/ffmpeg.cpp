@@ -59,7 +59,7 @@ private:
 
 namespace shar::codecs::ffmpeg {
 
-AVCodecContext* Codec::make_context(const ConfigPtr& config, AVCodec* codec, Size frame_size, std::size_t fps) {
+static AVCodecContext* make_context(const ConfigPtr& config, AVCodec* codec, Size frame_size, std::size_t fps) {
 
   AVCodecContext* context = avcodec_alloc_context3(codec);
   assert(context);
@@ -81,16 +81,16 @@ AVCodecContext* Codec::make_context(const ConfigPtr& config, AVCodec* codec, Siz
   return context;
 }
 
-AVCodec* Codec::select_codec(const ConfigPtr& config, Options* opts, Size frame_size, std::size_t fps){
+static AVCodec* select_codec(Logger& logger,const ConfigPtr& config, Options* opts, Size frame_size, std::size_t fps){
 
   const std::string codec_name = config->get<std::string>("codec", "");
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
-      m_logger.info("Using {} encoder from config", codec_name);
+      logger.info("Using {} encoder from config", codec_name);
       return codec;
     }
 
-    m_logger.warning("Encoder {} requested but not found", codec_name);
+    logger.warning("Encoder {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 5> codecs = {
@@ -109,7 +109,7 @@ AVCodec* Codec::select_codec(const ConfigPtr& config, Options* opts, Size frame_
 
       auto* context = make_context(config, codec, frame_size, fps);
       if (avcodec_open2(context, codec, &opts->get_ptr()) >= 0) {
-        m_logger.info("Using {} encoder", name);
+        logger.info("Using {} encoder", name);
         return codec;
       }
       else {
@@ -118,7 +118,7 @@ AVCodec* Codec::select_codec(const ConfigPtr& config, Options* opts, Size frame_
     }
   }
 
-  m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
+  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   return avcodec_find_encoder(AV_CODEC_ID_H264);
 }
 
@@ -139,7 +139,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  m_encoder = select_codec(config, &opts, frame_size, fps);
+  m_encoder = select_codec(m_logger, config, &opts, frame_size, fps);
   assert(m_encoder);
 
   m_context = make_context(config, m_encoder, frame_size, fps);
