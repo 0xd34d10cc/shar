@@ -31,8 +31,9 @@ void Counter::decrement(double amount){
   }
 }
 
-Counter::Counter(Counter && counter): m_family(counter.m_family), m_gauge(counter.m_gauge)
-{
+Counter::Counter(Counter && counter)
+  :m_gauge(counter.m_gauge) 
+  ,m_family(counter.m_family){
   counter.m_family = nullptr;
   counter.m_gauge = nullptr;
 }
