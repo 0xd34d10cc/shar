@@ -60,7 +60,7 @@ static NetworkPtr create_network(Context context) {
                                    port);
 }
 
-static prometheus::Exposer create_exposer(Context context) {
+static prometheus::Exposer create_exposer(Context& context) {
   const auto host = context.m_config->get<std::string>("metrics", "127.0.0.1:3228");
 
   return prometheus::Exposer(host);
