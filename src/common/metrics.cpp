@@ -14,10 +14,10 @@ Metrics::Metrics(Logger logger)
 Counter Metrics::add(const std::string& name, const std::string& help, const std::string& output_type) noexcept {
 
   auto& gauge_family = prometheus::BuildGauge()
-                                            .Name(name)
-                                            .Help(help)
-                                            .Labels({ {name,output_type} })
-                                            .Register(*m_registry);
+    .Name(name)
+    .Help(help)
+    .Labels({ {name,output_type} })
+    .Register(*m_registry);
   auto& gauge = gauge_family.Add({});
 
   return Counter(&gauge, &gauge_family);
