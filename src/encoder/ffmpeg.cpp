@@ -59,15 +59,38 @@ private:
 
 namespace shar::codecs::ffmpeg {
 
-static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
+AVCodecContext* Codec::make_context(const ConfigPtr& config, AVCodec* codec, Size frame_size, std::size_t fps) {
+
+  AVCodecContext* context = avcodec_alloc_context3(codec);
+  assert(context);
+
+  std::fill_n(reinterpret_cast<char*>(context), sizeof(AVCodecContext), 0);
+  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
+  context->bit_rate = static_cast<int>(kbits * 1024);
+  context->time_base.num = 1;
+  context->time_base.den = static_cast<int>(fps);
+  context->pix_fmt = AV_PIX_FMT_YUV420P;
+  context->width = static_cast<int>(frame_size.width());
+  context->height = static_cast<int>(frame_size.height());
+  context->max_pixels = context->width * context->height;
+
+  std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
+  context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
+  context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
+
+  return context;
+}
+
+void Codec::select_codec(const ConfigPtr& config, Options* opts, Size frame_size, std::size_t fps){
+
   const std::string codec_name = config->get<std::string>("codec", "");
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
-      logger.info("Using {} encoder from config", codec_name);
-      return codec;
+      m_logger.info("Using {} encoder from config", codec_name);
+      return;
     }
 
-    logger.warning("Encoder {} requested but not found", codec_name);
+    m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 5> codecs = {
@@ -83,13 +106,22 @@ static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
 
   for (const char* name : codecs){
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
-      logger.info("Using {} encoder", name);
-      return codec;
+
+      auto* context = make_context(config, codec, frame_size, fps);
+      if (avcodec_open2(context, codec, &opts->get_ptr()) >= 0) {
+        m_logger.info("Using {} encoder", name);
+        m_encoder = codec;
+        return;
+      }
+      else {
+        avcodec_close(context);
+      }
     }
   }
 
-  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
-  return avcodec_find_encoder(AV_CODEC_ID_H264);
+  m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
+  m_encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
+  return;
 }
 
 Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
@@ -98,28 +130,9 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     , m_logger(std::move(logger))
     , m_frame_counter(0) {
 
-  m_encoder = select_codec(m_logger, config);
-  m_context = avcodec_alloc_context3(m_encoder);
-
-  assert(m_encoder);
-  assert(m_context);
-  std::fill_n(reinterpret_cast<char*>(m_context), sizeof(AVCodecContext), 0);
-  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
-  m_context->bit_rate                = static_cast<int>(kbits * 1024);
-  m_context->time_base.num           = 1;
-  m_context->time_base.den           = static_cast<int>(fps);
-  m_context->pix_fmt                 = AV_PIX_FMT_YUV420P;
-  m_context->width                   = static_cast<int>(frame_size.width());
-  m_context->height                  = static_cast<int>(frame_size.height());
-  m_context->max_pixels              = m_context->width * m_context->height;
-
-  std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
-  m_context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
-  m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
-
   Options opts{};
   auto options = config->get_subconfig("options");
-  for (const auto& iter: *options) {
+  for (const auto& iter : *options) {
     const char* key = iter.first.c_str();
     const std::string value = iter.second.get_value<std::string>();
 
@@ -128,7 +141,11 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  if (avcodec_open2(m_context, m_encoder, &opts.get_ptr()) < 0) {
+  select_codec(config, &opts, frame_size, fps);
+  assert(m_encoder);
+
+  m_context = make_context(config, m_encoder, frame_size, fps);
+  if (avcodec_open2(m_context, m_encoder, &opts.get_ptr())<0) {
     assert(false);
   }
 
