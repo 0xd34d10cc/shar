@@ -60,6 +60,11 @@ static NetworkPtr create_network(Context context) {
                                    port);
 }
 
+static prometheus::Exposer create_exposer(Context context) {
+  const auto host = context.m_config->get<std::string>("metrics", "127.0.0.1:3228");
+
+  return prometheus::Exposer(host);
+}
 static Context make_context() {
   auto config = shar::Config::parse_from_file("config.json");
   auto logger  = Logger("server.log");
@@ -69,9 +74,8 @@ static Context make_context() {
 }
 
 static int run() {
-  prometheus::Exposer exposer("127.0.0.1:8080");
-
   auto context = make_context();
+  auto exposer = create_exposer(context);
   auto capture = create_capture(context);
   auto encoder = create_encoder(context);
   auto network = create_network(context);

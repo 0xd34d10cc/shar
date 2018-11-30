@@ -13,6 +13,7 @@ using GaugeFamily = prometheus::Family<prometheus::Gauge>;
 class Counter {
   prometheus::Gauge*    m_gauge;
   GaugeFamily*          m_family;
+
 public:
   Counter();
   Counter(prometheus::Gauge* gauge, GaugeFamily* m_family);
@@ -21,8 +22,10 @@ public:
   Counter& operator=(const Counter&) = delete;
   Counter& operator=(Counter&& counter);
   ~Counter();
+
   void increment();
   void decrement();
   void increment(double);
   void decrement(double);
+
 };

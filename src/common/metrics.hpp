@@ -24,11 +24,13 @@ public:
 
   Metrics(Logger logger);
 
-  Counter add(const std::string& name, const std::string& help) noexcept;
+  Counter add(const std::string& name, const std::string& help, const std::string& output_type) noexcept;
   void register_on(prometheus::Exposer& exposer);
 
 private:
-  using RegistryPtr = std::shared_ptr<prometheus::Registry > ;
+
+  using RegistryPtr = std::shared_ptr<prometheus::Registry> ;
+
   Logger       m_logger;
   RegistryPtr  m_registry;
 };
