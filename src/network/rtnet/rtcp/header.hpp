@@ -6,6 +6,12 @@
 
 namespace shar::rtcp {
 
+enum PacketType: std::uint8_t {
+  SENDER_REPORT = 200,
+  RECEIVER_REPORT = 201,
+  SOURCE_DESCRIPTION = 202
+};
+
 // RTCP packet common header structure:
 //
 //  0               1               2               3           

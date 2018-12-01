@@ -14,7 +14,8 @@ SenderReport::SenderReport(std::uint8_t* data, std::size_t size) noexcept
 bool SenderReport::valid() const noexcept {
   return Header::valid() && 
          m_size >= SenderReport::MIN_SIZE &&
-         m_size == packet_size();
+         m_size == packet_size() &&
+         packet_type() == PacketType::SENDER_REPORT;
 }
 
 std::uint64_t SenderReport::ntp_timestamp() const noexcept {

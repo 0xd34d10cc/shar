@@ -83,7 +83,7 @@ TEST(rtcp_header, deserialize) {
   EXPECT_EQ(header.version(), 2);
   EXPECT_EQ(header.has_padding(), false);
   EXPECT_EQ(header.reports_count(), 0);
-  EXPECT_EQ(header.packet_type(), 201);
+  EXPECT_EQ(header.packet_type(), rtcp::PacketType::RECEIVER_REPORT);
   EXPECT_EQ(header.length(), 1);
   EXPECT_EQ(header.stream_id(), 0xe691b6a9);
 
@@ -93,7 +93,7 @@ TEST(rtcp_header, deserialize) {
   EXPECT_EQ(next.version(), 2);
   EXPECT_EQ(next.has_padding(), false);
   EXPECT_EQ(next.reports_count(), 1);
-  EXPECT_EQ(next.packet_type(), 202);
+  EXPECT_EQ(next.packet_type(), rtcp::PacketType::SOURCE_DESCRIPTION);
   EXPECT_EQ(next.length(), 7);
   EXPECT_EQ(next.stream_id(), 0xe691b6a9);
 
@@ -106,7 +106,8 @@ TEST(rtcp_header, deserialize) {
 TEST(rtcp_receiver_report, empty) {
   std::array<std::uint8_t, rtcp::ReceiverReport::MIN_SIZE> buffer{};
   rtcp::ReceiverReport report{buffer.data(), buffer.size()};
-  report.set_length(1);
+  report.set_packet_type(rtcp::PacketType::RECEIVER_REPORT);
+  report.set_length(rtcp::ReceiverReport::NWORDS - 1);
 
   EXPECT_TRUE(report.valid());
   EXPECT_EQ(report.reports_count(), 0);
@@ -133,7 +134,8 @@ TEST(rtcp_receiver_report, deserialize) {
 TEST(rtcp_sender_report, empty) {
   std::array<std::uint8_t, rtcp::SenderReport::MIN_SIZE> buffer{};
   rtcp::SenderReport report{buffer.data(), buffer.size()};
-  report.set_length(6);
+  report.set_packet_type(rtcp::PacketType::SENDER_REPORT);
+  report.set_length(rtcp::SenderReport::NWORDS - 1);
 
   EXPECT_TRUE(report.valid());
   EXPECT_EQ(report.ntp_timestamp(), 0);
@@ -154,7 +156,7 @@ TEST(rtcp_sender_report, set_fields) {
   report.set_version(2);
   report.set_has_padding(false);
   report.set_reports_count(1); // number of blocks
-  report.set_packet_type(200); // sender report packet type
+  report.set_packet_type(rtcp::PacketType::SENDER_REPORT);
   report.set_length(rtcp::SenderReport::NWORDS + rtcp::Block::NWORDS - 1);
   report.set_stream_id(0xd34d10cc);
 

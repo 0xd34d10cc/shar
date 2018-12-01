@@ -2,6 +2,7 @@
 
 #include "receiver_report.hpp"
 
+
 namespace shar::rtcp {
 
 ReceiverReport::ReceiverReport(std::uint8_t* data, std::size_t size) noexcept
@@ -11,7 +12,8 @@ ReceiverReport::ReceiverReport(std::uint8_t* data, std::size_t size) noexcept
 bool ReceiverReport::valid() const noexcept {
   return Header::valid() && 
          m_size >= ReceiverReport::MIN_SIZE &&
-         m_size == packet_size();
+         m_size == packet_size() &&
+         packet_type() == PacketType::RECEIVER_REPORT;
 }
 
 Block ReceiverReport::block(std::size_t index) noexcept {
