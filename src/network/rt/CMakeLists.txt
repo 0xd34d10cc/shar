@@ -2,6 +2,9 @@ add_library(rt
     rtp/packet.cpp 
     rtp/packet.hpp
 
+    rtcp/header.hpp
+    rtcp/header.cpp
+
     byteorder.cpp
     byteorder.hpp
 )
