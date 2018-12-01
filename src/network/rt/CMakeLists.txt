@@ -4,6 +4,12 @@ add_library(rt
 
     rtcp/header.hpp
     rtcp/header.cpp
+    rtcp/block.hpp
+    rtcp/block.cpp
+    rtcp/sender_report.hpp
+    rtcp/sender_report.cpp
+    rtcp/receiver_report.hpp
+    rtcp/receiver_report.cpp
 
     byteorder.cpp
     byteorder.hpp
