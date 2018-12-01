@@ -116,6 +116,10 @@ void Header::set_stream_id(std::uint32_t stream_id) noexcept {
 Header Header::next() noexcept {
   assert(valid());
   std::uint16_t len = (length() + 1) * sizeof(std::uint32_t);
+  if (len + MIN_SIZE > m_size) {
+    return Header{};
+  }
+
   return Header{m_data + len, m_size - len};
 }
 

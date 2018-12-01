@@ -1,4 +1,5 @@
 #include <vector>
+#include <array>
 
 #include <gtest/gtest.h>
 
@@ -82,4 +83,9 @@ TEST(rtcp_header, deserialize) {
     EXPECT_EQ(next.packet_type(), 202);
     EXPECT_EQ(next.length(), 7);
     EXPECT_EQ(next.stream_id(), 0xe691b6a9);
+
+    rtcp::Header last = next.next();
+    EXPECT_FALSE(last.valid());
+    EXPECT_EQ(last.data(), nullptr);
+    EXPECT_EQ(last.size(), 0);
 }

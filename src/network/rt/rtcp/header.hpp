@@ -81,7 +81,8 @@ public:
   std::uint32_t stream_id() const noexcept;
   void set_stream_id(std::uint32_t stream_id) noexcept;
 
-  // return next header
+  // returns next header
+  // returns invalid header if this header is last
   Header next() noexcept;
 
 protected:
