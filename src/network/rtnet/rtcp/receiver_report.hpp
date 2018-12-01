@@ -35,7 +35,8 @@ namespace shar::rtcp {
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class ReceiverReport: public Header {
 public:
-  static const std::size_t MIN_SIZE = Header::MIN_SIZE;
+  static const std::size_t NWORDS = Header::NWORDS;
+  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   ReceiverReport() noexcept = default;
   ReceiverReport(std::uint8_t* data, std::size_t size) noexcept;
@@ -45,8 +46,13 @@ public:
   ReceiverReport& operator=(ReceiverReport&&) noexcept = default;
   ~ReceiverReport() = default;
 
+  // check if report is valid
+  // NOTE: if false is returned no methods except data() and size()
+  //       should be called
   bool valid() const noexcept;
 
+  // return report block by index
+  // see Block class for more info
   Block block(std::size_t index=0) noexcept;
 };
 

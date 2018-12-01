@@ -45,7 +45,8 @@ namespace shar::rtcp {
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class SenderReport: public Header {
 public:
-  static const std::size_t MIN_SIZE = Header::MIN_SIZE + 5 * sizeof(std::uint32_t);
+  static const std::size_t NWORDS = Header::NWORDS + 5;
+  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   // Create empty (invalid) sender report
   SenderReport() noexcept = default;
@@ -125,10 +126,9 @@ public:
   std::uint32_t nbytes() const noexcept;
   void set_nbytes(std::uint32_t nbytes) noexcept;
 
+  // return report block by index
+  // see Block class for more info
   Block block(std::size_t index=0) noexcept;
 };
-
-
-
 
 }

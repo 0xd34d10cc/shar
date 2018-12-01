@@ -111,7 +111,7 @@ std::uint32_t Block::delay_since_last_sender_report() const noexcept {
 void Block::set_delay_since_last_sender_report(std::uint32_t delay) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(delay);
-  std::memcpy(&m_data[16], bytes.data(), bytes.size());
+  std::memcpy(&m_data[20], bytes.data(), bytes.size());
 }
 
 Block Block::next() noexcept {

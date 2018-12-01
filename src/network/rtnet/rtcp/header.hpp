@@ -17,7 +17,8 @@ namespace shar::rtcp {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class Header {
 public:
-  static const std::size_t MIN_SIZE = sizeof(std::uint32_t) * 2;
+  static const std::size_t NWORDS = 2;
+  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   // Create empty (invalid) header
   Header() noexcept = default;
@@ -34,9 +35,18 @@ public:
   Header& operator=(Header&&) noexcept;
   ~Header() = default;
 
+  // check if header is valid
+  // NOTE: if false is returned no methods except data() and size()
+  //       should be called
   bool valid() const noexcept;
 
+  // returns pointer to packet data (header included)
   const std::uint8_t* data() const noexcept;
+  std::uint8_t* data() noexcept;
+
+  // returns buffer size
+  // NOTE: buffer size is not same as packet size
+  //       packet size is (length() + 1) * sizeof(std::uint32_t)
   std::size_t size() const noexcept;
 
   // version (V): 2 bits
@@ -74,6 +84,9 @@ public:
   //  avoids a validity check for a multiple of 4.)
   std::uint16_t length() const noexcept;
   void set_length(std::uint16_t length) noexcept;
+
+  // convenience function that returns (length() + 1) * sizeof(std::uint32_t)
+  std::size_t packet_size() const noexcept;
 
   // SSRC: 32 bits
   //  The synchronization source identifier for the 

@@ -39,6 +39,10 @@ const std::uint8_t* Header::data() const noexcept {
   return m_data;
 }
 
+std::uint8_t* Header::data() noexcept {
+  return m_data;
+}
+
 std::size_t Header::size() const noexcept {
   return m_size;
 }
@@ -102,6 +106,11 @@ void Header::set_length(std::uint16_t length) noexcept {
   std::memcpy(&m_data[2], bytes.data(), bytes.size());
 }
 
+std::size_t Header::packet_size() const noexcept {
+  assert(valid());
+  return (length() + 1) * sizeof(std::uint32_t);
+}
+
 std::uint32_t Header::stream_id() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[4]);
@@ -115,8 +124,8 @@ void Header::set_stream_id(std::uint32_t stream_id) noexcept {
 
 Header Header::next() noexcept {
   assert(valid());
-  std::uint16_t len = (length() + 1) * sizeof(std::uint32_t);
-  if (len + MIN_SIZE > m_size) {
+  std::uint16_t len = packet_size();
+  if (len + Header::MIN_SIZE > m_size) {
     return Header{};
   }
 

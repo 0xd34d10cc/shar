@@ -11,7 +11,7 @@ ReceiverReport::ReceiverReport(std::uint8_t* data, std::size_t size) noexcept
 bool ReceiverReport::valid() const noexcept {
   return Header::valid() && 
          m_size >= ReceiverReport::MIN_SIZE &&
-         m_size == (length() + 1) * sizeof(std::uint32_t);
+         m_size == packet_size();
 }
 
 Block ReceiverReport::block(std::size_t index) noexcept {

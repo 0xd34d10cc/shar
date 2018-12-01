@@ -27,10 +27,10 @@ namespace shar::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
 class Block {
 public:
-  static const std::size_t MIN_SIZE = 6 * sizeof(std::uint32_t); 
+  static const std::size_t NWORDS = 6;
+  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t); 
 
   Block() noexcept = default;
   Block(std::uint8_t* data, std::size_t size) noexcept;
