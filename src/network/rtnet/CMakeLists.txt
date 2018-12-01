@@ -1,4 +1,4 @@
-add_library(rt
+add_library(rtnet
     rtp/packet.cpp 
     rtp/packet.hpp
 
@@ -15,7 +15,7 @@ add_library(rt
     byteorder.hpp
 )
 
-target_include_directories(rt PRIVATE .)
+target_include_directories(rtnet PRIVATE .)
 
 enable_testing()
 add_subdirectory(tests)

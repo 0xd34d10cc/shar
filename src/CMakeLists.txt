@@ -80,4 +80,4 @@ IF (NOT WIN32)
     endif ()
 endif ()
 
-add_subdirectory(network/rt)
+add_subdirectory(network/rtnet)
