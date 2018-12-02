@@ -20,7 +20,7 @@ bool SenderReport::valid() const noexcept {
 
 std::uint32_t SenderReport::stream_id() const noexcept {
   assert(valid());
-  return read_u32_big_endian(&m_data[4]);
+  return read_u32_big_endian(m_data + Header::MIN_SIZE);
 }
 
 void SenderReport::set_stream_id(std::uint32_t stream_id) noexcept {

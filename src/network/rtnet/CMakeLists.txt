@@ -12,6 +12,8 @@ add_library(rtnet
     rtcp/receiver_report.cpp
     rtcp/source_description.hpp
     rtcp/source_description.cpp
+    rtcp/source_items.hpp
+    rtcp/source_items.cpp
     rtcp/bye.hpp
     rtcp/bye.cpp
     rtcp/app.hpp
