@@ -3,6 +3,8 @@
 #include <cstdint> // std::uint*_t
 #include <cstdlib> // std::size_t
 
+#include "slice.hpp"
+
 
 namespace shar::rtcp {
 
@@ -27,7 +29,7 @@ namespace shar::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Block {
+class Block: public Slice {
 public:
   static const std::size_t NWORDS = 6;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t); 
@@ -35,9 +37,9 @@ public:
   Block() noexcept = default;
   Block(std::uint8_t* data, std::size_t size) noexcept;
   Block(const Block&) noexcept = default;
-  Block(Block&&) noexcept;
+  Block(Block&&) noexcept = default;
   Block& operator=(const Block&) noexcept = default;
-  Block& operator=(Block&&) noexcept;
+  Block& operator=(Block&&) noexcept = default;
   ~Block() = default;
 
   bool valid() const noexcept;
@@ -177,10 +179,6 @@ public:
   void set_delay_since_last_sender_report(std::uint32_t delay) noexcept;
 
   Block next() noexcept;
-
-private:
-  std::uint8_t* m_data;
-  std::size_t   m_size; // total remaining size of packet
 };
 
 

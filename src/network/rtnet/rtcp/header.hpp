@@ -3,6 +3,8 @@
 #include <cstdint> // std::uint*_t
 #include <cstdlib> // std::size_t
 
+#include "slice.hpp"
+
 
 namespace shar::rtcp {
 
@@ -21,7 +23,7 @@ enum PacketType: std::uint8_t {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // | V |P|    RC   |      PT       |             length            |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Header {
+class Header: public Slice {
 public:
   static const std::size_t NWORDS = 1;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
@@ -36,9 +38,9 @@ public:
   //       it will not be deallocated on header destruction
   Header(std::uint8_t* data, std::size_t size) noexcept;
   Header(const Header&) noexcept = default;
-  Header(Header&&) noexcept;
+  Header(Header&&) noexcept = default;
   Header& operator=(const Header&) noexcept = default;
-  Header& operator=(Header&&) noexcept;
+  Header& operator=(Header&&) noexcept = default;
   ~Header() = default;
 
   // check if header is valid
@@ -97,10 +99,6 @@ public:
   // returns next header
   // returns invalid header if this header is last
   Header next() noexcept;
-
-protected:
-  std::uint8_t* m_data{nullptr};
-  std::size_t   m_size{0};
 };
 }
 

@@ -19,6 +19,8 @@ add_library(rtnet
 
     byteorder.cpp
     byteorder.hpp
+    slice.hpp
+    slice.cpp
 )
 
 target_include_directories(rtnet PRIVATE .)

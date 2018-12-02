@@ -8,28 +8,8 @@
 namespace shar::rtcp {
 
 Block::Block(std::uint8_t* data, std::size_t size) noexcept
-  : m_data(data)
-  , m_size(size)
+  : Slice(data, size)
   {}
-
-Block::Block(Block&& other) noexcept
-  : m_data(other.m_data)
-  , m_size(other.m_size) {
-  other.m_data = nullptr;
-  other.m_size = 0;
-}
-
-Block& Block::operator=(Block&& other) noexcept {
-  if (this != &other) {
-    m_data = other.m_data;
-    m_size = other.m_size;
-
-    other.m_data = nullptr;
-    other.m_size = 0;
-  }
-
-  return *this;
-}
 
 bool Block::valid() const noexcept {
   return m_data != nullptr && m_size >= Block::MIN_SIZE;
