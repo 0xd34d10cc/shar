@@ -32,8 +32,9 @@ public:
 
   bool valid() const noexcept;
 
-  // return pointer to start of SSRC/CSRC block.
-  std::uint8_t* ids() noexcept;
+  // return stream id by index
+  // the number of ids in this message is equal to nblocks()
+  std::uint32_t stream_id(std::size_t index) noexcept;
 
   bool has_reason() const noexcept;
   std::uint8_t* reason() noexcept;

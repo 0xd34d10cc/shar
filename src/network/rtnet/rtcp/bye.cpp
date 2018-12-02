@@ -1,6 +1,7 @@
 #include <cassert> // assert
 
 #include "bye.hpp"
+#include "byteorder.hpp"
 
 
 namespace shar::rtcp {
@@ -15,9 +16,9 @@ bool Bye::valid() const noexcept {
          packet_size() >= Header::MIN_SIZE + nblocks() * sizeof(std::uint32_t);
 }
 
-std::uint8_t* Bye::ids() noexcept {
+std::uint32_t Bye::stream_id(std::size_t index) noexcept {
   assert(valid());
-  return m_data + Header::MIN_SIZE;
+  return read_u32_big_endian(m_data + Header::MIN_SIZE + 4 * index);
 }
 
 bool Bye::has_reason() const noexcept {
