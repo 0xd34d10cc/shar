@@ -1,7 +1,7 @@
 #pragma once
 
 #include "header.hpp"
-#include "source_item.hpp"
+#include "source_items.hpp"
 
 
 namespace shar::rtcp {
@@ -37,7 +37,10 @@ public:
   SourceDescription& operator=(SourceDescription&&) noexcept = default;
   ~SourceDescription() = default;
 
-  SourceItem item() noexcept;
+  SourceItems items() noexcept;
+
+  // TODO
+  SourceItems next_items(const SourceItems& items) noexcept;
 };
 
 }

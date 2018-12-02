@@ -1,4 +1,12 @@
-add_executable(rtnettest rtp.cpp rtcp.cpp)
+add_executable(rtnettest 
+    rtp.cpp 
+
+    rtcp/sender_report.cpp
+    rtcp/receiver_report.cpp
+    rtcp/source_description.cpp
+    rtcp/bye.cpp
+    rtcp/app.cpp
+)
 
 target_include_directories(rtnettest
     PRIVATE ..
