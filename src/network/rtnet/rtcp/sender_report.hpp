@@ -45,18 +45,18 @@ namespace shar::rtcp {
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class SenderReport: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS + 5;
+  static const std::size_t NWORDS = Header::NWORDS + 6;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   // Create empty (invalid) sender report
   SenderReport() noexcept = default;
 
   // Create sender report from given data
-  // NOTE: |size| should be greater or equal to Header::MIN_SIZE + SenderReport::MIN_SIZE
+  // NOTE: |size| should be greater or equal to Base::MIN_SIZE + SenderReport::MIN_SIZE
   // NOTE: |data| should be 4-byte aligned
   // NOTE: ownership over |data| remains on the caller side
   //       it will not be deallocated on header destruction
-  // NOTE: |size| SHOULD be equal to (Header::length() + 1) * sizeof(std::uint32_t)
+  // NOTE: |size| SHOULD be equal to Base::packet_size()
   SenderReport(std::uint8_t* data, std::size_t size) noexcept;
   SenderReport(const SenderReport&) noexcept = default;
   SenderReport(SenderReport&&) noexcept = default;
@@ -68,6 +68,12 @@ public:
   // NOTE: if false is returned no methods except data() and size()
   //       should be called
   bool valid() const noexcept;
+
+  // SSRC: 32 bits
+  //  The synchronization source identifier for the 
+  //  originator of this packet.
+  std::uint32_t stream_id() const noexcept;
+  void set_stream_id(std::uint32_t stream_id) noexcept;
 
   // NTP timestamp: 64 bits
   //  Indicates the wallclock time when this report was

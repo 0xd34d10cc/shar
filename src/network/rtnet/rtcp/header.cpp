@@ -73,16 +73,16 @@ void Header::set_has_padding(bool has_padding) noexcept {
   }
 }
 
-std::uint8_t Header::reports_count() const noexcept {
+std::uint8_t Header::nblocks() const noexcept {
   assert(valid());
   return m_data[0] & 0b11111;
 }
 
-void Header::set_reports_count(std::uint8_t count) noexcept {
+void Header::set_nblocks(std::uint8_t nblocks) noexcept {
   assert(valid());
-  assert(count < 32);
+  assert(nblocks < 32);
   m_data[0] &= 0b11100000;
-  m_data[0] |= count;
+  m_data[0] |= nblocks;
 }
 
 std::uint8_t Header::packet_type() const noexcept {
@@ -109,17 +109,6 @@ void Header::set_length(std::uint16_t length) noexcept {
 std::size_t Header::packet_size() const noexcept {
   assert(valid());
   return (length() + 1) * sizeof(std::uint32_t);
-}
-
-std::uint32_t Header::stream_id() const noexcept {
-  assert(valid());
-  return read_u32_big_endian(&m_data[4]);
-}
-
-void Header::set_stream_id(std::uint32_t stream_id) noexcept {
-  assert(valid());
-  const auto bytes = to_big_endian(stream_id);
-  std::memcpy(&m_data[4], bytes.data(), bytes.size());
 }
 
 Header Header::next() noexcept {

@@ -9,7 +9,9 @@ namespace shar::rtcp {
 enum PacketType: std::uint8_t {
   SENDER_REPORT = 200,
   RECEIVER_REPORT = 201,
-  SOURCE_DESCRIPTION = 202
+  SOURCE_DESCRIPTION = 202,
+  BYE = 203,
+  APP = 204
 };
 
 // RTCP packet common header structure:
@@ -19,11 +21,9 @@ enum PacketType: std::uint8_t {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // | V |P|    RC   |      PT       |             length            |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-// |                         SSRC of sender                        |
-// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class Header {
 public:
-  static const std::size_t NWORDS = 2;
+  static const std::size_t NWORDS = 1;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   // Create empty (invalid) header
@@ -74,8 +74,8 @@ public:
   // report count (RC): 5 bits
   //  The number of report blocks contained in this packet.  A
   //  value of zero is valid.
-  std::uint8_t reports_count() const noexcept;
-  void set_reports_count(std::uint8_t count) noexcept;
+  std::uint8_t nblocks() const noexcept;
+  void set_nblocks(std::uint8_t nblocks) noexcept;
 
   // packet type (PT): 8 bits
   //  Contains the constant to identify this as an RTCP SR|RR packet.
@@ -94,12 +94,6 @@ public:
   // convenience function that returns (length() + 1) * sizeof(std::uint32_t)
   std::size_t packet_size() const noexcept;
 
-  // SSRC: 32 bits
-  //  The synchronization source identifier for the 
-  //  originator of this packet.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
-
   // returns next header
   // returns invalid header if this header is last
   Header next() noexcept;
@@ -108,5 +102,5 @@ protected:
   std::uint8_t* m_data{nullptr};
   std::size_t   m_size{0};
 };
-
 }
+

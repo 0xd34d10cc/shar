@@ -35,7 +35,7 @@ namespace shar::rtcp {
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class ReceiverReport: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS;
+  static const std::size_t NWORDS = Header::NWORDS + 1;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
 
   ReceiverReport() noexcept = default;
@@ -50,6 +50,12 @@ public:
   // NOTE: if false is returned no methods except data() and size()
   //       should be called
   bool valid() const noexcept;
+
+  // SSRC: 32 bits
+  //  The synchronization source identifier for the 
+  //  originator of this packet.
+  std::uint32_t stream_id() const noexcept;
+  void set_stream_id(std::uint32_t stream_id) noexcept;
 
   // return report block by index
   // see Block class for more info
