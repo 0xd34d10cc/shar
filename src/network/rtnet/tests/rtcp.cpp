@@ -259,6 +259,38 @@ TEST(rtcp_app, set_fields) {
   EXPECT_EQ(app.payload_size(), 4);
 }
 
+TEST(rtcp_app, deserialize) {
+  std::size_t size = 16;
+  const char* data = 
+      // header
+      "\x80\xcc\x00\x03"\
+      // stream id
+      "\x00\x00\x00\x42"\
+      // app name
+      "\xd3\x4d\x10\xcc"\
+      // app data
+      "\xab\xcd\xef\x01";
+
+  std::vector<std::uint8_t> buffer{
+    reinterpret_cast<const std::uint8_t*>(data),
+    reinterpret_cast<const std::uint8_t*>(data) + size
+  };
+
+  rtcp::App app{buffer.data(), buffer.size()};
+
+  EXPECT_TRUE(app.valid());
+  EXPECT_EQ(app.length(), 3);
+  EXPECT_EQ(app.packet_size(), size);
+  EXPECT_EQ(app.packet_type(), rtcp::PacketType::APP);
+  EXPECT_EQ(app.stream_id(), 0x42);
+  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0xd3, 0x4d, 0x10, 0xcc}));
+  EXPECT_EQ(app.payload_size(), 4);
+  EXPECT_EQ(app.payload()[0], 0xab);
+  EXPECT_EQ(app.payload()[1], 0xcd);
+  EXPECT_EQ(app.payload()[2], 0xef);
+  EXPECT_EQ(app.payload()[3], 0x01);
+}
+
 TEST(rtcp_bye, empty) {
   std::array<std::uint8_t, rtcp::Bye::MIN_SIZE> buffer{};
   rtcp::Bye bye{buffer.data(), buffer.size()};
