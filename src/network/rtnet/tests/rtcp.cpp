@@ -6,6 +6,8 @@
 #include "rtcp/header.hpp"
 #include "rtcp/receiver_report.hpp"
 #include "rtcp/sender_report.hpp"
+#include "rtcp/app.hpp"
+#include "rtcp/bye.hpp"
 
 
 using namespace shar;
@@ -221,4 +223,60 @@ TEST(rtcp_sender_report, deserialize) {
   EXPECT_EQ(report.npackets(), 36893);
   EXPECT_EQ(report.nbytes(), 34231170);
   EXPECT_FALSE(report.block().valid());
+}
+
+TEST(rtcp_app, empty) {
+  std::array<std::uint8_t, rtcp::App::MIN_SIZE> buffer{};
+  rtcp::App app{buffer.data(), buffer.size()};
+  app.set_packet_type(rtcp::PacketType::APP);
+  app.set_length(rtcp::App::NWORDS - 1);
+
+  EXPECT_TRUE(app.valid());
+  EXPECT_EQ(app.stream_id(), 0);
+  EXPECT_EQ(app.subtype(), 0);
+  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0, 0, 0, 0}));
+  EXPECT_EQ(app.payload_size(), 0);
+}
+
+TEST(rtcp_app, set_fields) {
+  std::array<std::uint8_t, rtcp::App::MIN_SIZE + 4> buffer{};
+  rtcp::App app{buffer.data(), buffer.size()};
+
+  app.set_version(2);
+  app.set_subtype(22);
+  app.set_packet_type(rtcp::PacketType::APP);
+  app.set_length(rtcp::App::NWORDS - 1 + 1);
+  app.set_stream_id(0xd34d10cc);
+  app.set_name({0xd3, 0x4d, 0x10, 0xcc});
+
+  EXPECT_TRUE(app.valid());
+  EXPECT_EQ(app.version(), 2);
+  EXPECT_EQ(app.subtype(), 22);
+  EXPECT_EQ(app.packet_type(), rtcp::PacketType::APP);
+  EXPECT_EQ(app.length(), rtcp::App::NWORDS - 1 + 1);
+  EXPECT_EQ(app.stream_id(), 0xd34d10cc);
+  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0xd3, 0x4d, 0x10, 0xcc}));
+  EXPECT_EQ(app.payload_size(), 4);
+}
+
+TEST(rtcp_bye, empty) {
+  std::array<std::uint8_t, rtcp::Bye::MIN_SIZE> buffer{};
+  rtcp::Bye bye{buffer.data(), buffer.size()};
+  bye.set_packet_type(rtcp::PacketType::BYE);
+  bye.set_length(rtcp::Bye::NWORDS - 1);
+
+  EXPECT_TRUE(bye.valid());
+  EXPECT_FALSE(bye.has_reason());
+}
+
+TEST(rtcp_bye, set_fields) {
+  std::array<std::uint8_t, rtcp::Bye::MIN_SIZE + 4> buffer{};
+  rtcp::Bye bye{buffer.data(), buffer.size()};
+  bye.set_packet_type(rtcp::PacketType::BYE);
+  bye.set_length(rtcp::Bye::NWORDS - 1 + 1);
+  bye.set_reason_len(3);
+
+  EXPECT_TRUE(bye.valid());
+  EXPECT_TRUE(bye.has_reason());
+  EXPECT_EQ(bye.reason_len(), 3);
 }

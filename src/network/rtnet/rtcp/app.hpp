@@ -35,6 +35,9 @@ public:
 
   bool valid() const noexcept;
 
+  // SSRC: 32 bits
+  //  The synchronization source identifier for the 
+  //  originator of this packet.
   std::uint32_t stream_id() const noexcept;
   void set_stream_id(std::uint32_t stream_id) noexcept;
 
