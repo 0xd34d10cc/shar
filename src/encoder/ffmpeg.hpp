@@ -11,10 +11,6 @@
 struct AVCodec;
 struct AVCodecContext;
 
-namespace {
-  class Options;
-}
-
 namespace shar::codecs::ffmpeg {
 
 class Codec {
@@ -32,6 +28,7 @@ public:
   std::vector<Packet> encode(const Frame& image);
 
 private:
+  class Options;
   AVCodecContext* make_context(const size_t kbits, AVCodec* codec, Size frame_size, std::size_t fps);
   void select_codec(const ConfigPtr& config, Options& opts, Size frame_size, std::size_t fps);
   int get_pts();
