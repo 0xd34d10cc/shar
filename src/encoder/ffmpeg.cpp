@@ -58,14 +58,12 @@ private:
 }
 
 namespace shar::codecs::ffmpeg {
-
-static AVCodecContext* make_context(const ConfigPtr& config, AVCodec* codec, Size frame_size, std::size_t fps) {
+AVCodecContext* Codec::make_context(const size_t kbits, AVCodec* codec, Size frame_size, std::size_t fps) {
 
   AVCodecContext* context = avcodec_alloc_context3(codec);
   assert(context);
 
   std::fill_n(reinterpret_cast<char*>(context), sizeof(AVCodecContext), 0);
-  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
   context->bit_rate = static_cast<int>(kbits * 1024);
   context->time_base.num = 1;
   context->time_base.den = static_cast<int>(fps);
@@ -81,16 +79,22 @@ static AVCodecContext* make_context(const ConfigPtr& config, AVCodec* codec, Siz
   return context;
 }
 
-static AVCodec* select_codec(Logger& logger,const ConfigPtr& config, Options* opts, Size frame_size, std::size_t fps){
+void Codec::select_codec(const ConfigPtr& config, Options& opts, Size frame_size, std::size_t fps) {
 
   const std::string codec_name = config->get<std::string>("codec", "");
+  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
-      logger.info("Using {} encoder from config", codec_name);
-      return codec;
+      m_logger.info("Using {} encoder from config", codec_name);
+      m_encoder = codec;
+      m_context = make_context(kbits, codec, frame_size, fps);
+      if (avcodec_open2(m_context, codec, &opts.get_ptr()) >= 0) {
+        m_logger.info("Using {} encoder", codec_name);
+        return;
+      }
     }
 
-    logger.warning("Encoder {} requested but not found", codec_name);
+    m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 5> codecs = {
@@ -104,23 +108,31 @@ static AVCodec* select_codec(Logger& logger,const ConfigPtr& config, Options* op
       "h264_omx"
   };
 
-  for (const char* name : codecs){
+  for (const char* name : codecs) {
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
 
-      auto* context = make_context(config, codec, frame_size, fps);
-      if (avcodec_open2(context, codec, &opts->get_ptr()) >= 0) {
-        logger.info("Using {} encoder", name);
-        return codec;
+      auto* context = make_context(kbits, codec, frame_size, fps);
+      if (avcodec_open2(context, codec, &opts.get_ptr()) >= 0) {
+        m_logger.info("Using {} encoder", name);
+        m_context = context;
+        m_encoder = codec;
+        return;
       }
       else {
+        avcodec_free_context(&context);
         avcodec_close(context);
       }
     }
   }
 
-  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
-  return avcodec_find_encoder(AV_CODEC_ID_H264);
+  m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
+  m_encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
+  m_context = make_context(kbits, m_encoder, frame_size, fps);
+  if (avcodec_open2(m_context, m_encoder, &opts.get_ptr()) >= 0) {
+    m_logger.info("Using {} encoder", codec_name);
+  }
 }
+
 
 Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
     : m_context(nullptr)
@@ -139,13 +151,8 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  m_encoder = select_codec(m_logger, config, &opts, frame_size, fps);
+  select_codec(config, opts, frame_size, fps);
   assert(m_encoder);
-
-  m_context = make_context(config, m_encoder, frame_size, fps);
-  if (avcodec_open2(m_context, m_encoder, &opts.get_ptr())<0) {
-    assert(false);
-  }
 
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
