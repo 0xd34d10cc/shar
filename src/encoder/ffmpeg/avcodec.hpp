@@ -28,6 +28,7 @@ public:
   AVCodecPtr() = default;
   AVCodecPtr(Logger& logger, const ConfigPtr& config, ContextPtr& context, Options& options, Size frame_size, std::size_t fps);
   ~AVCodecPtr() = default;
+  AVCodecPtr& operator=(const AVCodecPtr&) = default;
 
   AVCodec* get() const;
 
