@@ -13,7 +13,7 @@ extern "C" {
 #include "config.hpp"
 #include "network/packet.hpp"
 #include "capture/frame.hpp"
-#include "Options.hpp"
+#include "options.hpp"
 #include "avcontext.hpp"
 
 
@@ -25,12 +25,13 @@ namespace shar::codecs::ffmpeg {
 class AVCodecPtr {
 
 public:
-  AVCodecPtr();
+  AVCodecPtr() = default;
   AVCodecPtr(Logger& logger, const ConfigPtr& config, ContextPtr& context, Options& options, Size frame_size, std::size_t fps);
-  AVCodec* get_ptr() const;
-  ~AVCodecPtr();
+  ~AVCodecPtr() = default;
+
+  AVCodec* get() const;
 
 private:
-  AVCodec* m_encoder;
+  AVCodec* m_encoder{ nullptr };
 };
 }

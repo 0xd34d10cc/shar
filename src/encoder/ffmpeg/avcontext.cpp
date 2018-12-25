@@ -39,7 +39,7 @@ ContextPtr& ContextPtr::operator=(ContextPtr && rh)
   return *this;
 }
 
-AVCodecContext * ContextPtr::get_ptr()
+AVCodecContext * ContextPtr::get()
 {
   return m_context;
 }

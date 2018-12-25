@@ -26,7 +26,7 @@ public:
   ContextPtr operator=(const ContextPtr& rh) = delete;
   ContextPtr& operator=(ContextPtr&& rh);
 
-  AVCodecContext* get_ptr();
+  AVCodecContext* get();
   ~ContextPtr();
 private:
   AVCodecContext* m_context;

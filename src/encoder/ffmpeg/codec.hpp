@@ -10,7 +10,9 @@
 #include "avcodec.hpp"
 #include "avcontext.hpp"
 
+
 namespace shar::codecs::ffmpeg {
+
 class Codec {
 public:
   Codec(Size frame_size,
