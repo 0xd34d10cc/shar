@@ -27,7 +27,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  m_encoder = AVCodecPtr(m_logger, config, m_context, opts, frame_size, fps);
+  m_encoder = std::move(AVCodecPtr(m_logger, config, m_context, opts, frame_size, fps));
 
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
