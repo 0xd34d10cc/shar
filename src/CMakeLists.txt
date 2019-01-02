@@ -22,8 +22,6 @@ add_executable(shar
                encoder/convert.hpp
                encoder/ffmpeg/options.hpp
                encoder/ffmpeg/options.cpp
-               encoder/ffmpeg/avcodec.hpp
-               encoder/ffmpeg/avcodec.cpp
                encoder/ffmpeg/avcontext.hpp
                encoder/ffmpeg/avcontext.cpp
                encoder/ffmpeg/codec.hpp

@@ -27,7 +27,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  m_encoder = std::move(AVCodecPtr(m_logger, config, m_context, opts, frame_size, fps));
+  m_encoder = select_codec(m_logger, config, m_context, opts, frame_size, fps);
 
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
@@ -91,6 +91,58 @@ int Codec::get_pts() {
   return static_cast<int>(CLOCK_RATE / static_cast<unsigned int>(m_context.get()->time_base.den) * m_frame_counter++);
 }
 
-Codec::~Codec() {
+AVCodec * Codec::select_codec(Logger& logger
+  , const ConfigPtr& config
+  , ContextPtr& context
+  , Options& opts
+  , Size frame_size
+  , std::size_t fps) {
+
+  const std::string codec_name = config->get<std::string>("codec", "");
+  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
+
+  if (!codec_name.empty()) {
+    if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
+
+      logger.info("Using {} encoder from config", codec_name);
+      ContextPtr cont(kbits, codec, frame_size, fps);
+      if (avcodec_open2(cont.get(), codec, &opts.get_ptr()) >= 0) {
+        logger.info("Using {} encoder", codec_name);
+        context = std::move(cont);
+        return codec;
+      }
+    }
+
+    logger.warning("Encoder {} requested but not found", codec_name);
+  }
+
+  static std::array<const char*, 5> codecs = {
+      "h264_nvenc",
+      "h264_amf",
+      "h264_qsv",
+      // TODO: implement
+      //"h264_vaapi",
+      //"h264_v4l2m2m",
+      "h264_videotoolbox",
+      "h264_omx"
+  };
+
+  for (const char* name : codecs) {
+    if (auto* codec = avcodec_find_encoder_by_name(name)) {
+
+      ContextPtr cont(kbits, codec, frame_size, fps);
+      if (avcodec_open2(cont.get(), codec, &opts.get_ptr()) >= 0) {
+        logger.info("Using {} encoder", name);
+        context = std::move(cont);
+        return codec;
+      }
+    }
+  }
+
+  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
+  auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+  context = ContextPtr(kbits, codec, frame_size, fps);
+  return codec;
 }
+
 }

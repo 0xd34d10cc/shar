@@ -7,7 +7,7 @@
 #include "config.hpp"
 #include "network/packet.hpp"
 #include "capture/frame.hpp"
-#include "avcodec.hpp"
+#include "options.hpp"
 #include "avcontext.hpp"
 
 
@@ -23,15 +23,21 @@ public:
   Codec(Codec&&) = delete;
   Codec& operator=(const Codec&) = delete;
   Codec& operator=(Codec&&) = delete;
-  ~Codec();
+  ~Codec() = default;
 
   std::vector<Packet> encode(const Frame& image);
 
 private:
   int get_pts();
+  AVCodec* select_codec(Logger& logger
+    , const ConfigPtr& config
+    , ContextPtr& context
+    , Options& opts
+    , Size frame_size
+    , std::size_t fps);
 
   ContextPtr      m_context;
-  AVCodecPtr      m_encoder;
+  AVCodec*     m_encoder;
   Logger          m_logger;
   std::uint32_t   m_frame_counter;
 

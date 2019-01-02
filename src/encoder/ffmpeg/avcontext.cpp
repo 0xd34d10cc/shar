@@ -1,9 +1,10 @@
+#include <numeric>
+
 #include "avcontext.hpp"
+#include "network/packet.hpp"
+#include "capture/frame.hpp"
 
 namespace shar::codecs::ffmpeg {
-ContextPtr::ContextPtr() : m_context(nullptr)
-{
-}
 
 ContextPtr::ContextPtr(const size_t kbits, AVCodec * codec, Size frame_size, std::size_t fps) {
   m_context = avcodec_alloc_context3(codec);

@@ -9,14 +9,15 @@ extern "C" {
 #include "size.hpp"
 #include "logger.hpp"
 #include "config.hpp"
-#include "avcodec.hpp"
 
 struct AVCodecContext;
 
 namespace shar::codecs::ffmpeg {
+
 class ContextPtr {
+
 public:
-  ContextPtr();
+  ContextPtr() = default;
   ContextPtr(const size_t kbits
     , AVCodec* codec
     , Size frame_size
@@ -28,8 +29,10 @@ public:
 
   AVCodecContext* get();
   ~ContextPtr();
+
 private:
   AVCodecContext* m_context;
+
 };
 
 }
