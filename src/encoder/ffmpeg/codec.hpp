@@ -14,6 +14,7 @@
 namespace shar::codecs::ffmpeg {
 
 class Codec {
+
 public:
   Codec(Size frame_size,
     std::size_t fps,
@@ -42,4 +43,5 @@ private:
   std::uint32_t   m_frame_counter;
 
 };
+
 }

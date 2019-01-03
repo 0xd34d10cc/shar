@@ -1,6 +1,7 @@
 #include "options.hpp"
 
 namespace shar::codecs::ffmpeg {
+
 Options::~Options() {
   av_dict_free(&m_opts);
 }
@@ -27,4 +28,5 @@ std::string Options::to_string() {
   std::string opts{ buffer };
   return opts;
 }
+
 }
