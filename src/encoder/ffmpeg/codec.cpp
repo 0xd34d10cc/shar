@@ -145,7 +145,10 @@ AVCodec * Codec::select_codec(Logger& logger
   logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
   context = ContextPtr(kbits, codec, frame_size, fps);
-  return codec;
+  if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
+    return codec;
+  }
+  assert(false);
 }
 
 }
