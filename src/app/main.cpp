@@ -41,7 +41,6 @@ static CapturePtr create_capture(Context context) {
 static EncoderPtr create_encoder(Context context) {
   auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
   if (monitor_number >= sc::GetMonitors().size()) {
-    context.m_logger.warning("Selected monitor unavailable");
     std::string monitors_info;
     for (auto monitor : sc::GetMonitors()) {
       monitors_info += std::string(
@@ -50,7 +49,8 @@ static EncoderPtr create_encoder(Context context) {
         + std::to_string(monitor.Width) + "x"
         + std::to_string(monitor.Height) + '\n');
     }
-    throw std::runtime_error("Available monitors:\n" + monitors_info);
+    context.m_logger.info("Available monitors:\n"+monitors_info);
+    throw std::runtime_error("Selected "+std::to_string(monitor_number)+" monitor unavailable");
   }
   auto monitor = sc::GetMonitors()[monitor_number];
   auto width = context.m_config->get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
