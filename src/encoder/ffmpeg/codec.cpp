@@ -10,6 +10,7 @@ extern "C" {
 
 namespace shar::codecs::ffmpeg {
 
+// Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
 static const unsigned int CLOCK_RATE = 90000;
 
 Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
@@ -57,8 +58,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
   int ret = avcodec_send_frame(m_context.get(), frame);
   std::vector<Packet> packets;
-  bool flag = ret == 0;
-  assert(flag);
+  assert(ret==0);
 
   if (ret == 0) {
 
@@ -146,9 +146,9 @@ AVCodec * Codec::select_codec(Logger& logger
   auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
   context = ContextPtr(kbits, codec, frame_size, fps);
   if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-    return codec;
+   return codec;
   }
-  assert(false);
+  throw std::runtime_error("Codec not opened");
 }
 
 }

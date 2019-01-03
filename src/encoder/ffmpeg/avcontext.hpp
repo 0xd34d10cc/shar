@@ -10,8 +10,6 @@ extern "C" {
 #include "logger.hpp"
 #include "config.hpp"
 
-struct AVCodecContext;
-
 namespace shar::codecs::ffmpeg {
 
 class ContextPtr {
