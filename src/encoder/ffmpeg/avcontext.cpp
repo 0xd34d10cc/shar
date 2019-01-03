@@ -44,10 +44,11 @@ AVCodecContext * ContextPtr::get() {
   return m_context;
 }
 
-ContextPtr::~ContextPtr(){
-
-  avcodec_free_context(&m_context);
-  avcodec_close(m_context);
+ContextPtr::~ContextPtr() {
+  if (m_context != nullptr) {
+    avcodec_free_context(&m_context);
+    avcodec_close(m_context);
+  }
 }
 
 }
