@@ -12,9 +12,21 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 if (WIN32)
     set(SC_PLATFORM_LIBS Dwmapi)
 elseif (APPLE)
-    find_library(corefoundation_lib CoreFoundation)
-    find_library(cocoa_lib Cocoa)
-    set(SC_PLATFORM_LIBS ${corefoundation_lib} ${cocoa_lib})
+    find_package(Threads REQUIRED)
+    find_library(corefoundation_lib CoreFoundation REQUIRED)
+    find_library(cocoa_lib Cocoa REQUIRED)
+    find_library(coremedia_lib CoreMedia REQUIRED)
+    find_library(avfoundation_lib AVFoundation REQUIRED)
+    find_library(coregraphics_lib CoreGraphics REQUIRED)
+    find_library(corevideo_lib CoreVideo REQUIRED)
+    
+    set(SC_PLATFORM_LIBS 
+            ${corefoundation_lib}
+            ${cocoa_lib}
+            ${coremedia_lib}
+            ${avfoundation_lib}
+            ${coregraphics_lib}
+            ${corevideo_lib})
 else ()
     find_package(X11 REQUIRED)
     if (!X11_XTest_FOUND)
