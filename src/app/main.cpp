@@ -38,13 +38,12 @@ static CapturePtr create_capture(Context context) {
   return std::make_shared<Capture>(std::move(context), interval, monitor);  
 }
 
-static sc::Monitor get_monitor(Context context) {
-  auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
-  return sc::GetMonitors()[monitor_number];
-}
-
 static EncoderPtr create_encoder(Context context) {
-  auto monitor = get_monitor(context);
+  auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
+  if (monitor_number >= sc::GetMonitors().size()) {
+    monitor_number = 0;
+  }
+  auto monitor = sc::GetMonitors()[monitor_number];
   auto width   = context.m_config->get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   auto height  = context.m_config->get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
   shar::Size frame_size {height, width};
