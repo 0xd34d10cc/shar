@@ -28,6 +28,8 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
   }
 
   m_encoder = select_codec(m_logger, config, m_context, opts, frame_size, fps);
+  assert(m_context.get());
+  assert(m_encoder);
 
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
@@ -55,8 +57,9 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
   int ret = avcodec_send_frame(m_context.get(), frame);
   std::vector<Packet> packets;
+  bool flag = ret == 0;
+  assert(flag);
 
-  assert(ret == 0);
   if (ret == 0) {
 
     AVPacket packet;

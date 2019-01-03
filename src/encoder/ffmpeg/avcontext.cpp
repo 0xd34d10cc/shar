@@ -22,7 +22,6 @@ ContextPtr::ContextPtr(const size_t kbits, AVCodec * codec, Size frame_size, std
   std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
   m_context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
   m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
-
 }
 
 ContextPtr::ContextPtr(ContextPtr && context) : m_context(context.m_context) {
