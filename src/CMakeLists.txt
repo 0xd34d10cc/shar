@@ -20,8 +20,12 @@ add_executable(shar
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp
-               encoder/ffmpeg.cpp
-               encoder/ffmpeg.hpp
+               encoder/ffmpeg/options.hpp
+               encoder/ffmpeg/options.cpp
+               encoder/ffmpeg/avcontext.hpp
+               encoder/ffmpeg/avcontext.cpp
+               encoder/ffmpeg/codec.hpp
+               encoder/ffmpeg/codec.cpp
                encoder/encoder.cpp
                encoder/encoder.hpp
                # capture subsystem

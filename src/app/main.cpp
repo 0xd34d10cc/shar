@@ -10,7 +10,7 @@
 #include "signal_handler.hpp"
 #include "channel.hpp"
 
-#include "context.hpp"
+#include "encoder/ffmpeg/codec.hpp"
 #include "capture/capture.hpp"
 #include "encoder/encoder.hpp"
 #include "network/network.hpp"
