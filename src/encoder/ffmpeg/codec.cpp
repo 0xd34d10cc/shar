@@ -58,8 +58,8 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 
   int ret = avcodec_send_frame(m_context.get(), frame);
   std::vector<Packet> packets;
-  assert(ret==0);
 
+  assert(ret==0);
   if (ret == 0) {
 
     AVPacket packet;
