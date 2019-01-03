@@ -39,10 +39,12 @@ static CapturePtr create_capture(Context context) {
 }
 
 static EncoderPtr create_encoder(Context context) {
+
   auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
-  if (monitor_number >= sc::GetMonitors().size()) {
+  auto monitors = sc::GetMonitors();
+  if (monitor_number >= monitors.size()) {
     std::string monitors_info;
-    for (auto monitor : sc::GetMonitors()) {
+    for (auto monitor : monitors) {
       monitors_info += std::string(
         std::to_string(monitor.Index) + " "
         + monitor.Name
@@ -52,7 +54,7 @@ static EncoderPtr create_encoder(Context context) {
     context.m_logger.info("Available monitors:\n"+monitors_info);
     throw std::runtime_error("Selected "+std::to_string(monitor_number)+" monitor unavailable");
   }
-  auto monitor = sc::GetMonitors()[monitor_number];
+  auto monitor = monitors[monitor_number];
   auto width = context.m_config->get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   auto height = context.m_config->get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
   shar::Size frame_size{ height, width };
