@@ -37,10 +37,9 @@ public:
   SourceDescription& operator=(SourceDescription&&) noexcept = default;
   ~SourceDescription() = default;
 
-  SourceItems items() noexcept;
+  bool valid() const noexcept;
 
-  // TODO
-  SourceItems next_items(const SourceItems& items) noexcept;
+  SourceItems items() noexcept;
 };
 
 }

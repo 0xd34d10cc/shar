@@ -32,9 +32,10 @@ SourceItems::Item SourceItems::next() noexcept {
   assert(valid());
   Item item{m_data + m_position, m_size - m_position};
 
+  // move to next item
   // TODO: deal with malformed input
   if (item.type() != ItemType::END) {
-    m_position += item.length() + 2;
+    m_position += item.length() + 2; // type + length bytes
   }
 
   return item;
