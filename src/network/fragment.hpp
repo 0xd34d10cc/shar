@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include <cstdint> // std::uint*_t
+#include <cstdlib> // std::size_t
 
 
 namespace shar {
