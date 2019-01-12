@@ -15,6 +15,9 @@ target_include_directories(network
     PUBLIC ../common
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
+    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
+    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/core/include"
 )
 
 target_link_libraries(network
