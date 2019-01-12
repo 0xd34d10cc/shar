@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+
 # platfor specific libraries for screen_capture_lite
 if (WIN32)
     set(SC_PLATFORM_LIBS Dwmapi)
@@ -77,7 +78,7 @@ set(SHAR_COMPILE_OPTIONS ${ENABLED_WARNINGS})
 
 if(NOT CMAKE_BUILD_TYPE)
     message("-- CMAKE_BUILD_TYPE was not set")
-   set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
