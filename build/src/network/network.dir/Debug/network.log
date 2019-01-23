@@ -1,0 +1,8 @@
+﻿  Building Custom Rule C:/git/shar/src/network/CMakeLists.txt
+  CMake does not need to re-run because C:/git/shar/build/src/network/CMakeFiles/generate.stamp is up-to-date.
+  network.cpp
+  packet.cpp
+  packetizer.cpp
+  fragment.cpp
+  Generating Code...
+  network.vcxproj -> C:\git\shar\build\lib\network.lib

@@ -1,3 +1,5 @@
+add_subdirectory(network)
+
 add_executable(shar
                # application-level code               
                app/main.cpp
@@ -20,8 +22,12 @@ add_executable(shar
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp
-               encoder/ffmpeg.cpp
-               encoder/ffmpeg.hpp
+               encoder/ffmpeg/options.hpp
+               encoder/ffmpeg/options.cpp
+               encoder/ffmpeg/avcontext.hpp
+               encoder/ffmpeg/avcontext.cpp
+               encoder/ffmpeg/codec.hpp
+               encoder/ffmpeg/codec.cpp
                encoder/encoder.cpp
                encoder/encoder.hpp
                # capture subsystem
@@ -29,11 +35,6 @@ add_executable(shar
                capture/capture.hpp
                capture/frame.cpp
                capture/frame.hpp
-               # network subsystem
-               network/network.cpp
-               network/network.hpp
-               network/packet.cpp
-               network/packet.hpp
                )
 
 target_include_directories(shar
@@ -49,6 +50,7 @@ target_include_directories(shar
                            )
 
 target_link_libraries(shar
+                      network
                       ${SC_PLATFORM_LIBS}
                       ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${CONAN_LIBS_FFMPEG}
@@ -75,4 +77,3 @@ IF (NOT WIN32)
       set_property(TARGET shar PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
     endif ()
 endif ()
-

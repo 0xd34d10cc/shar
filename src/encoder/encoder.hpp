@@ -6,7 +6,7 @@
 #include "network/packet.hpp"
 #include "size.hpp"
 #include "capture/frame.hpp"
-#include "ffmpeg.hpp"
+#include "ffmpeg/codec.hpp"
 #include "app/counter.hpp"
 #include "channel.hpp"
 
