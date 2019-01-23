@@ -50,9 +50,10 @@ class Shar(ConanFile):
                        "boost/1.67.0@conan/stable",
                        "ffmpeg/4.0@0xd34d10cc/testing",
                        "spdlog/0.17.0@bincrafters/stable",
-                       "prometheus-cpp/0.6.0@d34dpkgs/testing")
+                       "prometheus-cpp/0.6.0@d34dpkgs/testing",
+                       "gtest/1.8.1@bincrafters/stable")
 
-    generators      = "cmake",  "gcc",  "txt"
+    generators      = "cmake"
 
     default_options = BOOST_OPTIONS +\
                       ("boost:shared    = False",
