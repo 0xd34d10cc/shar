@@ -42,7 +42,7 @@ static sc::Monitor select_monitor(Context& context) {
   return monitors[monitor_number];
 }
 
-static CapturePtr create_capture(Context context, sc::Monitor& monitor) {
+static CapturePtr create_capture(Context context, const sc::Monitor& monitor) {
 
   using namespace std::chrono_literals;
   const auto fps = context.m_config->get<std::size_t>("fps", 30);
@@ -55,7 +55,7 @@ static CapturePtr create_capture(Context context, sc::Monitor& monitor) {
   return std::make_shared<Capture>(std::move(context), interval, monitor);
 }
 
-static EncoderPtr create_encoder(Context context, sc::Monitor& monitor) {
+static EncoderPtr create_encoder(Context context, const sc::Monitor& monitor) {
 
   auto width = context.m_config->get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   auto height = context.m_config->get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
@@ -93,7 +93,7 @@ static Context make_context() {
 static int run() {
   auto context = make_context();
   auto exposer = create_exposer(context);
-  auto& monitor = select_monitor(context);
+  const auto& monitor = select_monitor(context);
   auto capture = create_capture(context, monitor);
   auto encoder = create_encoder(context, monitor);
   auto network = create_network(context);
