@@ -24,8 +24,25 @@ using CapturePtr = std::shared_ptr<Capture>;
 using EncoderPtr = std::shared_ptr<Encoder>;
 using NetworkPtr = std::shared_ptr<Network>;
 
-static CapturePtr create_capture(Context context) {
-  auto monitor = sc::GetMonitors().front();
+static sc::Monitor select_monitor(Context& context) {
+  auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
+  auto monitors = sc::GetMonitors();
+  if (monitor_number >= monitors.size()) {
+    std::string monitors_info;
+    for (auto& monitor : monitors) {
+      monitors_info += std::string(
+        std::to_string(monitor.Index) + " "
+        + monitor.Name
+        + std::to_string(monitor.Width) + "x"
+        + std::to_string(monitor.Height) + '\n');
+    }
+    context.m_logger.info("Available monitors:\n" + monitors_info);
+    throw std::runtime_error("Selected " + std::to_string(monitor_number) + " monitor unavailable");
+  }
+  return monitors[monitor_number];
+}
+
+static CapturePtr create_capture(Context context, sc::Monitor& monitor) {
 
   using namespace std::chrono_literals;
   const auto fps = context.m_config->get<std::size_t>("fps", 30);
@@ -38,23 +55,8 @@ static CapturePtr create_capture(Context context) {
   return std::make_shared<Capture>(std::move(context), interval, monitor);
 }
 
-static EncoderPtr create_encoder(Context context) {
+static EncoderPtr create_encoder(Context context, sc::Monitor& monitor) {
 
-  auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
-  auto monitors = sc::GetMonitors();
-  if (monitor_number >= monitors.size()) {
-    std::string monitors_info;
-    for (auto& monitor : monitors) {
-      monitors_info += std::string(
-        std::to_string(monitor.Index) + " "
-        + monitor.Name
-        + std::to_string(monitor.Width) + "x"
-        + std::to_string(monitor.Height) + '\n');
-    }
-    context.m_logger.info("Available monitors:\n"+monitors_info);
-    throw std::runtime_error("Selected "+std::to_string(monitor_number)+" monitor unavailable");
-  }
-  auto& monitor = monitors[monitor_number];
   auto width = context.m_config->get<std::size_t>("width", static_cast<std::size_t>(monitor.Width));
   auto height = context.m_config->get<std::size_t>("height", static_cast<std::size_t>(monitor.Height));
   shar::Size frame_size{ height, width };
@@ -91,8 +93,9 @@ static Context make_context() {
 static int run() {
   auto context = make_context();
   auto exposer = create_exposer(context);
-  auto capture = create_capture(context);
-  auto encoder = create_encoder(context);
+  auto& monitor = select_monitor(context);
+  auto capture = create_capture(context, monitor);
+  auto encoder = create_encoder(context, monitor);
   auto network = create_network(context);
   context.m_metrics->register_on(exposer);
 

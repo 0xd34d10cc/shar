@@ -72,7 +72,7 @@ static AVCodec* select_codec(Logger& logger, const ConfigPtr& config){
 
   static std::array<const char*, 5> codecs = {
       "h264_nvenc",
-      "h264_amf",
+      //"h264_amf",
       "h264_qsv",
       // TODO: implement
       //"h264_vaapi",
