@@ -92,8 +92,8 @@ static Context make_context() {
 
 static int run() {
   auto context = make_context();
+  auto monitor = select_monitor(context);
   auto exposer = create_exposer(context);
-  const auto& monitor = select_monitor(context);
   auto capture = create_capture(context, monitor);
   auto encoder = create_encoder(context, monitor);
   auto network = create_network(context);
