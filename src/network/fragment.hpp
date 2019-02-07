@@ -44,6 +44,7 @@ public:
   std::uint8_t* data() const noexcept;
   std::size_t size() const noexcept;
   bool valid() const noexcept;
+  operator bool() const noexcept;
 
   // indicator - returns fragment indicator
   // Fragment indicator has following fields:
