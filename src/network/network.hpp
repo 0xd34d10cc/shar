@@ -9,13 +9,14 @@
 
 #include "packet.hpp"
 #include "channel.hpp"
+#include "packetizer.hpp"
 
 
 namespace shar {
 
 class Network:  protected Context {
 public:
-    using Endpoint = boost::asio::ip::tcp::endpoint;
+    using Endpoint = boost::asio::ip::udp::endpoint;
     using IpAddress = boost::asio::ip::address;
     using ErrorCode = boost::system::error_code;
     using Port = const std::uint16_t;
@@ -32,35 +33,22 @@ public:
 
 private:
     void set_packet(Packet packet);
-    void schedule();
-    void connect();
-    void send_length();
-    void send_content();
+    void send();
 
-    using Socket = boost::asio::ip::tcp::socket;
+    using Socket = boost::asio::ip::udp::socket;
     using IOContext = boost::asio::io_context;
-    using Timer = boost::asio::deadline_timer;
 
     std::atomic<bool> m_running;
 
-    IpAddress m_ip;
-    Port      m_port;
+    Endpoint  m_endpoint;
     IOContext m_context;
     Socket    m_socket;
-    Timer     m_timer;
 
-    Packet    m_current_packet;
+    Packet     m_current_packet;
+    Packetizer m_packetizer;
 
-    enum class State {
-        Disconnected,
-        SendingLength,
-        SendingContent
-    };
-    State     m_state;
-
-    using U32LE = std::array<std::uint8_t, 4>;
-    U32LE m_length;
-    std::size_t m_bytes_sent;
+    std::uint16_t  m_sequence;
+    std::size_t    m_bytes_sent;
 };
 
 }

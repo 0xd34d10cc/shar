@@ -5,6 +5,6 @@
 
 namespace shar {
 
-static const std::uint16_t SERVER_DEFAULT_PORT = 1337;
+static const std::uint16_t SERVER_DEFAULT_PORT = 1336;
 
 }

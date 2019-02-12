@@ -22,6 +22,10 @@ bool Fragment::valid() const noexcept {
   return m_data != nullptr && m_size >= MIN_SIZE;
 }
 
+Fragment::operator bool() const noexcept {
+  return valid();
+}
+
 std::uint8_t Fragment::indicator() const noexcept {
   assert(valid());
   return m_data[0];

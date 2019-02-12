@@ -10,9 +10,10 @@ Packet::Packet(void* data, std::size_t size)
     : m_bytes(static_cast<std::uint8_t*>(data))
     , m_size(size) {}
 
-Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, Type type)
+Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, std::uint32_t timestamp, Type type)
     : m_bytes(std::move(data))
     , m_size(size)
+    , m_timestamp(timestamp)
     , m_type(type) {}
 
 Packet::Packet(Packet&& from) noexcept
@@ -49,6 +50,10 @@ std::uint8_t* Packet::data() {
 
 std::size_t Packet::size() const {
   return m_size;
+}
+
+std::uint32_t Packet::timestamp() const {
+  return m_timestamp;
 }
 
 Packet::Type Packet::type() const {

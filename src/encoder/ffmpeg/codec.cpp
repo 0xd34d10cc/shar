@@ -54,7 +54,8 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
   frame->linesize[0] = static_cast<int>(image.width());
   frame->linesize[1] = static_cast<int>(image.width() / 2);
   frame->linesize[2] = static_cast<int>(image.width() / 2);
-  frame->pts = get_pts();
+  int pts = get_pts();
+  frame->pts = pts;
 
   int ret = avcodec_send_frame(m_context.get(), frame);
   std::vector<Packet> packets;
@@ -69,12 +70,13 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
     while (ret != AVERROR(EAGAIN)) {
       auto size = static_cast<std::size_t>(packet.size);
       auto data = std::make_unique<std::uint8_t[]>(size);
+
       std::copy(packet.data, packet.data + size, data.get());
 
       const bool is_IDR = (packet.flags & AV_PKT_FLAG_KEY) != 0;
       const auto type = is_IDR ? Packet::Type::IDR : Packet::Type::Unknown;
 
-      packets.emplace_back(std::move(data), size, type);
+      packets.emplace_back(std::move(data), size, static_cast<std::uint32_t>(pts), type);
 
       // reset packet
       // NOTE: according to docs avcodec_receive_packet should call av_packet_unref

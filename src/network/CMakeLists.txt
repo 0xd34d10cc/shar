@@ -23,6 +23,7 @@ target_include_directories(network
 target_link_libraries(network
     ${CONAN_LIBS_BOOST}
     ${CONAN_LIBS_FMT}
+	rtnet
 )
 
 target_compile_definitions(network
