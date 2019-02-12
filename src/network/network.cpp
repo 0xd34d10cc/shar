@@ -39,6 +39,7 @@ void Network::run(Receiver<Packet> packets) {
 
       send();
       m_context.run();
+      std::this_thread::sleep_for(std::chrono::microseconds(50));
     }
 
     shutdown();
@@ -53,7 +54,6 @@ void Network::set_packet(Packet packet) {
     m_current_packet = std::move(packet);
     m_packetizer.set(m_current_packet.data(),m_current_packet.size());
 
-    const auto size = m_current_packet.size();
     m_bytes_sent = 0;
 }
 
