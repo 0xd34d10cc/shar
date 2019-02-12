@@ -81,7 +81,6 @@ void Network::send() {
       m_logger.error("Something happened when we sent packet: {}", ec.message());
     }
 
-    m_logger.info("Fragment length = {}", fragment.size());
   }
 
 }
