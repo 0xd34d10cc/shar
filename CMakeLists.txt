@@ -64,6 +64,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-exit-time-destructors
         -Wno-unused-command-line-argument # because ccache
         -Wno-undefined-func-template # false positives
+        -Wno-weak-vtables
         ) 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
