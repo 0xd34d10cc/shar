@@ -28,7 +28,7 @@ public:
   Network& operator=(const Network&) = delete;
   Network& operator=(Network&&) = delete;
   Network(Network&&) = delete;
-  ~Network() = default;
+  ~Network() override = default;
 
   void run(Receiver<Packet> packets) override;
   void shutdown() override;
