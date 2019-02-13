@@ -98,7 +98,7 @@ Url Url::from_string(const std::string& str) {
   return Url(protocol, host, port);
 }
 
-const char* to_str(Protocol protocol) {
+static const char* to_str(Protocol protocol) {
   switch (protocol) {
     case Protocol::TCP:
       return "tcp";
