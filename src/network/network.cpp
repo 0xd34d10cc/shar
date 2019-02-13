@@ -11,7 +11,6 @@ std::unique_ptr<INetworkModule> create_module(Context context, Url url) {
     case Protocol::RTP:
       return std::make_unique<rtp::Network>(std::move(context), url.host(), url.port());
     case Protocol::RTSP:
-    default:
       throw std::runtime_error("Unsupported protocol");
   }
 }
