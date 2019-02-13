@@ -43,7 +43,7 @@ matrix:
     ##########################################################################
 
     # Clang 7.0
-    - env: COMPILER=clang++-7 BUILD_TYPE=Debug
+    - env: COMPILER=clang++-7 BUILD_TYPE=Debug COMPILER_VERSION=7
       addons: &clang70
         apt:
           packages:
@@ -53,7 +53,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: COMPILER=clang++-7 BUILD_TYPE=Release
+    - env: COMPILER=clang++-7 BUILD_TYPE=Release COMPILER_VERSION=7
       addons: *clang70
 
     ##########################################################################
@@ -61,14 +61,14 @@ matrix:
     ##########################################################################
 
     # GCC 7
-    - env: COMPILER=g++-7 BUILD_TYPE=Debug
+    - env: COMPILER=g++-7 BUILD_TYPE=Debug COMPILER_VERSION=7
       addons: &gcc7
         apt:
           packages: g++-7
           sources:
             - ubuntu-toolchain-r-test
 
-    - env: COMPILER=g++-7 BUILD_TYPE=Release
+    - env: COMPILER=g++-7 BUILD_TYPE=Release COMPILER_VERSION=7
       addons: *gcc7
 
 install:
@@ -105,11 +105,6 @@ install:
     LLVM_INSTALL=${DEPS_DIR}/llvm/install
     # if in linux and compiler clang and llvm not installed
     if [[ "${TRAVIS_OS_NAME}" == "linux" && "${CXX%%+*}" == "clang" && -n "$(ls -A ${LLVM_INSTALL})" ]]; then
-      if   [[ "${CXX}" == "clang++-3.6" ]]; then LLVM_VERSION="3.6.2";
-      elif [[ "${CXX}" == "clang++-3.7" ]]; then LLVM_VERSION="3.7.1";
-      elif [[ "${CXX}" == "clang++-3.8" ]]; then LLVM_VERSION="3.8.1";
-      elif [[ "${CXX}" == "clang++-3.9" ]]; then LLVM_VERSION="3.9.1";
-      fi
       LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
       LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
       LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
@@ -135,7 +130,7 @@ before_script:
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   # build dependencies
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=libc++ .. 
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler=$CXX -s compiler.version=$COMPILER_VERSION -s compiler.libcxx=libc++ .. 
   - mkdir build && cd build
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
