@@ -1,15 +1,12 @@
 {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
-    "host": "127.0.0.1",
+  "fps": 30,
+  "url": "rtp://127.0.0.1:1336",
 
   "encoder": {
-    "bitrate": 11000,
+    "bitrate": 5000,
     "options": {
       "preset": "medium",
-      "tune": "film",
-      "crf": "16"
+      "tune": "zerolatency"
     }
   },
   "metrics": "127.0.0.1:3228"

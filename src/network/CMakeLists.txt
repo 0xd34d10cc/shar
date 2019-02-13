@@ -7,6 +7,13 @@ add_library(network
     packetizer.cpp
     fragment.hpp
     fragment.cpp
+    url.hpp
+    url.cpp
+    module.hpp
+    tcp.hpp
+    tcp.cpp
+    rtp.hpp
+    rtp.cpp
 )
 
 target_include_directories(network

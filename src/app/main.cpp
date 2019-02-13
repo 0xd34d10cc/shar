@@ -10,11 +10,13 @@
 #include "signal_handler.hpp"
 #include "channel.hpp"
 
+#include "network/url.hpp"
 #include "encoder/ffmpeg/codec.hpp"
 #include "capture/capture.hpp"
 #include "encoder/encoder.hpp"
 #include "network/network.hpp"
 #include "network/consts.hpp"
+
 
 namespace sc = SL::Screen_Capture;
 namespace ip = boost::asio::ip;
@@ -22,7 +24,7 @@ using namespace shar;
 
 using CapturePtr = std::shared_ptr<Capture>;
 using EncoderPtr = std::shared_ptr<Encoder>;
-using NetworkPtr = std::shared_ptr<Network>;
+using NetworkPtr = std::shared_ptr<INetworkModule>;
 
 static sc::Monitor select_monitor(Context& context) {
   auto monitor_number = context.m_config->get<std::size_t>("monitor", 0);
@@ -67,14 +69,11 @@ static EncoderPtr create_encoder(Context context, const sc::Monitor& monitor) {
 }
 
 static NetworkPtr create_network(Context context) {
-  const auto ip_str = context.m_config->get<std::string>("host", "127.0.0.1");
-  auto  ip = ip::address::from_string(ip_str);
-  const auto port = context.m_config->get<std::uint16_t>("port", shar::SERVER_DEFAULT_PORT);
+  const auto url_str = context.m_config->get<std::string>("url", "tcp://127.0.0.1:4444");
+  const auto url = Url::from_string(url_str);
 
-  context.m_logger.info("IP: {}", ip_str);
-  return std::make_shared<Network>(std::move(context),
-    std::move(ip),
-    port);
+  context.m_logger.info("Streaming to: {}", url.to_string());
+  return create_module(std::move(context), std::move(url));
 }
 
 static prometheus::Exposer create_exposer(Context& context) {
