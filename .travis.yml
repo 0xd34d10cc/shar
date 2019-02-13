@@ -9,13 +9,13 @@ compiler:
   - clang
 
 os: linux
-addons: &clang6
+addons: &clang70
   apt:
     packages:
-      - clang-6.0
+      - clang-7.0
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-6.0
+      - llvm-toolchain-trusty-7.0
 
 env:
   global:
