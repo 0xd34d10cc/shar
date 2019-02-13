@@ -8,6 +8,8 @@ namespace shar {
 
 class INetworkModule {
 public:
+  virtual ~INetworkModule() {}
+
   virtual void run(Receiver<Packet> packets) = 0;
   virtual void shutdown() = 0;
 };
