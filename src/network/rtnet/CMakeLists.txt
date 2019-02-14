@@ -31,6 +31,4 @@ target_include_directories(rtnet PRIVATE . ../../utils)
 target_include_directories(rtnet PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST})
 target_link_libraries(rtnet ${CONAN_LIBS_BOOST})
 
-
-enable_testing()
 add_subdirectory(tests)

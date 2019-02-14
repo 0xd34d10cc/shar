@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include "disable_warnings_pop.hpp"
 
-
 #include "packetizer.hpp"
 
 
@@ -23,7 +22,7 @@ TEST(packetizer, small_units) {
   auto fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 3);
-  
+
   EXPECT_EQ(fragment.nri(), 0);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -38,7 +37,7 @@ TEST(packetizer, small_units) {
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 2);
-  
+
   EXPECT_EQ(fragment.nri(), 0);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -52,7 +51,7 @@ TEST(packetizer, small_units) {
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 10);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -63,7 +62,7 @@ TEST(packetizer, small_units) {
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 2);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -75,7 +74,7 @@ TEST(packetizer, small_units) {
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 5);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -86,20 +85,20 @@ TEST(packetizer, small_units) {
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
   EXPECT_EQ(fragment.size(), 2);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
   EXPECT_FALSE(fragment.is_first());
   EXPECT_TRUE(fragment.is_last());
   EXPECT_EQ(fragment.nal_type(), 8);
-  
+
   // no more data
   fragment = packetizer.next();
   ASSERT_FALSE(fragment.valid());
 
   fragment = packetizer.next();
-  ASSERT_FALSE(fragment.valid());  
+  ASSERT_FALSE(fragment.valid());
 }
 
 TEST(packetizer, big_units) {
@@ -115,7 +114,7 @@ TEST(packetizer, big_units) {
   ASSERT_TRUE(fragment.valid());
 
   EXPECT_EQ(fragment.size(), 6);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
@@ -134,7 +133,7 @@ TEST(packetizer, big_units) {
   ASSERT_TRUE(fragment.valid());
 
   EXPECT_EQ(fragment.size(), 6);
-  
+
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
 
