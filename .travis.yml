@@ -43,7 +43,7 @@ matrix:
     ##########################################################################
 
     # Clang 7.0
-    - env: COMPILER=clang++-7 BUILD_TYPE=Debug COMPILER_VERSION=7
+    - env: COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libc++
       addons: &clang70
         apt:
           packages:
@@ -53,7 +53,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: COMPILER=clang++-7 BUILD_TYPE=Release COMPILER_VERSION=7
+    - env: COMPILER=clang++-7 BUILD_TYPE=Release CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libc++
       addons: *clang70
 
     ##########################################################################
@@ -61,14 +61,14 @@ matrix:
     ##########################################################################
 
     # GCC 7
-    - env: COMPILER=g++-7 BUILD_TYPE=Debug COMPILER_VERSION=7
+    - env: COMPILER=g++-7 BUILD_TYPE=Debug CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
       addons: &gcc7
         apt:
           packages: g++-7
           sources:
             - ubuntu-toolchain-r-test
 
-    - env: COMPILER=g++-7 BUILD_TYPE=Release COMPILER_VERSION=7
+    - env: COMPILER=g++-7 BUILD_TYPE=Release CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
       addons: *gcc7
 
 install:
@@ -130,7 +130,7 @@ before_script:
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   # build dependencies
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler=$CXX -s compiler.version=$COMPILER_VERSION -s compiler.libcxx=libc++ .. 
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler=$CONAN_COMPILER -s compiler.version=$CONAN_COMPILER_VERSION -s compiler.libcxx=$CONAN_STDLIB .. 
   - mkdir build && cd build
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
