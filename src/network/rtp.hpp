@@ -15,9 +15,10 @@
 
 namespace shar::rtp {
 
-class Network:
-  public INetworkModule, 
-  protected Context {
+class Network
+  : public INetworkModule
+  , protected Context
+{
 public:
     using Endpoint = boost::asio::ip::udp::endpoint;
     using IpAddress = boost::asio::ip::address;

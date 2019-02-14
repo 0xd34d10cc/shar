@@ -14,9 +14,10 @@
 
 namespace shar::tcp {
 
-class Network:
-  public INetworkModule,
-  protected Context {
+class Network
+  : public INetworkModule
+  , protected Context
+{
 public:
   using Endpoint = boost::asio::ip::tcp::endpoint;
   using IpAddress = boost::asio::ip::address;
