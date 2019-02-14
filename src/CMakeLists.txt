@@ -1,13 +1,13 @@
 add_subdirectory(network)
 
 add_executable(shar
-               # application-level code               
+               # application-level code
                app/main.cpp
                app/signal_handler.cpp
                app/signal_handler.hpp
-               app/counter.cpp
-               app/counter.hpp
                # common code
+               common/counter.cpp
+               common/counter.hpp
                common/metrics.cpp
                common/metrics.hpp
                common/logger.hpp
@@ -15,10 +15,9 @@ add_executable(shar
                common/context.hpp
                common/channel.hpp
                common/size.hpp
-               # utils
-               utils/disable_warnings_push.hpp
-               utils/disable_warnings_pop.hpp
-               utils/newtype.hpp
+               common/disable_warnings_push.hpp
+               common/disable_warnings_pop.hpp
+               common/newtype.hpp
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp
@@ -39,7 +38,6 @@ add_executable(shar
 
 target_include_directories(shar
                            PRIVATE .
-                           PRIVATE ./utils
                            PRIVATE ./common
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
@@ -64,8 +62,7 @@ if (WIN32)
   target_link_libraries(shar ws2_32 iphlpapi)
 endif ()
 
-target_compile_definitions(shar
-                           PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_definitions(shar PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(shar PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 IF (NOT WIN32)

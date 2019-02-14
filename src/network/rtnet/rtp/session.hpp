@@ -23,7 +23,7 @@ public:
 
   template <typename Handler>
   void send(Packet packet, Handler&& handler) noexcept {
-    m_socket.async_send_to(boost::asio::buffer(packet.data(), packet.size()), 
+    m_socket.async_send_to(boost::asio::buffer(packet.data(), packet.size()),
                            m_endpoint, std::forward<Handler>(handler));
   }
 

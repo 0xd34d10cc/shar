@@ -7,7 +7,7 @@
 #include <limits>
 #include <mutex>
 
-#include "app/counter.hpp"
+#include "counter.hpp"
 #include "logger.hpp"
 #include "newtype.hpp"
 
