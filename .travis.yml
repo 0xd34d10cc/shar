@@ -121,6 +121,7 @@ install:
     fi
 
   - echo "$CXXFLAGS"
+  - export CMAKE_VERBOSE_MAKEFILE=1
 
 before_script:
   # have CMake to generate build files
