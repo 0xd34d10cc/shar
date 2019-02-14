@@ -1,4 +1,4 @@
-add_executable(networktest 
+add_executable(networktest
     packetizer.cpp
 )
 
