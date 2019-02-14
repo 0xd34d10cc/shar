@@ -30,9 +30,9 @@ public:
 
 private:
   int get_pts();
-  AVCodec* select_codec(const ConfigPtr& config, 
-                        Options& opts, 
-                        Size frame_size, 
+  AVCodec* select_codec(const ConfigPtr& config,
+                        Options& opts,
+                        Size frame_size,
                         std::size_t fps);
 
   ContextPtr      m_context;

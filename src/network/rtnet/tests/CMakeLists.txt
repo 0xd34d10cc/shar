@@ -1,5 +1,5 @@
-add_executable(rtnettest 
-    rtp.cpp 
+add_executable(rtnettest
+    rtp.cpp
 
     rtcp/sender_report.cpp
     rtcp/receiver_report.cpp

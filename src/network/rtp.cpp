@@ -18,7 +18,7 @@ Network::Network(Context context, IpAddress ip, Port port)
     , m_socket(m_context)
     , m_packetizer()
     , m_sequence(0)
-    , m_bytes_sent(0) 
+    , m_bytes_sent(0)
     {}
 
 void Network::run(Receiver<shar::Packet> packets) {
@@ -77,7 +77,7 @@ void Network::send() {
     packet.set_stream_id(0);
 
     ErrorCode ec;
-    m_socket.send_to(boost::asio::buffer(packet.data(), packet.size()), 
+    m_socket.send_to(boost::asio::buffer(packet.data(), packet.size()),
                      m_endpoint, 0, ec);
 
     if ((m_sequence & 0xff) == 0) {

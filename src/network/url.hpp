@@ -27,7 +27,7 @@ public:
   Url& operator=(Url&&) = default;
   ~Url() =default;
 
-  static Url from_string(const std::string& str); 
+  static Url from_string(const std::string& str);
 
   Protocol protocol() const noexcept;
   IpAddress host() const noexcept;

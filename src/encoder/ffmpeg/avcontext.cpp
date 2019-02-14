@@ -26,7 +26,7 @@ ContextPtr::ContextPtr(std::size_t kbits, AVCodec * codec, Size frame_size, std:
 }
 
 ContextPtr::ContextPtr(ContextPtr && context)
-  : m_context(context.m_context) 
+  : m_context(context.m_context)
 {
   context.m_context = nullptr;
 }

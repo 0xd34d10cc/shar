@@ -32,7 +32,7 @@ u8x8 to_big_endian(std::uint64_t val) {
 }
 
 std::uint16_t read_u16_big_endian(const std::uint8_t* bytes) {
-    return (std::uint16_t{bytes[0]} << 8) | 
+    return (std::uint16_t{bytes[0]} << 8) |
            (std::uint16_t{bytes[1]} << 0);
 }
 

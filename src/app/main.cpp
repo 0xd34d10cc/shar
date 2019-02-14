@@ -33,7 +33,7 @@ static sc::Monitor select_monitor(Context& context) {
     std::string monitorsList;
     for (const auto& monitor : monitors) {
       monitorsList += fmt::format("{} {} {}x{}\n",
-                                  monitor.Index, monitor.Name, 
+                                  monitor.Index, monitor.Name,
                                   monitor.Width, monitor.Height);
     }
     context.m_logger.info("Available monitors:\n" + monitorsList);
@@ -64,7 +64,7 @@ static Encoder create_encoder(Context context, const sc::Monitor& monitor) {
                            width, monitor.Width);
     width = static_cast<std::size_t>(monitor.Width);
   }
-  
+
   if (height > monitor.Height) {
     context.m_logger.error("Selected height ({}) is greater than monitor height ({}). "
                            "It will be ignored",

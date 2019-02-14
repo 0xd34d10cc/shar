@@ -17,9 +17,9 @@ class ContextPtr {
 
 public:
   ContextPtr() = default;
-  ContextPtr(const size_t kbits, 
-             AVCodec* codec, 
-             Size frame_size, 
+  ContextPtr(const size_t kbits,
+             AVCodec* codec,
+             Size frame_size,
              std::size_t fps);
   ContextPtr(const ContextPtr&) = delete;
   ContextPtr(ContextPtr&& context);

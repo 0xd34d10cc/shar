@@ -37,7 +37,7 @@ Url Url::from_string(const std::string& str) {
 
   const char* begin = str.data();
   const char* end = str.data() + str.size();
-  
+
   const auto find = [&](const char* substring, std::size_t from_index=0) {
     std::size_t index = str.find(substring, from_index);
     if (index == std::string::npos) {
@@ -46,7 +46,7 @@ Url Url::from_string(const std::string& str) {
 
     return begin + index;
   };
-   
+
   const char* proto_end = find("://");
   const auto protocol = [&]{
     if (proto_end == end) {
@@ -67,7 +67,7 @@ Url Url::from_string(const std::string& str) {
 
     throw std::runtime_error("Unknown protocol");
   }();
-   
+
   const char* host_end = find(":", proto_end+3 - begin); // could be |end|
   const auto host = IpAddress::from_string(std::string(proto_end+3, host_end));
   const auto port = [&] {
@@ -85,7 +85,7 @@ Url Url::from_string(const std::string& str) {
           return Port(0);
       }
     }
-  
+
     // parse port
     std::uint16_t port = 0;
     auto[ptr, err] = std::from_chars(host_end+1, end, port);
