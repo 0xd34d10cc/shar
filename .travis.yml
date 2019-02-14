@@ -24,7 +24,7 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    # TODO
+    # TODO: https://github.com/0xd34d10cc/shar/issues/83
 
     # - env: COMPILER=clang++ BUILD_TYPE=Debug
     #   os: osx
@@ -94,7 +94,8 @@ install:
       mkdir cmake && travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
-      brew install cmake || brew upgrade cmake
+    # TODO: uncomment after #83
+    #   brew install cmake || brew upgrade cmake
     fi
   - cmake --version
 
