@@ -10,16 +10,17 @@ extern "C" {
 #include "logger.hpp"
 #include "config.hpp"
 
+
 namespace shar::codecs::ffmpeg {
 
 class ContextPtr {
 
 public:
   ContextPtr() = default;
-  ContextPtr(const size_t kbits
-    , AVCodec* codec
-    , Size frame_size
-    , std::size_t fps);
+  ContextPtr(const size_t kbits, 
+             AVCodec* codec, 
+             Size frame_size, 
+             std::size_t fps);
   ContextPtr(const ContextPtr&) = delete;
   ContextPtr(ContextPtr&& context);
   ContextPtr operator=(const ContextPtr& rh) = delete;
@@ -29,7 +30,7 @@ public:
   ~ContextPtr();
 
 private:
-  AVCodecContext* m_context;
+  AVCodecContext* m_context{nullptr};
 
 };
 

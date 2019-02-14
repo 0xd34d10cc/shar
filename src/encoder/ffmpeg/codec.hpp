@@ -17,11 +17,11 @@ class Codec {
 
 public:
   Codec(Size frame_size,
-    std::size_t fps,
-    Logger logger,
-    const ConfigPtr& config);
+        std::size_t fps,
+        Logger logger,
+        const ConfigPtr& config);
   Codec(const Codec&) = delete;
-  Codec(Codec&&) = delete;
+  Codec(Codec&& rhs) = default;
   Codec& operator=(const Codec&) = delete;
   Codec& operator=(Codec&&) = delete;
   ~Codec() = default;
@@ -30,12 +30,10 @@ public:
 
 private:
   int get_pts();
-  AVCodec* select_codec(Logger& logger
-    , const ConfigPtr& config
-    , ContextPtr& context
-    , Options& opts
-    , Size frame_size
-    , std::size_t fps);
+  AVCodec* select_codec(const ConfigPtr& config, 
+                        Options& opts, 
+                        Size frame_size, 
+                        std::size_t fps);
 
   ContextPtr      m_context;
   AVCodec*        m_encoder;
