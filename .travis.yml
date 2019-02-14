@@ -1,43 +1,120 @@
-sudo: required
+# Based on https://github.com/Microsoft/GSL/blob/master/.travis.yml
 
 language: cpp
-
-cache:
-  - directories: /home/travis/.conan
-
-compiler: 
-  - clang
-
-os: linux
-addons: &clang6
-  apt:
-    packages:
-      - clang-6.0
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-6.0
-
-env:
-  global:
-    - PATH="$TRAVIS_BUILD_DIR/cmake-download/bin:$PATH"
-    - CXXFLAGS="$CXXFLAGS -stdlib=libc++"
-    - LINKER_FLAGS="$LINKER_FLAGS -stdlib=libc++ -lc++abi"
-
-before_script:
-  - mkdir cmake-download && cd cmake-download && curl -O https://cmake.org/files/v3.12/cmake-3.12.0-rc1-Linux-x86_64.sh
-    && bash cmake-3.12.0-rc1-Linux-x86_64.sh --skip-license && cd ..
-  - sudo pip install conan
-  - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
-  - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
-  - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-
-
-script:
-  - mkdir build
-  - cd build
-  - conan install --build=missing -s build_type=Debug -s compiler.libcxx=libc++ .. 
-  - cmake ..
-  - make
-
+sudo: false
 notifications:
   email: false
+
+# Use Linux unless specified otherwise
+os: linux
+dist: trusty
+
+# cache:
+#   directories:
+#     - ${TRAVIS_BUILD_DIR}/deps
+#     - /home/travis/.conan
+
+matrix:
+  include:
+
+    ##########################################################################
+    # Clang on OSX
+    # Travis seems to take longer to start OSX instances,
+    # so leave this first for the overall build to be faster
+    ##########################################################################
+
+    # XCode 9.1
+    # TODO: https://github.com/0xd34d10cc/shar/issues/83
+
+    # - env: COMPILER=clang++ BUILD_TYPE=Debug
+    #   os: osx
+    #   osx_image: xcode9.1
+    #   compiler: clang
+
+    # - env: COMPILER=clang++ BUILD_TYPE=Release
+    #   os: osx
+    #   osx_image: xcode9.1
+    #   compiler: clang
+
+    ##########################################################################
+    # Clang on Linux
+    ##########################################################################
+
+    # Clang 7.0
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
+      addons: &clang70
+        apt:
+          packages:
+            - clang-7
+            - g++-7
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-7
+
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
+      addons: *clang70
+
+    ##########################################################################
+    # GCC on Linux
+    ##########################################################################
+
+    # GCC 7
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
+      addons: &gcc7
+        apt:
+          packages: g++-7
+          sources:
+            - ubuntu-toolchain-r-test
+
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
+      addons: *gcc7
+
+install:
+  # Set $CC and $CXX variables properly
+  - export CC=${C_COMPILER}
+  - export CXX=${COMPILER}
+  - ${CC} --version
+  - ${CXX} --version
+
+  # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p "${DEPS_DIR}"
+  - cd "${DEPS_DIR}"
+
+  # Travis machines have 2 cores
+  - JOBS=2
+
+  ############################################################################
+  # Install a recent CMake (unless already installed on OS X)
+  ############################################################################
+  - CMAKE_VERSION=3.13.4
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+    # TODO: uncomment after #83
+    #   brew install cmake || brew upgrade cmake
+    fi
+  - cmake --version
+
+before_script:
+  # have CMake to generate build files
+  - cd "${TRAVIS_BUILD_DIR}"
+  - sudo pip install conan
+  # install screencapturelite deps
+  - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
+  # setup conan remotes
+  - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
+  - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  # build dependencies
+  - mkdir build && cd build
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$CONAN_STDLIB .. 
+  - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+script:
+  # build and run tests
+  - cmake --build . -- -j${JOBS}
+  # TODO
+  # - ctest --output-on-failure -j${JOBS}

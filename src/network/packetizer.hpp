@@ -47,7 +47,7 @@ private:
   std::uint8_t* m_position{nullptr};
 
   // true if size of last packet from |m_data| was less than mtu
-  // in this case we should send empty packet with E flag 
+  // in this case we should send empty packet with E flag
   bool m_last_packet_full_nal_unit{false};
 };
 

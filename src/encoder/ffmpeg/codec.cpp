@@ -28,7 +28,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
 
-  m_encoder = select_codec(m_logger, config, m_context, opts, frame_size, fps);
+  m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
   assert(m_encoder);
 
@@ -93,15 +93,18 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
 }
 
 int Codec::get_pts() {
-  return static_cast<int>(CLOCK_RATE / static_cast<unsigned int>(m_context.get()->time_base.den) * m_frame_counter++);
+  const auto fps = m_context.get()->time_base.den;
+  const auto ticks_per_frame = CLOCK_RATE / fps;
+  const auto pts = ticks_per_frame * m_frame_counter;
+  m_frame_counter++;
+  return pts;
 }
 
-AVCodec * Codec::select_codec(Logger& logger
-  , const ConfigPtr& config
-  , ContextPtr& context
-  , Options& opts
-  , Size frame_size
-  , std::size_t fps) {
+AVCodec* Codec::select_codec(const ConfigPtr& config,
+                             Options& opts,
+                             Size frame_size,
+                             std::size_t fps)
+{
 
   const std::string codec_name = config->get<std::string>("codec", "");
   const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
@@ -109,16 +112,16 @@ AVCodec * Codec::select_codec(Logger& logger
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
 
-      logger.info("Using {} encoder from config", codec_name);
-      ContextPtr cont(kbits, codec, frame_size, fps);
-      if (avcodec_open2(cont.get(), codec, &opts.get_ptr()) >= 0) {
-        logger.info("Using {} encoder", codec_name);
-        context = std::move(cont);
+      m_logger.info("Using {} encoder from config", codec_name);
+      ContextPtr context{ kbits, codec, frame_size, fps };
+      if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
+        m_logger.info("Using {} encoder", codec_name);
+        m_context = std::move(context);
         return codec;
       }
     }
 
-    logger.warning("Encoder {} requested but not found", codec_name);
+    m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 5> codecs = {
@@ -135,25 +138,24 @@ AVCodec * Codec::select_codec(Logger& logger
   for (const char* name : codecs) {
     if (auto* codec = avcodec_find_encoder_by_name(name)) {
 
-      ContextPtr cont(kbits, codec, frame_size, fps);
-      if (avcodec_open2(cont.get(), codec, &opts.get_ptr()) >= 0) {
-        logger.info("Using {} encoder", name);
-        context = std::move(cont);
+      ContextPtr context{ kbits, codec, frame_size, fps };
+      if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
+        m_logger.info("Using {} encoder", name);
+        m_context = std::move(context);
         return codec;
       }
     }
   }
 
-  logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
+  m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
-  context = ContextPtr(kbits, codec, frame_size, fps);
+  m_context = ContextPtr(kbits, codec, frame_size, fps);
 
-  if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-
+  if (avcodec_open2(m_context.get(), codec, &opts.get_ptr()) >= 0) {
    return codec;
   }
 
-  throw std::runtime_error("Codec not opened");
+  throw std::runtime_error("Failed to initialize default codec");
 }
 
 }

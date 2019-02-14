@@ -4,9 +4,10 @@
 #include "network/packet.hpp"
 #include "capture/frame.hpp"
 
+
 namespace shar::codecs::ffmpeg {
 
-ContextPtr::ContextPtr(const size_t kbits, AVCodec * codec, Size frame_size, std::size_t fps) {
+ContextPtr::ContextPtr(std::size_t kbits, AVCodec * codec, Size frame_size, std::size_t fps) {
   m_context = avcodec_alloc_context3(codec);
   assert(m_context);
 
@@ -24,23 +25,22 @@ ContextPtr::ContextPtr(const size_t kbits, AVCodec * codec, Size frame_size, std
   m_context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
 }
 
-ContextPtr::ContextPtr(ContextPtr && context) : m_context(context.m_context) {
+ContextPtr::ContextPtr(ContextPtr && context)
+  : m_context(context.m_context)
+{
   context.m_context = nullptr;
-
 }
 
-ContextPtr& ContextPtr::operator=(ContextPtr && rh) {
-
-  if (this == &rh) {
-    return *this;
+ContextPtr& ContextPtr::operator=(ContextPtr&& rhs) {
+  if (this != &rhs) {
+    m_context = rhs.m_context;
+    rhs.m_context = nullptr;
   }
-  m_context = rh.m_context;
-  rh.m_context = nullptr;
+
   return *this;
 }
 
-AVCodecContext * ContextPtr::get() {
-
+AVCodecContext* ContextPtr::get() {
   return m_context;
 }
 

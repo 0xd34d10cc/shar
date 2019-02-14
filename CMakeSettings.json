@@ -1,0 +1,39 @@
+﻿{
+  // See https://go.microsoft.com//fwlink//?linkid=834763 for more information about this file.
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${workspaceRoot}\\build\\debug",
+      "installRoot": "${workspaceRoot}\\build\\debug\\bin",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Debug"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${workspaceRoot}\\build\\release",
+      "installRoot": "${workspaceRoot}\\build\\release\\bin",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Release"
+        }
+      ]
+    }
+  ]
+}

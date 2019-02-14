@@ -41,7 +41,7 @@ Fragment Packetizer::next() noexcept {
     auto start = m_nal_start;
     m_last_packet_full_nal_unit = false;
     
-    // remote start bit and set end bit
+    // remove start bit and set end bit
     *start = (*start & ~Fragment::START_FLAG_MASK) | Fragment::END_FLAG_MASK;
     return Fragment{start - 1, 2};
   }
@@ -109,11 +109,12 @@ bool Packetizer::next_nal() noexcept {
   while ((start < data_end) && *start == 0) {
     ++start;
   } 
-  ++start; // skip 0x01
-
+  
   if (start >= data_end) {
     return false;
   }
+
+  ++start; // skip 0x01
 
   // find 0x00 0x00 0x01 pattern
   std::uint8_t* end = start;

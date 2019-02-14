@@ -27,7 +27,7 @@ public:
   static const std::uint8_t PACKET_TYPE_MASK = 0b00011111;
   //                                             ^ forbidden bit
 
-  // header fields                               
+  // header fields
   static const std::uint8_t START_FLAG_MASK = 0b10000000;
   static const std::uint8_t END_FLAG_MASK   = 0b01000000;
   static const std::uint8_t NAL_TYPE_MASK   = 0b00011111;
