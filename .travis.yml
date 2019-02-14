@@ -125,9 +125,9 @@ install:
 before_script:
   # have CMake to generate build files
   - cd "${TRAVIS_BUILD_DIR}"
-  - pip install conan
+  - sudo pip install conan
   # install screencapturelite deps
-  - apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
+  - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
   # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
