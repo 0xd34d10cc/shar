@@ -9,10 +9,10 @@ notifications:
 os: linux
 dist: trusty
 
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps
-    - /home/travis/.conan
+# cache:
+#   directories:
+#     - ${TRAVIS_BUILD_DIR}/deps
+#     - /home/travis/.conan
 
 matrix:
   include:
@@ -41,7 +41,7 @@ matrix:
     ##########################################################################
 
     # Clang 7.0
-    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
       addons: &clang70
         apt:
           packages:
@@ -51,7 +51,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
       addons: *clang70
 
     ##########################################################################
@@ -59,14 +59,14 @@ matrix:
     ##########################################################################
 
     # GCC 7
-    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
       addons: &gcc7
         apt:
           packages: g++-7
           sources:
             - ubuntu-toolchain-r-test
 
-    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
       addons: *gcc7
 
 install:
@@ -109,7 +109,7 @@ before_script:
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   # build dependencies
   - mkdir build && cd build
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler=$CONAN_COMPILER -s compiler.version=$CONAN_COMPILER_VERSION -s compiler.libcxx=$CONAN_STDLIB .. 
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$CONAN_STDLIB .. 
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 script:
