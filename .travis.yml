@@ -117,6 +117,8 @@ install:
       export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
     fi
+  
+  - export CXXFLAGS="$CXXFLAGS -std=c++17"
 
 before_script:
   # have CMake to generate build files
