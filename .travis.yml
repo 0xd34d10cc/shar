@@ -118,6 +118,8 @@ install:
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
     fi
 
+  - find ${LLVM_INSTALL}/include/c++/v1 -name chrono
+
 before_script:
   # have CMake to generate build files
   - cd "${TRAVIS_BUILD_DIR}"
