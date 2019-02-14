@@ -18,7 +18,6 @@ add_library(network
 
 target_include_directories(network
     PUBLIC ..
-    PUBLIC ../utils
     PUBLIC ../common
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
@@ -28,13 +27,12 @@ target_include_directories(network
 )
 
 target_link_libraries(network
-    ${CONAN_LIBS_BOOST}
-    ${CONAN_LIBS_FMT}
+  ${CONAN_LIBS_BOOST}
+  ${CONAN_LIBS_FMT}
 	rtnet
 )
 
-target_compile_definitions(network
-                           PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_definitions(network PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(network PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 

@@ -7,7 +7,7 @@
 #include "size.hpp"
 #include "capture/frame.hpp"
 #include "ffmpeg/codec.hpp"
-#include "app/counter.hpp"
+#include "counter.hpp"
 #include "channel.hpp"
 
 

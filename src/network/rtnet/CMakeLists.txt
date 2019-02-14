@@ -27,7 +27,7 @@ add_library(rtnet
     slice.cpp
 )
 
-target_include_directories(rtnet PRIVATE . ../../utils)
+target_include_directories(rtnet PRIVATE . ../../common)
 target_include_directories(rtnet PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST})
 target_link_libraries(rtnet ${CONAN_LIBS_BOOST})
 
