@@ -1,6 +1,9 @@
 @echo off
 rem Run this script from root of repo to setup build dir for VS
 
+conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
+conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
 if not exist build (
   mkdir build
 )
