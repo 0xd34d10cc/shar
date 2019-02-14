@@ -20,8 +20,8 @@ elseif (APPLE)
     find_library(avfoundation_lib AVFoundation REQUIRED)
     find_library(coregraphics_lib CoreGraphics REQUIRED)
     find_library(corevideo_lib CoreVideo REQUIRED)
-    
-    set(SC_PLATFORM_LIBS 
+
+    set(SC_PLATFORM_LIBS
             ${corefoundation_lib}
             ${cocoa_lib}
             ${coremedia_lib}
@@ -66,7 +66,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-undefined-func-template # false positives
         -Wno-weak-vtables
         -Wno-covered-switch-default
-        ) 
+        )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     set(ENABLED_WARNINGS -Wall -Wextra -pedantic)
