@@ -80,9 +80,10 @@ Url Url::from_string(const std::string& str) {
           return Port(1336);
         case Protocol::RTSP:
           return Port(1234);
+        default:
+          assert(false);
+          return Port(0);
       }
-
-      assert(false);
     }
   
     // parse port
@@ -106,9 +107,10 @@ static const char* to_str(Protocol protocol) {
       return "rtp";
     case Protocol::RTSP:
       return "rtsp";
+    default:
+      assert(false);
+      return "wtf";
   }
-
-  assert(false);
 }
 
 std::string Url::to_string() const noexcept {
