@@ -6,3 +6,4 @@ release
 *.dll
 *.pdb
 /.vs
+*.log

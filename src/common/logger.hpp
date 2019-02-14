@@ -30,37 +30,38 @@ public:
   ~Logger() = default;
 
   template<typename... Args>
-  void trace(const Args&... args) {
-    m_logger->trace(args...);
+  void trace(Args&&... args) {
+    m_logger->trace(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void debug(const Args&... args) {
-    m_logger->debug(args...);
+  void debug(Args&&... args) {
+    m_logger->debug(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void info(const Args&... args) {
-    m_logger->info(args...);
+  void info(Args&&... args) {
+    m_logger->info(std::forward<Args>(args)...);
   }
-  
+
   template<typename... Args>
-  void warning(const Args&... args) {
-    m_logger->warn(args...);
-  } 
-  
-  template<typename... Args>
-  void error(const Args&... args) {
-    m_logger->error(args...);
+  void warning(Args&&... args) {
+    m_logger->warn(std::forward<Args>(args)...);
   }
-  
+
   template<typename... Args>
-  void critical(const Args&... args) {
-    m_logger->critical(args...);
+  void error(Args&&... args) {
+    m_logger->error(std::forward<Args>(args)...);
+  }
+
+  template<typename... Args>
+  void critical(Args&&... args) {
+    m_logger->critical(std::forward<Args>(args)...);
   }
 
 private:
   Logger() = default;
+
   std::shared_ptr<spdlog::logger> m_logger;
 };
 

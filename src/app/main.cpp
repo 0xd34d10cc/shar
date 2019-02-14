@@ -92,7 +92,7 @@ static prometheus::Exposer create_exposer(const Context& context) {
 }
 static Context make_context() {
   auto config = shar::Config::parse_from_file("config.json");
-  auto logger = Logger("server.log");
+  auto logger = Logger("shar.log");
   auto metrics = std::make_shared<shar::Metrics>(logger);
 
   return Context{ config, logger, metrics };
