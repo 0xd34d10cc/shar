@@ -41,7 +41,7 @@ matrix:
     ##########################################################################
 
     # Clang 7.0
-    - env: COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
       addons: &clang70
         apt:
           packages:
@@ -51,7 +51,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: COMPILER=clang++-7 BUILD_TYPE=Release CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_COMPILER=clang CONAN_COMPILER_VERSION=7.0 CONAN_STDLIB=libc++
       addons: *clang70
 
     ##########################################################################
@@ -59,19 +59,21 @@ matrix:
     ##########################################################################
 
     # GCC 7
-    - env: COMPILER=g++-7 BUILD_TYPE=Debug CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
       addons: &gcc7
         apt:
           packages: g++-7
           sources:
             - ubuntu-toolchain-r-test
 
-    - env: COMPILER=g++-7 BUILD_TYPE=Release CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_COMPILER=gcc CONAN_COMPILER_VERSION=7 CONAN_STDLIB=libstdc++
       addons: *gcc7
 
 install:
-  # Set the ${CXX} variable properly
+  # Set $CC and $CXX variables properly
+  - export CC=${C_COMPILER}
   - export CXX=${COMPILER}
+  - ${CC} --version
   - ${CXX} --version
 
   # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
@@ -95,33 +97,6 @@ install:
       brew install cmake || brew upgrade cmake
     fi
   - cmake --version
-
-  ############################################################################
-  # [linux]: Install the right version of libc++
-  ############################################################################
-  - |
-    LLVM_INSTALL=${DEPS_DIR}/llvm/install
-    # if in linux and compiler clang and llvm not installed
-    if [[ "${TRAVIS_OS_NAME}" == "linux" && "${CXX%%+*}" == "clang" && -n "$(ls -A ${LLVM_INSTALL})" ]]; then
-      LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-      LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-      LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
-
-      mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
-      travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
-      travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
-      travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
-      (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_INSTALL})
-      (cd llvm/build/projects/libcxx && make install -j2)
-      (cd llvm/build/projects/libcxxabi && make install -j2)
-
-      export CXXFLAGS="-isystem ${LLVM_INSTALL}/include/c++/v1"
-      export LDFLAGS="-L ${LLVM_INSTALL}/lib -l c++ -l c++abi"
-      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_INSTALL}/lib"
-    fi
-
-  - echo "$CXXFLAGS"
-  - export CMAKE_VERBOSE_MAKEFILE=1
 
 before_script:
   # have CMake to generate build files
