@@ -15,7 +15,7 @@ bool Packetizer::valid() const noexcept {
   return m_data <= m_nal_start && m_nal_start <= m_data + m_size &&
          m_data <= m_nal_end && m_nal_end <= m_data + m_size &&
          m_nal_start <= m_nal_end &&
-         m_nal_start <= m_position && m_position <= m_nal_end;  
+         m_nal_start <= m_position && m_position <= m_nal_end;
 }
 
 void Packetizer::set(std::uint8_t* data, std::size_t size) noexcept {
@@ -27,7 +27,8 @@ void Packetizer::set(std::uint8_t* data, std::size_t size) noexcept {
   m_position = data;
   m_last_packet_full_nal_unit = false;
 
-  next_nal(); // move to start of NAL unit
+  bool found = next_nal(); // move to start of NAL unit
+  assert(found);
 }
 
 void Packetizer::reset() noexcept {
@@ -39,24 +40,51 @@ Fragment Packetizer::next() noexcept {
 
   if (m_last_packet_full_nal_unit) {
     auto start = m_nal_start;
+    assert(start - m_data >= 2);
     m_last_packet_full_nal_unit = false;
-    
+
     // remove start bit and set end bit
     *start = (*start & ~Fragment::START_FLAG_MASK) | Fragment::END_FLAG_MASK;
     return Fragment{start - 1, 2};
   }
 
-  auto [start, end] = next_fragment();
+  std::uint8_t* start = next_fragment();
   if (start == nullptr) {
     return Fragment();
   }
+  assert(start - m_data >= 2);
 
+  // For first fragment, data looks like this:
+  //
+  // 0x00 0x00 0x00 0x01 0xff 0xff 0xff 0xff
+  // |_________________|  |     ^ actual h264 data starts here
+  //         |           nal unit header, 'start' and 'm_nal_start' point here
+  //   nal unit prefix
+  //
+  // both NRI and 'nal type' are stored in nal unit header
+  //
+  //
+  // for following fragments:
+  //
+  // 0x00 0x00 0x00 0xff 0xff 0xff ... 0xff 0xff 0xff 0xff 0xff 0xff
+  // |  prefix bytes  |   |   |____________|  |
+  //                 /    |         |       'start' points here
+  //   was 0x01 byte,     |    previous fragments
+  //   now indicator      |
+  //                 'm_nal_start', header is stored here
+  //
+  // ...with that covered, it is up to reader to realize the
+  //  reasons behind magic constants in code below
   std::uint8_t first = start == m_nal_start ? 1 : 0;
   std::uint8_t nri = *(m_nal_start - 1 + first) & Fragment::NRI_MASK;
   std::uint8_t nal_type = *m_nal_start & Fragment::NAL_TYPE_MASK;
 
   std::uint8_t last = 0;
-  if (end == m_nal_end) {
+
+  std::uint8_t* end = start - 2 + first + m_mtu;
+  if (end >= m_nal_end) {
+    end = m_nal_end;
+
     if (first == 1) {
       // from RFC6184: Start bit and End bit MUST NOT both be set
 			//               to one in the same FU header
@@ -68,33 +96,25 @@ Fragment Packetizer::next() noexcept {
   }
 
   std::uint8_t indicator = nri | PACKET_TYPE_FU_A;
-  std::uint8_t header = static_cast<std::uint8_t>(first << std::uint8_t{7}) | 
-                        static_cast<std::uint8_t>(last << std::uint8_t{6}) | 
+  std::uint8_t header = static_cast<std::uint8_t>(first << std::uint8_t{7}) |
+                        static_cast<std::uint8_t>(last << std::uint8_t{6}) |
                         nal_type;
 
   std::uint8_t* fragment = start - 2 + first;
   fragment[0] = indicator;
   fragment[1] = header;
 
+  m_position = end;
   return Fragment{fragment, static_cast<std::size_t>(end - fragment)};
 }
 
-std::pair<std::uint8_t*, std::uint8_t*> Packetizer::next_fragment() noexcept {
+std::uint8_t* Packetizer::next_fragment() noexcept {
   if (m_position == m_nal_end) {
     if (!next_nal()) {
-      return {nullptr, nullptr};
+      return nullptr;
     }
   }
-
-  std::uint8_t* start = m_position;
-  std::uint8_t* end = start + m_mtu + 1; // +1 for header
-	
-  if (end > m_nal_end) {
-		end = m_nal_end;
-	}
-
-	m_position = end;
-	return {start, end};
+  return m_position;
 }
 
 bool Packetizer::next_nal() noexcept {
@@ -108,8 +128,8 @@ bool Packetizer::next_nal() noexcept {
   // skip pattern
   while ((start < data_end) && *start == 0) {
     ++start;
-  } 
-  
+  }
+
   if (start >= data_end) {
     return false;
   }

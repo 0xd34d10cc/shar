@@ -10,13 +10,15 @@
 
 namespace shar::rtp {
 
+static const std::uint16_t MTU = 1000;
+
 Network::Network(Context context, IpAddress ip, Port port)
     : Context(std::move(context))
     , m_running(false)
     , m_endpoint(std::move(ip), port)
     , m_context()
     , m_socket(m_context)
-    , m_packetizer()
+    , m_packetizer(MTU)
     , m_sequence(0)
     , m_bytes_sent(0)
     {}
@@ -35,10 +37,7 @@ void Network::run(Receiver<shar::Packet> packets) {
       }
 
       set_packet(std::move(*packet));
-      m_context.reset();
-
       send();
-      m_context.run();
     }
 
     shutdown();
@@ -59,7 +58,8 @@ void Network::set_packet(shar::Packet packet) {
 void Network::send() {
   static const std::size_t HEADER_SIZE = rtp::Packet::MIN_SIZE;
 
-  std::array<std::uint8_t, 1200> buffer;
+  std::array<std::uint8_t, MTU + HEADER_SIZE> buffer;
+
   while (auto fragment = m_packetizer.next()) {
     // setup packet
     std::memset(buffer.data(), 0, HEADER_SIZE);
@@ -76,13 +76,11 @@ void Network::send() {
     packet.set_timestamp(m_current_packet.timestamp());
     packet.set_stream_id(0);
 
+    assert(buffer.size() >= fragment.size() + HEADER_SIZE);
+
     ErrorCode ec;
     m_socket.send_to(boost::asio::buffer(packet.data(), packet.size()),
                      m_endpoint, 0, ec);
-
-    if ((m_sequence & 0xff) == 0) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
 
     if (ec) {
       m_logger.error("Something happened when we sent packet: {}", ec.message());

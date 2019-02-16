@@ -39,6 +39,9 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
 }
 
 std::vector<Packet> Codec::encode(const shar::Frame& image) {
+  assert(m_context.get()->width == image.width());
+  assert(m_context.get()->height == image.height());
+
   auto[y, u, v] = bgra_to_yuv420(image);
 
   AVFrame* frame = av_frame_alloc();

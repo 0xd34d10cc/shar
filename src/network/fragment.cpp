@@ -105,6 +105,11 @@ std::uint8_t* Fragment::payload() noexcept {
   return m_data + MIN_SIZE;
 }
 
+const std::uint8_t* Fragment::payload() const noexcept {
+  assert(valid());
+  return m_data + MIN_SIZE;
+}
+
 std::size_t Fragment::payload_size() const noexcept {
   return size() - MIN_SIZE;
 }
