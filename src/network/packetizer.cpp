@@ -67,9 +67,9 @@ Fragment Packetizer::next() noexcept {
   // for following fragments:
   //
   // 0x00 0x00 0x00 0xff 0xff 0xff ... 0xff 0xff 0xff 0xff 0xff 0xff
-  // |  prefix bytes  |   |   |____________|  |
+  // |  prefix bytes  |   |   |___________|  |
   //                 /    |         |       'start' points here
-  //   was 0x01 byte,     |    previous fragments
+  //   was 0x01 byte,     |   previous fragments
   //   now indicator      |
   //                 'm_nal_start', header is stored here
   //
