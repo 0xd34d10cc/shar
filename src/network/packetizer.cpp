@@ -73,8 +73,8 @@ Fragment Packetizer::next() noexcept {
   //   now indicator      |
   //                 'm_nal_start', header is stored here
   //
-  // ...with that covered, it is up to reader to realize the
-  //  reasons behind magic constants in code below
+  // ...with that covered, it is up to reader to understand the
+  //  reasons behind magic offsets in code below
   std::uint8_t first = start == m_nal_start ? 1 : 0;
   std::uint8_t nri = *(m_nal_start - 1 + first) & Fragment::NRI_MASK;
   std::uint8_t nal_type = *m_nal_start & Fragment::NAL_TYPE_MASK;
