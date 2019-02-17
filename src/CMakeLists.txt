@@ -8,6 +8,8 @@ add_executable(shar
                # common code
                common/counter.cpp
                common/counter.hpp
+               common/histogram.cpp
+               common/histogram.hpp
                common/metrics.cpp
                common/metrics.hpp
                common/logger.hpp

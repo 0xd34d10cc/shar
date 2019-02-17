@@ -2,13 +2,18 @@
 
 #include <atomic>
 
+#include "metrics_context.hpp"
 #include "common/context.hpp"
+#include "common/metrics_context.hpp"
+#include "common/histogram.hpp"
 #include "network/packet.hpp"
 #include "size.hpp"
 #include "capture/frame.hpp"
 #include "ffmpeg/codec.hpp"
 #include "counter.hpp"
 #include "channel.hpp"
+
+#include <prometheus/registry.h>
 
 
 namespace shar {
@@ -31,6 +36,7 @@ private:
 
   Counter m_bytes_in;
   Counter m_bytes_out;
+  Histogram m_delay;
 };
 
 }

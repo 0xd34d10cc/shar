@@ -3,14 +3,16 @@
 
 namespace shar {
 
-Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
+  Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
     : Context(std::move(context))
     , m_running(false)
     , m_codec(frame_size, fps, m_logger, m_config->get_subconfig("encoder"))
-{
-  m_bytes_in = m_metrics->add("Encoder_in", "Encoder bytes in", "bytes");
-  m_bytes_out = m_metrics->add("Encoder_out", "Encoder bytes out", "bytes");
-}
+  {
+    m_bytes_in = m_metrics->add<Counter>({ "Encoder_in", "Encoder bytes in", "bytes" });
+    m_bytes_out = m_metrics->add<Counter>({ "Encoder_out", "Encoder bytes out", "bytes" });
+    m_delay = m_metrics->add<Histogram>({ "Encoder_delay", "Delay of encoder", "ms" },
+                                                                        std::vector<double>{10, 20, 30});
+  }
 
 void Encoder::run(Receiver<Frame> input, Sender<Packet> output) {
   m_running = true;

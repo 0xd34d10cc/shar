@@ -4,11 +4,16 @@ Counter::Counter()
   : m_gauge(nullptr)
   , m_family(nullptr){}
 
-Counter::Counter(prometheus::Gauge* gauge, GaugeFamily* family)
-  : m_gauge(gauge)
-  , m_family(family){}
+Counter::Counter(MetricsContext context, std::shared_ptr<prometheus::Registry> registry) {
+  m_family = &prometheus::BuildGauge()
+    .Name(context.m_name)
+    .Help(context.m_help)
+    .Labels({ {context.m_name, context.m_output_type} })
+    .Register(*registry);
+  m_gauge = &m_family->Add({});
+}
 
-void Counter::increment(){
+void Counter::increment() {
   if (m_gauge != nullptr) {
     m_gauge->Increment();
   }
