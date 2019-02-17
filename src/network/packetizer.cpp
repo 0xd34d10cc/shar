@@ -87,8 +87,8 @@ Fragment Packetizer::next() noexcept {
 
     if (first == 1) {
       // from RFC6184: Start bit and End bit MUST NOT both be set
-			//               to one in the same FU header
-			// ... so we have to generate entire (though empty) packet just for end flag
+      //               to one in the same FU header
+      // ... so we have to generate entire (though empty) packet just for end flag
       m_last_packet_full_nal_unit = true;
     } else {
       last = 1;
