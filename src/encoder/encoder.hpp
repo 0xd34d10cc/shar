@@ -2,18 +2,15 @@
 
 #include <atomic>
 
-#include "metrics_context.hpp"
+#include "capture/frame.hpp"
 #include "common/context.hpp"
 #include "common/metrics_context.hpp"
 #include "common/histogram.hpp"
+#include "channel.hpp"
+#include "counter.hpp"
+#include "ffmpeg/codec.hpp"
 #include "network/packet.hpp"
 #include "size.hpp"
-#include "capture/frame.hpp"
-#include "ffmpeg/codec.hpp"
-#include "counter.hpp"
-#include "channel.hpp"
-
-#include <prometheus/registry.h>
 
 
 namespace shar {

@@ -7,15 +7,17 @@ extern "C" {
 #include "codec.hpp"
 #include "../convert.hpp"
 
+#include <chrono>
 
 namespace shar::codecs::ffmpeg {
 
 // Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
 static const unsigned int CLOCK_RATE = 90000;
 
-Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
+Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config, MetricsPtr metrics)
   : m_logger(std::move(logger))
-  , m_frame_counter(0) {
+  , m_frame_counter(0)
+  , m_metrics(metrics) {
 
   Options opts{};
   auto options = config->get_subconfig("options");
@@ -27,6 +29,8 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
       m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
+  m_full_delay = &m_metrics->add<Histogram>({ "Codec_full_delay", "Delay of shar & codec", "ms" },
+    std::vector<double>{10, 20, 30});
 
   m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
@@ -83,6 +87,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
       // before doing anything else, but who trust docs?
       av_packet_unref(&packet);
       ret = avcodec_receive_packet(m_context.get(), &packet);
+      m_full_delay->Observe((Clock::now() - image.timestamp()).count());
     }
 
     av_packet_unref(&packet);

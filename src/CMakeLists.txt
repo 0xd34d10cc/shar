@@ -15,6 +15,7 @@ add_executable(shar
                common/logger.hpp
                common/config.hpp
                common/context.hpp
+               common/metrics_context.hpp
                common/channel.hpp
                common/size.hpp
                common/disable_warnings_push.hpp

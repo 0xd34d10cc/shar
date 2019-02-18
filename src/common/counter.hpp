@@ -9,6 +9,7 @@
 #include <prometheus/exposer.h>
 #include "disable_warnings_pop.hpp"
 
+namespace shar {
 
 using GaugeFamily = prometheus::Family<prometheus::Gauge>;
 
@@ -16,7 +17,7 @@ class Counter {
   
 public:
   Counter();
-  Counter(MetricsContext context, std::shared_ptr<prometheus::Registry> registry);
+  Counter(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry);
   Counter(const Counter&) = delete;
   Counter(Counter&& counter);
   Counter& operator=(const Counter&) = delete;
@@ -31,5 +32,6 @@ public:
 private:
   prometheus::Gauge*    m_gauge;
   GaugeFamily*          m_family;
-
 };
+
+}

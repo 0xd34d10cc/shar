@@ -10,6 +10,7 @@
 #include <prometheus/exposer.h>
 #include "disable_warnings_pop.hpp"
 
+namespace shar {
 
 using HistogramFamily = prometheus::Family<prometheus::Histogram>;
 
@@ -17,9 +18,9 @@ class Histogram {
 
 public:
   Histogram();
-  Histogram(MetricsContext context, std::shared_ptr<prometheus::Registry> registry, std::vector<double> bounds);
+  Histogram(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry, std::vector<double>& bounds);
   Histogram(const Histogram&) = delete;
-  Histogram(Histogram&& histogram) = default;
+  Histogram(Histogram&& histogram);
   Histogram& operator=(const Histogram&) = delete;
   Histogram& operator=(Histogram&& histogram);
   ~Histogram();
@@ -30,3 +31,5 @@ private:
   prometheus::Histogram*    m_histogram;
   HistogramFamily*          m_family;
 };
+
+}

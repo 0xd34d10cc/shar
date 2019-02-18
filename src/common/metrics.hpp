@@ -38,6 +38,10 @@ private:
   RegistryPtr  m_registry;
 };
 
+
+// Avaliable MetricTypes: Counter, Histogram
+// Args for Counter: None
+// Args for Histogram: std::vector<double> bounds
 template<typename MetricType, typename... Args>
 MetricType Metrics::add(MetricsContext context, Args &&... metric_args)  {
   return MetricType(context, m_registry, std::forward<Args>(metric_args)...);

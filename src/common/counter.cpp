@@ -1,10 +1,12 @@
 #include "counter.hpp"
 
+namespace shar {
+
 Counter::Counter()
   : m_gauge(nullptr)
   , m_family(nullptr){}
 
-Counter::Counter(MetricsContext context, std::shared_ptr<prometheus::Registry> registry) {
+Counter::Counter(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry) {
   m_family = &prometheus::BuildGauge()
     .Name(context.m_name)
     .Help(context.m_help)
@@ -60,3 +62,4 @@ Counter::~Counter() {
   }
 }
 
+}

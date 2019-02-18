@@ -1,19 +1,28 @@
 #include "histogram.hpp"
 
+namespace shar {
+
 Histogram::Histogram() 
   : m_family(nullptr)
   , m_histogram(nullptr)
 {}
 
-Histogram::Histogram(MetricsContext context, std::shared_ptr<prometheus::Registry> registry, std::vector<double> bounds)
-{
+Histogram::Histogram(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry, 
+                                                                       std::vector<double>& bounds) {
   std::map<std::string, std::string> labels = { {context.m_name, context.m_output_type} };
   m_family = &prometheus::BuildHistogram()
     .Name(context.m_name)
     .Help(context.m_help)
-    .Labels({ labels })
+    .Labels(std::move(labels))
     .Register(*registry);
   m_histogram = &m_family->Add(labels, bounds);
+}
+
+Histogram::Histogram(Histogram&& histogram)
+  : m_histogram(histogram.m_histogram)
+  , m_family(histogram.m_family) {
+  histogram.m_family = nullptr;
+  histogram.m_histogram = nullptr;
 }
 
 Histogram& Histogram::operator=(Histogram&& histogram) {
@@ -26,18 +35,16 @@ Histogram& Histogram::operator=(Histogram&& histogram) {
   return *this;
 }
 
-void Histogram::Observe(const double value)
-{
+void Histogram::Observe(const double value) {
   if (m_family != nullptr) {
     m_histogram->Observe(value);
   }
 }
 
-Histogram::~Histogram()
-{
+Histogram::~Histogram() {
   if (m_family != nullptr) {
     m_family->Remove(m_histogram);
   }
 }
 
-
+}
