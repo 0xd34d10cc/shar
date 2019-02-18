@@ -29,8 +29,8 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
       m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
-  m_full_delay = &m_metrics->add<Histogram>({ "Codec_full_delay", "Delay of shar & codec", "ms" },
-    std::vector<double>{10, 20, 30});
+  m_full_delay = m_metrics->add<Histogram>({ "Codec_full_delay", "Delay of shar & codec", "ms" },
+    std::vector<double>{10, 50, 100});
 
   m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
@@ -87,7 +87,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
       // before doing anything else, but who trust docs?
       av_packet_unref(&packet);
       ret = avcodec_receive_packet(m_context.get(), &packet);
-      m_full_delay->Observe((Clock::now() - image.timestamp()).count());
+      m_full_delay.Observe((Clock::now() - image.timestamp()).count());
     }
 
     av_packet_unref(&packet);

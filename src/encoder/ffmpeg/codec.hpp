@@ -39,7 +39,7 @@ private:
   ContextPtr      m_context;
   AVCodec*        m_encoder;
   MetricsPtr      m_metrics;
-  Histogram*      m_full_delay;
+  Histogram      m_full_delay;
   Logger          m_logger;
   std::uint32_t   m_frame_counter;
 
