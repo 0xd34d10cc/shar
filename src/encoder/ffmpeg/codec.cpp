@@ -30,7 +30,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
     }
   }
   m_full_delay = m_metrics->add<Histogram>({ "Codec_full_delay", "Delay of shar & codec", "ms" },
-    std::vector<double>{10, 50, 100});
+    std::vector<double>{15, 30, 60});
 
   m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
@@ -87,7 +87,7 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
       // before doing anything else, but who trust docs?
       av_packet_unref(&packet);
       ret = avcodec_receive_packet(m_context.get(), &packet);
-      m_full_delay.Observe((Clock::now() - image.timestamp()).count());
+      m_full_delay.Observe(std::chrono::duration<double, std::milli>(Clock::now() - image.timestamp()).count());
     }
 
     av_packet_unref(&packet);
@@ -129,9 +129,9 @@ AVCodec* Codec::select_codec(const ConfigPtr& config,
     m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
-  static std::array<const char*, 5> codecs = {
+  static std::array<const char*, 4> codecs = {
       "h264_nvenc",
-      "h264_amf",
+      //"h264_amf",
       "h264_qsv",
       // TODO: implement
       //"h264_vaapi",
