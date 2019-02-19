@@ -28,8 +28,8 @@ public:
 private:
   bool valid() const noexcept;
 
-  // returns (nullptr, nullptr) if no more fragments
-  std::pair<std::uint8_t*, std::uint8_t*> next_fragment() noexcept;
+  // returns nullptr if there are no more fragments
+  std::uint8_t* next_fragment() noexcept;
 
   // returns true on success
   bool next_nal() noexcept;

@@ -113,7 +113,7 @@ TEST(packetizer, big_units) {
   auto fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
 
-  EXPECT_EQ(fragment.size(), 6);
+  EXPECT_EQ(fragment.size(), 4);
 
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
@@ -122,17 +122,49 @@ TEST(packetizer, big_units) {
   EXPECT_FALSE(fragment.is_last());
   EXPECT_EQ(fragment.nal_type(), 7);
 
-  EXPECT_EQ(fragment.payload_size(), 4);
+  EXPECT_EQ(fragment.payload_size(), 2);
   EXPECT_EQ(fragment.payload()[0], 0x42);
   EXPECT_EQ(fragment.payload()[1], 0x00);
-  EXPECT_EQ(fragment.payload()[2], 0x20);
-  EXPECT_EQ(fragment.payload()[3], 0xe9);
 
   // second fragment (same nal)
   fragment = packetizer.next();
   ASSERT_TRUE(fragment.valid());
 
-  EXPECT_EQ(fragment.size(), 6);
+  EXPECT_EQ(fragment.size(), 4);
+
+  EXPECT_EQ(fragment.nri(), 3);
+  EXPECT_EQ(fragment.packet_type(), 28);
+
+  EXPECT_FALSE(fragment.is_first());
+  EXPECT_FALSE(fragment.is_last());
+  EXPECT_EQ(fragment.nal_type(), 7);
+
+  EXPECT_EQ(fragment.payload_size(), 2);
+  EXPECT_EQ(fragment.payload()[0], 0x20);
+  EXPECT_EQ(fragment.payload()[1], 0xe9);
+
+  // third fragment
+  fragment = packetizer.next();
+  ASSERT_TRUE(fragment.valid());
+
+  EXPECT_EQ(fragment.size(), 4);
+
+  EXPECT_EQ(fragment.nri(), 3);
+  EXPECT_EQ(fragment.packet_type(), 28);
+
+  EXPECT_FALSE(fragment.is_first());
+  EXPECT_FALSE(fragment.is_last());
+  EXPECT_EQ(fragment.nal_type(), 7);
+
+  EXPECT_EQ(fragment.payload_size(), 2);
+  EXPECT_EQ(fragment.payload()[0], 0x00);
+  EXPECT_EQ(fragment.payload()[1], 0x80);
+
+  // fourth fragment
+  fragment = packetizer.next();
+  ASSERT_TRUE(fragment.valid());
+
+  EXPECT_EQ(fragment.size(), 4);
 
   EXPECT_EQ(fragment.nri(), 3);
   EXPECT_EQ(fragment.packet_type(), 28);
@@ -141,11 +173,9 @@ TEST(packetizer, big_units) {
   EXPECT_TRUE(fragment.is_last());
   EXPECT_EQ(fragment.nal_type(), 7);
 
-  EXPECT_EQ(fragment.payload_size(), 4);
-  EXPECT_EQ(fragment.payload()[0], 0x00);
-  EXPECT_EQ(fragment.payload()[1], 0x80);
-  EXPECT_EQ(fragment.payload()[2], 0x0c);
-  EXPECT_EQ(fragment.payload()[3], 0x32);
+  EXPECT_EQ(fragment.payload_size(), 2);
+  EXPECT_EQ(fragment.payload()[0], 0x0c);
+  EXPECT_EQ(fragment.payload()[1], 0x32);
 
   ASSERT_FALSE(packetizer.next().valid());
 }

@@ -9,7 +9,7 @@
       "buildRoot": "${workspaceRoot}\\build\\debug",
       "installRoot": "${workspaceRoot}\\build\\debug\\bin",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "-v",
+      "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "variables": [
         {
@@ -26,7 +26,7 @@
       "buildRoot": "${workspaceRoot}\\build\\release",
       "installRoot": "${workspaceRoot}\\build\\release\\bin",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "-v",
+      "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "variables": [
         {

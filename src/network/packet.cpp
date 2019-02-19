@@ -19,19 +19,23 @@ Packet::Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, std::uint
 Packet::Packet(Packet&& from) noexcept
     : m_bytes(std::move(from.m_bytes))
     , m_size(from.m_size)
+    , m_timestamp(from.m_timestamp)
     , m_type(from.m_type) {
   from.m_size = 0;
+  from.m_timestamp = 0;
   from.m_type = Type::Unknown;
 }
 
 Packet& Packet::operator=(Packet&& from) noexcept {
   if (this != &from) {
     m_bytes = std::move(from.m_bytes);
-    m_size  = from.m_size;
-    m_type  = from.m_type;
+    m_size = from.m_size;
+    m_timestamp = from.m_timestamp;
+    m_type = from.m_type;
 
-    from.m_type = Type::Unknown;
     from.m_size = 0;
+    from.m_type = Type::Unknown;
+    from.m_timestamp = 0;
   }
   return *this;
 }

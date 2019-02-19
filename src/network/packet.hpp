@@ -18,7 +18,7 @@ public:
 
   // moves ownership over |data| to packet
   Packet(void* data, std::size_t size);
-  Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, std::uint32_t timestamp,Type type=Type::Unknown);
+  Packet(std::unique_ptr<std::uint8_t[]> data, std::size_t size, std::uint32_t timestamp, Type type=Type::Unknown);
 
   Packet(const Packet&) = delete;
   Packet(Packet&&) noexcept;

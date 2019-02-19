@@ -101,6 +101,7 @@ public:
 
   // payload - returns pointer to start of payload
   std::uint8_t* payload() noexcept;
+  const std::uint8_t* payload() const noexcept;
   std::size_t payload_size() const noexcept;
 
 private:
