@@ -14,7 +14,7 @@ using Clock = std::chrono::high_resolution_clock;
 class Frame { // in BGRA format
 public:
   Frame() noexcept;
-  Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size, Clock::time_point time_stamp);
+  Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size, const Clock::time_point& time_stamp);
   Frame(const Frame&) = delete;
   Frame(Frame&&) noexcept;
   Frame& operator=(const Frame&) = delete;

@@ -7,7 +7,7 @@ Frame::Frame() noexcept
     : m_bytes(nullptr)
     , m_size(Size::empty()) {}
 
-Frame::Frame(std::unique_ptr<uint8_t[]> raw_image, Size size, Clock::time_point time_stamp)
+Frame::Frame(std::unique_ptr<uint8_t[]> raw_image, Size size, const Clock::time_point& time_stamp)
     : m_bytes(std::move(raw_image))
     , m_size(size)
     , m_timestamp(time_stamp) {}
