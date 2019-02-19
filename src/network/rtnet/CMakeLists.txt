@@ -21,6 +21,9 @@ add_library(rtnet
     rtcp/app.hpp
     rtcp/app.cpp
 
+	rtsp/request.hpp
+	rtsp/request.cpp
+
     byteorder.cpp
     byteorder.hpp
     slice.hpp

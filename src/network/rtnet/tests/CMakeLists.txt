@@ -6,6 +6,8 @@ add_executable(rtnettest
     rtcp/source_description.cpp
     rtcp/bye.cpp
     rtcp/app.cpp
+
+	rtsp/request.cpp
 )
 
 target_include_directories(rtnettest
