@@ -1,15 +1,16 @@
 #include <cstdint>
 #include <array>
 #include <cstdlib> // std::size_t
-#include <atomic>
 
 #include "disable_warnings_push.hpp"
 #include <boost/asio.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "context.hpp"
 #include "module.hpp"
 #include "packet.hpp"
 #include "channel.hpp"
+#include "cancellation.hpp"
 
 
 namespace shar::tcp {
@@ -45,7 +46,7 @@ private:
   using IOContext = boost::asio::io_context;
   using Timer = boost::asio::deadline_timer;
 
-  std::atomic<bool> m_running;
+  Cancellation m_running;
 
   IpAddress m_ip;
   Port      m_port;

@@ -1,10 +1,4 @@
-#include "disable_warnings_push.hpp"
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-#include "disable_warnings_pop.hpp"
-
-#include "context.hpp"
 #include "rtp.hpp"
-#include "consts.hpp"
 #include "rtnet/rtp/packet.hpp"
 
 
@@ -14,7 +8,6 @@ static const std::uint16_t MTU = 1000;
 
 Network::Network(Context context, IpAddress ip, Port port)
     : Context(std::move(context))
-    , m_running(false)
     , m_endpoint(std::move(ip), port)
     , m_context()
     , m_socket(m_context)
@@ -24,15 +17,10 @@ Network::Network(Context context, IpAddress ip, Port port)
     {}
 
 void Network::run(Receiver<shar::Packet> packets) {
-    m_running = true;
-
-    if (!m_socket.is_open()) {
-      m_socket.open(boost::asio::ip::udp::v4());
-    }
+    m_socket.open(boost::asio::ip::udp::v4());
 
     while (auto packet = packets.receive()) {
-
-      if (!m_running) {
+      if (m_running.expired()) {
         break;
       }
 
@@ -45,7 +33,7 @@ void Network::run(Receiver<shar::Packet> packets) {
 }
 
 void Network::shutdown() {
-    m_running = false;
+    m_running.cancel();
 }
 
 void Network::set_packet(shar::Packet packet) {
@@ -83,7 +71,7 @@ void Network::send() {
                      m_endpoint, 0, ec);
 
     if (ec) {
-      m_logger.error("Something happened when we sent packet: {}", ec.message());
+      m_logger.error("Failed to send rtp packet: {}", ec.message());
     }
 
   }

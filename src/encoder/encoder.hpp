@@ -2,13 +2,14 @@
 
 #include <atomic>
 
-#include "common/context.hpp"
-#include "network/packet.hpp"
+#include "context.hpp"
 #include "size.hpp"
-#include "capture/frame.hpp"
-#include "ffmpeg/codec.hpp"
+#include "cancellation.hpp"
 #include "counter.hpp"
 #include "channel.hpp"
+#include "capture/frame.hpp"
+#include "network/packet.hpp"
+#include "ffmpeg/codec.hpp"
 
 
 namespace shar {
@@ -19,14 +20,14 @@ public:
   Encoder(const Encoder&) = delete;
   Encoder(Encoder&&) = default;
   Encoder& operator=(const Encoder&) = delete;
-  Encoder& operator=(Encoder&&) = delete;
+  Encoder& operator=(Encoder&&) = default;
   ~Encoder() = default;
 
   void run(Receiver<Frame> input, Sender<Packet> output);
   void shutdown();
 
 private:
-  std::atomic<bool> m_running;
+  Cancellation m_running;
   codecs::ffmpeg::Codec m_codec;
 
   Counter m_bytes_in;

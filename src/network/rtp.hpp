@@ -1,16 +1,17 @@
 #include <cstdint>
 #include <array>
 #include <cstdlib> // std::size_t
-#include <atomic>
 
 #include "disable_warnings_push.hpp"
 #include <boost/asio.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "context.hpp"
 #include "module.hpp"
 #include "packet.hpp"
 #include "channel.hpp"
 #include "packetizer.hpp"
+#include "cancellation.hpp"
 
 
 namespace shar::rtp {
@@ -42,7 +43,7 @@ private:
     using Socket = boost::asio::ip::udp::socket;
     using IOContext = boost::asio::io_context;
 
-    std::atomic<bool> m_running;
+    Cancellation m_running;
 
     Endpoint  m_endpoint;
     IOContext m_context;
