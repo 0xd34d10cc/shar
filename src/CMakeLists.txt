@@ -3,6 +3,8 @@ add_subdirectory(network)
 add_executable(shar
                # application-level code
                app/main.cpp
+               app/app.hpp
+               app/app.cpp
                app/signal_handler.cpp
                app/signal_handler.hpp
                # common code
@@ -18,6 +20,8 @@ add_executable(shar
                common/disable_warnings_push.hpp
                common/disable_warnings_pop.hpp
                common/newtype.hpp
+               common/cancellation.hpp
+               common/cancellation.cpp
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp

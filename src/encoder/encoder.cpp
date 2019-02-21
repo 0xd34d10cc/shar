@@ -5,7 +5,6 @@ namespace shar {
 
 Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
     : Context(std::move(context))
-    , m_running(false)
     , m_codec(frame_size, fps, m_logger, m_config->get_subconfig("encoder"))
 {
   m_bytes_in = m_metrics->add("Encoder_in", "Encoder bytes in", "bytes");
@@ -13,10 +12,8 @@ Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
 }
 
 void Encoder::run(Receiver<Frame> input, Sender<Packet> output) {
-  m_running = true;
-
   while (auto frame = input.receive()) {
-    if (!m_running) {
+    if (m_running.expired()) {
       break;
     }
 
@@ -30,7 +27,7 @@ void Encoder::run(Receiver<Frame> input, Sender<Packet> output) {
 }
 
 void Encoder::shutdown() {
-  m_running = false;
+  m_running.cancel();
 }
 
 }
