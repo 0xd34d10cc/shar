@@ -15,12 +15,13 @@ add_executable(shar
                common/logger.hpp
                common/config.hpp
                common/context.hpp
-               common/metrics_context.hpp
+               common/metric_description.hpp
                common/channel.hpp
                common/size.hpp
                common/disable_warnings_push.hpp
                common/disable_warnings_pop.hpp
                common/newtype.hpp
+               common/time.hpp
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp

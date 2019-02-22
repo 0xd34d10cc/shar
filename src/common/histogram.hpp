@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "metrics_context.hpp"
+#include "metric_description.hpp"
 
 #include "disable_warnings_push.hpp"
 #include <prometheus/registry.h>
@@ -18,7 +18,8 @@ class Histogram {
 
 public:
   Histogram();
-  Histogram(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry, std::vector<double>& bounds);
+  Histogram(const MetricDescription description, const std::shared_ptr<prometheus::Registry>& registry, 
+                                                       std::vector<double> bounds);
   Histogram(const Histogram&) = delete;
   Histogram(Histogram&& histogram);
   Histogram& operator=(const Histogram&) = delete;
@@ -28,7 +29,7 @@ public:
   void Observe(const double value);
 
 private:
-  prometheus::Histogram*    m_histogram;
+  prometheus::Histogram     m_histogram;
   HistogramFamily*          m_family;
 };
 

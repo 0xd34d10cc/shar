@@ -5,11 +5,10 @@
 #include <chrono>
 #include <memory>
 
+#include "common/time.hpp"
 #include "size.hpp"
 
 namespace shar {
-
-using Clock = std::chrono::high_resolution_clock;
 
 class Frame { // in BGRA format
 public:

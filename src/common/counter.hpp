@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "metrics_context.hpp"
+#include "metric_description.hpp"
 
 #include "disable_warnings_push.hpp"
 #include <prometheus/registry.h>
@@ -17,7 +17,7 @@ class Counter {
   
 public:
   Counter();
-  Counter(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry);
+  Counter(const MetricDescription context, std::shared_ptr<prometheus::Registry> registry);
   Counter(const Counter&) = delete;
   Counter(Counter&& counter);
   Counter& operator=(const Counter&) = delete;

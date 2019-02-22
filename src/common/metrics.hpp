@@ -7,7 +7,7 @@
 #include <limits>
 #include <mutex>
 
-#include "metrics_context.hpp"
+#include "metrics_description.hpp"
 #include "counter.hpp"
 #include "histogram.hpp"
 #include "logger.hpp"
@@ -26,7 +26,7 @@ public:
   Metrics(Logger logger);
 
   template<typename MetricType, typename... Args>
-  MetricType add(MetricsContext context, Args&&... metric_args);
+  MetricType add(MetricDescription context, Args&&... metric_args);
   
   void register_on(prometheus::Exposer& exposer);
 
@@ -43,7 +43,7 @@ private:
 // Args for Counter: None
 // Args for Histogram: std::vector<double> bounds
 template<typename MetricType, typename... Args>
-MetricType Metrics::add(MetricsContext context, Args &&... metric_args)  {
+MetricType Metrics::add(MetricDescription context, Args &&... metric_args)  {
   return MetricType(context, m_registry, std::forward<Args>(metric_args)...);
 }
 

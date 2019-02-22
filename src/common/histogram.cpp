@@ -7,15 +7,16 @@ Histogram::Histogram()
   , m_histogram(nullptr)
 {}
 
-Histogram::Histogram(const MetricsContext& context, std::shared_ptr<prometheus::Registry> registry, 
-                                                                       std::vector<double>& bounds) {
-  std::map<std::string, std::string> labels = { {context.m_name, context.m_output_type} };
+Histogram::Histogram(const MetricDescription description, const std::shared_ptr<prometheus::Registry>& registry, 
+                                                                std::vector<double> bounds) {
+  std::map<std::string, std::string> labels = { {description.m_name, 
+                                                 std::move(description.m_output_type)} };
   m_family = &prometheus::BuildHistogram()
-    .Name(context.m_name)
-    .Help(context.m_help)
-    .Labels(std::move(labels))
+    .Name(std::move(description.m_name))
+    .Help(std::move(description.m_help))
+    .Labels(labels)
     .Register(*registry);
-  m_histogram = &m_family->Add(labels, bounds);
+  m_histogram = &m_family->Add(std::move(labels), std::move(bounds));
 }
 
 Histogram::Histogram(Histogram&& histogram)
