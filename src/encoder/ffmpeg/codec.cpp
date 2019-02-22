@@ -18,17 +18,18 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
   , m_frame_counter(0) {
 
   Options opts{};
-  /* FIXME
   auto options = config->get_subconfig("options");
-  for (const auto& iter : *options) {
-    const char* key = iter.first.c_str();
-    const std::string value = iter.second.get_value<std::string>();
+  for (const auto& [key, value]: *options) {
+    if (!value.is_string()) {
+      m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
+      continue;
+    }
 
-    if (!opts.set(key, value.c_str())) {
-      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
+    if (!opts.set(key.c_str(), value.get<std::string>().c_str())) {
+      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value.dump());
     }
   }
-  */
+
   m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
   assert(m_encoder);

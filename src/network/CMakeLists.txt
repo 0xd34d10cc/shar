@@ -19,7 +19,8 @@ add_library(network
 target_include_directories(network
     PUBLIC ..
     PUBLIC ../common
-    PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
+    PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
+    PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_JSONFORMODERNCPP}
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
     PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
     PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
@@ -27,7 +28,6 @@ target_include_directories(network
 )
 
 target_link_libraries(network
-  ${CONAN_LIBS_BOOST}
   ${CONAN_LIBS_FMT}
 	rtnet
 )

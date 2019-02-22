@@ -43,8 +43,8 @@ add_executable(shar
 target_include_directories(shar
                            PRIVATE .
                            PRIVATE ./common
-                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_JSONFORMODERNCPP}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
