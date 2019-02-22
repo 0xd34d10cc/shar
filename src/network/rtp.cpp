@@ -17,7 +17,7 @@ Network::Network(Context context, IpAddress ip, Port port)
     {}
 
 void Network::run(Receiver<shar::Packet> packets) {
-    m_socket.open(boost::asio::ip::udp::v4());
+    m_socket.open(asio::ip::udp::v4());
 
     while (auto packet = packets.receive()) {
       if (m_running.expired()) {
@@ -67,7 +67,7 @@ void Network::send() {
     assert(buffer.size() >= fragment.size() + HEADER_SIZE);
 
     ErrorCode ec;
-    m_socket.send_to(boost::asio::buffer(packet.data(), packet.size()),
+    m_socket.send_to(asio::buffer(packet.data(), packet.size()),
                      m_endpoint, 0, ec);
 
     if (ec) {

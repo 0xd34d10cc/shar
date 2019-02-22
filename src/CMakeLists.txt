@@ -43,7 +43,7 @@ add_executable(shar
 target_include_directories(shar
                            PRIVATE .
                            PRIVATE ./common
-                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
@@ -57,7 +57,6 @@ target_link_libraries(shar
                       ${CONAN_LIBS_SCREENCAPTURELITE}
                       ${CONAN_LIBS_FFMPEG}
                       ${CONAN_LIBS_LIBX264}
-                      ${CONAN_LIBS_BOOST}
                       ${CONAN_LIBS_FMT}
                       ${CONAN_LIBS_PROMETHEUS-CPP}
                       )

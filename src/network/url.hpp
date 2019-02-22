@@ -3,13 +3,13 @@
 #include <string>
 
 #include "disable_warnings_push.hpp"
-#include <boost/asio/ip/address.hpp>
+#include <asio/ip/address.hpp>
 #include "disable_warnings_pop.hpp"
 
 
 namespace shar {
 
-using IpAddress = boost::asio::ip::address;
+using IpAddress = asio::ip::address;
 using Port = std::uint16_t;
 
 enum class Protocol {

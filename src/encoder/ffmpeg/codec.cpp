@@ -18,6 +18,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
   , m_frame_counter(0) {
 
   Options opts{};
+  /* FIXME
   auto options = config->get_subconfig("options");
   for (const auto& iter : *options) {
     const char* key = iter.first.c_str();
@@ -27,7 +28,7 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
       m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
-
+  */
   m_encoder = select_codec(config, opts, frame_size, fps);
   assert(m_context.get());
   assert(m_encoder);
