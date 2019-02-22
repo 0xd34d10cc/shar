@@ -7,7 +7,7 @@ add_executable(rtnettest
     rtcp/bye.cpp
     rtcp/app.cpp
 
-	rtsp/request.cpp
+	rtsp/request.cpp 
 )
 
 target_include_directories(rtnettest
@@ -18,6 +18,6 @@ target_include_directories(rtnettest
 target_link_libraries(rtnettest
     rtnet
     ${CONAN_LIBS_GTEST}
-)
+) 
 
 add_test(NAME rtnettest COMMAND rtnettest)

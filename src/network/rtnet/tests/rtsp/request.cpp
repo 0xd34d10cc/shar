@@ -25,7 +25,7 @@ TEST(rtsp, empty_request) {
 }
 
 TEST(rtsp, incorrect_type) {
-  const char* empty_request = "OPTIONS RTSP/1.0";
+  const char* empty_request = "OPTI2ONS RTSP/1.0";
   ASSERT_THROW(rtsp::Request::parse(empty_request, std::strlen(empty_request)), std::runtime_error);
 }
 
@@ -71,4 +71,20 @@ TEST(rtsp, large_request) {
   EXPECT_EQ(headers[2].second, "text / parameters");
   EXPECT_EQ(headers[3].first, "barparam ");
   EXPECT_EQ(headers[3].second, "barstuff");
+}
+
+TEST(rtsp, header_without_value) {
+  const char* request_without_value =
+    "GET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
+    "CSeq: 9\r\n"
+    "packets_received";
+  auto request = rtsp::Request::parse(request_without_value, std::strlen(request_without_value));
+  EXPECT_EQ(request.type(), rtsp::Request::Type::GET_PARAMETER);
+  EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
+  EXPECT_EQ(request.version(), 1);
+  auto headers = request.headers();
+  EXPECT_EQ(headers[0].first, "CSeq");
+  EXPECT_EQ(headers[0].second, "9");
+  EXPECT_EQ(headers[1].first, "packets_received");
+  EXPECT_EQ(headers[1].second, "");
 }

@@ -19,7 +19,8 @@ public:
     GET_PARAMETER,
     SET_PARAMETER,
     REDIRECT,
-    ANNOUNCE
+    ANNOUNCE,
+    RECORD
   };
   using Header = std::pair<std::string, std::string>;
 

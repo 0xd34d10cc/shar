@@ -23,12 +23,17 @@ add_library(rtnet
 
 	rtsp/request.hpp
 	rtsp/request.cpp
+	rtsp/response.hpp
+	rtsp/response.cpp
+	rtsp/parser.hpp
+	rtsp/parser.cpp
+	rtsp/header.hpp
 
     byteorder.cpp
     byteorder.hpp
     slice.hpp
     slice.cpp
-)
+) 
 
 target_include_directories(rtnet PRIVATE . ../../common)
 target_include_directories(rtnet PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST})
