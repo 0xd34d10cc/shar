@@ -28,6 +28,7 @@ add_library(rtnet
 	rtsp/parser.hpp
 	rtsp/parser.cpp
 	rtsp/header.hpp
+	rtsp/header.cpp
 
     byteorder.cpp
     byteorder.hpp

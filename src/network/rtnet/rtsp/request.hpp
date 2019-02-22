@@ -2,11 +2,12 @@
 #include <vector>
 #include <utility>
 
+#include "parser.hpp"
 
 namespace shar::rtsp {
 
 class Request {
-
+  
 public:
 
   enum class Type {
@@ -22,7 +23,6 @@ public:
     ANNOUNCE,
     RECORD
   };
-  using Header = std::pair<std::string, std::string>;
 
   Type                type() const noexcept;
   const std::string&  address() const noexcept;

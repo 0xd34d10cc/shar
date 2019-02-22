@@ -1,17 +1,33 @@
 #include <string>
 #include <vector>
 
-#include "header.hpp"
+#include "parser.hpp"
+
+
 namespace shar::rtsp {
 
 class Response {
 
+public:
+  std::size_t         version() const noexcept;
+  std::uint16_t       status_code() const noexcept;
+  const std::string&  reason() const noexcept;
+  const std::vector<Header>& headers() const noexcept;
+
+  void set_version(std::size_t version);
+  void set_status_code(std::uint16_t statuc_code);
+  void set_reason(std::string reason);
+  void add_header(std::string key, std::string value);
+
+  static Response parse(const char* buffer, std::size_t size);
+
 private:
-  std::string         m_version;
+  std::size_t         m_version;
   std::uint16_t       m_status_code;
   std::string         m_reason;
 
   std::vector<Header> m_headers;
+//TODO: Implement pointer to body
 };
 
 }

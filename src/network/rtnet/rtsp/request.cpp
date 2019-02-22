@@ -3,7 +3,6 @@
 
 #include "request.hpp"
 
-
 namespace shar::rtsp {
 
 static Request::Type parse_type(const char* begin, std::size_t size) {
@@ -26,31 +25,6 @@ if((size == strlen(#TYPE)) && !memcmp(begin, #TYPE, size)) {\
   TRY_TYPE(RECORD);
   throw std::runtime_error("Invalid message type");
 #undef TRY_TYPE
-}
-
-static std::size_t parse_version(const char* begin, std::size_t size) {
-  if ((size != 8) && !std::memcmp(begin, "RTSP/1.0", size)) {
-    throw std::runtime_error("RTSP version is incorrect");
-  }
-  return 1;
-}
-
-static Request::Header parse_header(const char* begin, std::size_t size) {
-  const char* header_begin = begin;
-  const char* key_end = std::find(begin, begin + size, ':');
-
-  if (key_end == begin) {
-    throw std::runtime_error("Incorrect additional parameter");
-  }
-  std::string key = std::string(begin, key_end);
-
-  header_begin = key_end;
-  if (key_end != begin + size) {
-    header_begin += 2;
-  }
-  std::string value = std::string(header_begin, begin + size);
-
-  return std::make_pair(key, value);
 }
 
 Request Request::parse(const char * buffer, const std::size_t size) {
@@ -76,11 +50,7 @@ Request Request::parse(const char * buffer, const std::size_t size) {
   std::string address = std::string(begin, address_end);
   begin = address_end+1;
 
-  const char* version_end = std::find(begin, end, '\r');
-  if (version_end==begin ||
-    *version_end=='\r' && *(version_end+1) != '\n') {
-    throw std::runtime_error("Version not found");
-  }
+  const char* version_end = find_line_ending(begin, end);
   std::size_t version = parse_version(begin, version_end-begin);
 
   request.set_type(type);
@@ -90,16 +60,7 @@ Request Request::parse(const char * buffer, const std::size_t size) {
   if (version_end != end) {
     begin = version_end + 2;
 
-    const char* header_end;
-    do {
-      header_end = std::find(begin, end, '\r');
-      if (*header_end=='r' && *(header_end + 1) != '\n') {
-        throw std::runtime_error("Incorrect additional parameter type");
-      }
-      auto[key, value] = parse_header(begin, header_end - begin);
-      request.add_header(std::move(key), std::move(value));
-      begin = header_end + 2;
-    } while (header_end != end);
+    parse_headers(begin, end, request.m_headers);
   }
   return request;
 }
@@ -115,7 +76,7 @@ const std::string & Request::address() const noexcept {
 std::size_t Request::version() const noexcept {
   return m_version;
 }
-const std::vector<Request::Header>& Request::headers() const noexcept {
+const std::vector<Header>& Request::headers() const noexcept {
   return m_headers;
 }
 void Request::set_type(Type type) {
@@ -131,7 +92,7 @@ void Request::set_version(std::size_t version) {
 }
 
 void Request::add_header(std::string key, std::string value) {
-  m_headers.push_back(std::make_pair (std::move(key), std::move(value)));
+  m_headers.push_back(Header(std::move(key), std::move(value)));
 }
 
 }

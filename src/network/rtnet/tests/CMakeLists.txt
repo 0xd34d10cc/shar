@@ -8,6 +8,7 @@ add_executable(rtnettest
     rtcp/app.cpp
 
 	rtsp/request.cpp 
+	rtsp/response.cpp
 )
 
 target_include_directories(rtnettest
