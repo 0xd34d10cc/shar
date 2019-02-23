@@ -26,6 +26,7 @@ public:
   Gauge();
   Gauge(const MetricDescription context, const RegistryPtr& registry);
   Gauge(const Gauge&) = delete;
+  Gauge(Gauge&& gauge) = default;
   Gauge& operator=(const Gauge&) = delete;
   Gauge& operator=(Gauge&& gauge) = default;
 

@@ -5,7 +5,6 @@ namespace shar {
 
 Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
   : Context(std::move(context))
-  , m_running(false)
   , m_codec({ m_config->get_subconfig("encoder"),  m_logger,  m_registry }, frame_size, fps)
   {
   m_bytes_in = metrics::Gauge({ "Encoder_in", "Encoder bytes in", "bytes" }, m_registry);

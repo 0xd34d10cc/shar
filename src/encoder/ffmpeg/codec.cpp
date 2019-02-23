@@ -21,7 +21,7 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   {
 
   Options opts{};
-  auto options = config->get_subconfig("options");
+  auto options = m_config->get_subconfig("options");
   for (const auto& [key, value]: *options) {
     if (!value.is_string()) {
       m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
