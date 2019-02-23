@@ -23,8 +23,12 @@ add_executable(shar
                common/disable_warnings_push.hpp
                common/disable_warnings_pop.hpp
                common/newtype.hpp
+<<<<<<< HEAD
+               common/time.hpp
+=======
                common/cancellation.hpp
                common/cancellation.cpp
+>>>>>>> master
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp

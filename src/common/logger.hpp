@@ -32,32 +32,32 @@ public:
   ~Logger() = default;
 
   template<typename... Args>
-  void trace(Args&&... args) {
+  void trace(Args&&... args) const {
     m_logger->trace(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void debug(Args&&... args) {
+  void debug(Args&&... args) const {
     m_logger->debug(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void info(Args&&... args) {
+  void info(Args&&... args) const {
     m_logger->info(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void warning(Args&&... args) {
+  void warning(Args&&... args) const {
     m_logger->warn(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void error(Args&&... args) {
+  void error(Args&&... args) const {
     m_logger->error(std::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  void critical(Args&&... args) {
+  void critical(Args&&... args) const {
     m_logger->critical(std::forward<Args>(args)...);
   }
 

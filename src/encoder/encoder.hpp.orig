@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+<<<<<<< HEAD
 
 #include "capture/frame.hpp"
 #include "common/gauge.hpp"
@@ -10,9 +11,18 @@
 #include "common/histogram.hpp"
 #include "channel.hpp"
 #include "ffmpeg/codec.hpp"
+#include "network/packet.hpp"
+#include "size.hpp"
+=======
+#include "context.hpp"
 #include "size.hpp"
 #include "cancellation.hpp"
+#include "counter.hpp"
+#include "channel.hpp"
+#include "capture/frame.hpp"
 #include "network/packet.hpp"
+#include "ffmpeg/codec.hpp"
+>>>>>>> master
 
 
 namespace shar {

@@ -29,7 +29,7 @@ struct FrameHandler {
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
     Frame buffer = convert(frame, Clock::now());
 
-    // ignore return value here, 
+    // ignore return value here,
     // if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
     m_consumer->send(std::move(buffer));
@@ -48,8 +48,8 @@ Capture::Capture(Context context,
     : Context(std::move(context))
     , m_interval(interval)
     , m_capture(nullptr) {
-  m_capture_config = sc::CreateCaptureConfiguration([=] {
-    return std::vector<sc::Monitor> {monitor};
+  m_capture_config = sc::CreateCaptureConfiguration([m{std::move(monitor)}]() mutable {
+    return std::vector<sc::Monitor>{ std::move(m) };
   });
 
 }

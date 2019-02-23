@@ -1,15 +1,18 @@
 #include <cstdint>
 #include <array>
 #include <cstdlib> // std::size_t
-#include <atomic>
+#include <system_error>
 
 #include "disable_warnings_push.hpp"
-#include <boost/asio.hpp>
+#include <asio/ip/tcp.hpp>
+#include <asio/steady_timer.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "context.hpp"
 #include "module.hpp"
 #include "packet.hpp"
 #include "channel.hpp"
+#include "cancellation.hpp"
 
 
 namespace shar::tcp {
@@ -19,10 +22,10 @@ class Network
   , protected Context
 {
 public:
-  using Endpoint = boost::asio::ip::tcp::endpoint;
-  using IpAddress = boost::asio::ip::address;
-  using ErrorCode = boost::system::error_code;
-  using Port = const std::uint16_t;
+  using Endpoint = asio::ip::tcp::endpoint;
+  using IpAddress = asio::ip::address;
+  using ErrorCode = std::error_code;
+  using Port = std::uint16_t;
 
   Network(Context context, IpAddress ip, Port port);
   Network(const Network&) = delete;
@@ -41,11 +44,11 @@ private:
   void send_length();
   void send_content();
 
-  using Socket = boost::asio::ip::tcp::socket;
-  using IOContext = boost::asio::io_context;
-  using Timer = boost::asio::deadline_timer;
+  using Socket = asio::ip::tcp::socket;
+  using IOContext = asio::io_context;
+  using Timer = asio::steady_timer;
 
-  std::atomic<bool> m_running;
+  Cancellation m_running;
 
   IpAddress m_ip;
   Port      m_port;

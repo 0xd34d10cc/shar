@@ -1,63 +1,21 @@
 from conans import ConanFile, CMake
 
 
-BOOST_LIBS = [
-    'math', 
-    'wave', 
-    'container', 
-    'contract', 
-    'exception', 
-    'graph', 
-    'iostreams', 
-    'locale', 
-    'log',
-    'program_options', 
-    'random', 
-    'regex', 
-    'mpi', 
-    'serialization', 
-    'signals',
-    'coroutine', 
-    'fiber', 
-    'context', 
-    'timer', 
-    'thread', 
-    'chrono', 
-    'date_time',
-    'atomic', 
-    'filesystem', 
-    'system', 
-    'graph_parallel', 
-    'python',
-    'stacktrace', 
-    'test', 
-    'type_erasure'
-]
-
-ENABLED_BOOST_LIBS = [
-    "system" # required for asio
-]
-
-BOOST_OPTIONS = tuple(['boost:without_{}=True'.format(lib) 
-                       for lib in BOOST_LIBS 
-                       if lib not in ENABLED_BOOST_LIBS])
-
-
 class Shar(ConanFile):
     settings        = "os",  "compiler",  "build_type"
 
-    requires        = ("ScreenCaptureLite/16.1.0@0xd34d10cc/testing",
-                       "boost/1.67.0@conan/stable",
-                       "ffmpeg/4.0@0xd34d10cc/testing",
-                       "spdlog/0.17.0@bincrafters/stable",
-                       "prometheus-cpp/0.6.0@d34dpkgs/testing",
-                       "gtest/1.8.1@bincrafters/stable")
+    requires        = ("asio/1.12.0@bincrafters/stable",             # network
+                       "ScreenCaptureLite/16.1.0@0xd34d10cc/testing", # capture
+                       "ffmpeg/4.0@0xd34d10cc/testing",               # encoder
+                       "spdlog/0.17.0@bincrafters/stable",            # logs
+                       "gtest/1.8.1@bincrafters/stable",              # UTs
+                       # TODO: move to 0xd34d10cc
+                       "prometheus-cpp/0.6.0@d34dpkgs/testing",       # metrics
+                       "jsonformoderncpp/3.5.0@vthiery/stable")       # config
 
     generators      = "cmake"
 
-    default_options = BOOST_OPTIONS +\
-                      ("boost:shared    = False",
-                       "ffmpeg:fPIC     = True",
+    default_options = ("ffmpeg:fPIC     = True",
                        "ffmpeg:iconv    = False",
                        "ffmpeg:x264     = True",
                        "ffmpeg:mp3lame  = False",

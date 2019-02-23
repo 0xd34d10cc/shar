@@ -1,16 +1,12 @@
-#include "disable_warnings_push.hpp"
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-#include "disable_warnings_pop.hpp"
+#include <chrono>
 
-#include "context.hpp"
 #include "tcp.hpp"
-#include "consts.hpp"
+
 
 namespace shar::tcp {
 
 Network::Network(Context context, IpAddress ip, Port port)
   : Context(std::move(context))
-  , m_running(false)
   , m_ip(std::move(ip))
   , m_port(port)
   , m_context()
@@ -22,9 +18,11 @@ Network::Network(Context context, IpAddress ip, Port port)
 {}
 
 void Network::run(Receiver<Packet> packets) {
-  m_running = true;
-
   while (auto packet = packets.receive()) {
+    if (m_running.expired()) {
+      break;
+    }
+
     set_packet(std::move(*packet));
     m_context.reset();
 
@@ -34,13 +32,13 @@ void Network::run(Receiver<Packet> packets) {
 
   shutdown();
   if (m_state != State::Disconnected) {
-    m_socket.shutdown(boost::asio::socket_base::shutdown_both);
+    m_socket.shutdown(asio::socket_base::shutdown_both);
     m_socket.close();
   }
 }
 
 void Network::shutdown() {
-  m_running = false;
+  m_running.cancel();
 }
 
 void Network::set_packet(Packet packet) {
@@ -57,7 +55,7 @@ void Network::set_packet(Packet packet) {
 }
 
 void Network::schedule() {
-  if (!m_running) {
+  if (m_running.expired()) {
     return;
   }
 
@@ -82,7 +80,7 @@ void Network::connect() {
     if (ec) {
       m_logger.error("Reconnect failed: {}", ec.message());
 
-      m_timer.expires_from_now(boost::posix_time::seconds(1));
+      m_timer.expires_from_now(std::chrono::seconds(1));
       m_timer.async_wait([this](const ErrorCode& code) {
         if (code) {
           m_logger.error("Timer failed: {}", code.message());
@@ -104,7 +102,7 @@ void Network::connect() {
 void Network::send_length() {
   assert(m_state == State::SendingLength);
 
-  auto buffer = boost::asio::buffer(
+  auto buffer = asio::buffer(
     m_length.data() + m_bytes_sent,
     m_length.size() - m_bytes_sent
   );
@@ -139,7 +137,7 @@ void Network::send_length() {
 void Network::send_content() {
   assert(m_state == State::SendingContent);
 
-  auto buffer = boost::asio::buffer(
+  auto buffer = asio::buffer(
     m_current_packet.data() + m_bytes_sent,
     m_current_packet.size() - m_bytes_sent
   );

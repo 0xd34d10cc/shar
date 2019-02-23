@@ -21,15 +21,13 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   {
 
   Options opts{};
-  auto options = config->get_subconfig("options");
-  for (const auto& [key, value]: *options) {
-    if (!value.is_string()) {
-      m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
-      continue;
-    }
+  auto options = m_config->get_subconfig("options");
+  for (const auto& iter : *options) {
+    const char* key = iter.first.c_str();
+    const std::string value = iter.second.get_value<std::string>();
 
-    if (!opts.set(key.c_str(), value.get<std::string>().c_str())) {
-      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value.dump());
+    if (!opts.set(key, value.c_str())) {
+      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
   m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" }, m_registry,
