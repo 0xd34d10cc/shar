@@ -32,6 +32,7 @@ public:
                                                        std::vector<double> bounds);
   Histogram(const Histogram&) = delete;
   Histogram& operator=(const Histogram&) = delete;
+  Histogram& operator=(Histogram&& histogram) = default;
 
   void Observe(const double value);
 

@@ -4,13 +4,13 @@
 
 #include "logger.hpp"
 #include "config.hpp"
-#include "metrics.hpp"
+#include "registry.hpp"
 
 
 namespace shar {
 struct Context {
-    ConfigPtr  m_config;
-    Logger     m_logger;
-    MetricsPtr m_metrics;
+    ConfigPtr            m_config;
+    Logger               m_logger;
+    metrics::RegistryPtr m_metrics;
 };
 }

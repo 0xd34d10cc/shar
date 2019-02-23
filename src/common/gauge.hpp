@@ -13,24 +13,25 @@ namespace shar::metrics {
 
 using GaugeFamily = prometheus::Family<prometheus::Gauge>;
 
-struct CounterRemover {
+struct GaugeRemover {
   GaugeFamily* m_family;
-  void operator()(prometheus::Gauge* counter) {
-    m_family->Remove(counter);
-    delete counter;
+  void operator()(prometheus::Gauge* gauge) {
+    m_family->Remove(gauge);
+    delete gauge;
     delete m_family;
   }
 };
 
-using CounterPtr = std::unique_ptr<prometheus::Gauge, CounterRemover>;
+using GaugePtr = std::unique_ptr<prometheus::Gauge, GaugeRemover>;
 
-class Counter {
+class Gauge {
   
 public:
-  Counter();
-  Counter(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry);
-  Counter(const Counter&) = delete;
-  Counter& operator=(const Counter&) = delete;
+  Gauge();
+  Gauge(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry);
+  Gauge(const Gauge&) = delete;
+  Gauge& operator=(const Gauge&) = delete;
+  Gauge& operator=(Gauge&& gauge) = default;
 
   void increment();
   void decrement();
@@ -38,7 +39,7 @@ public:
   void decrement(double);
 
 private:
-  CounterPtr m_gauge;
+  GaugePtr m_gauge;
 };
 
 }

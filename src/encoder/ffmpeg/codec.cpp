@@ -30,8 +30,8 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
       m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
-  m_full_delay = m_metrics->add<Histogram>({ "Codec_full_delay", "Delay of capture & codec", "ms" },
-    std::vector<double>{15, 30, 60});
+  m_full_delay = std::move(m_metrics->add<metrics::Histogram>({ "Codec_full_delay", "Delay of capture & codec", "ms" },
+    std::vector<double>{15, 30, 60}));
 
   m_encoder = select_codec(opts, frame_size, fps);
   assert(m_context.get());

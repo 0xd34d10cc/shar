@@ -1,32 +1,32 @@
-#include "counter.hpp"
+#include "gauge.hpp"
 
 namespace shar::metrics {
 
-Counter::Counter() : m_gauge(nullptr) {}
+Gauge::Gauge() : m_gauge(nullptr) {}
 
-Counter::Counter(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry) {
+Gauge::Gauge(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry) {
   auto family = &prometheus::BuildGauge()
     .Name(context.m_name)
     .Help(std::move(context.m_help))
     .Labels({ {std::move(context.m_name), std::move(context.m_output_type)} })
     .Register(*registry);
   auto gauge = &family->Add({});
-  m_gauge = CounterPtr(gauge, CounterRemover{ family });
+  m_gauge = GaugePtr(gauge, GaugeRemover{ family });
 }
 
-void Counter::increment() {
+void Gauge::increment() {
   m_gauge->Increment();
 }
 
-void Counter::decrement() {
+void Gauge::decrement() {
   m_gauge->Decrement();
 }
 
-void Counter::increment(double amount) {
+void Gauge::increment(double amount) {
   m_gauge->Increment(amount);
 }
 
-void Counter::decrement(double amount) {
+void Gauge::decrement(double amount) {
   m_gauge->Decrement(amount);
 }
 

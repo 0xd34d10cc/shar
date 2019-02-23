@@ -4,7 +4,7 @@
 
 
 #include "capture/frame.hpp"
-#include "common/counter.hpp"
+#include "common/gauge.hpp"
 #include "common/context.hpp"
 #include "common/metric_description.hpp"
 #include "common/histogram.hpp"
@@ -32,8 +32,8 @@ private:
   std::atomic<bool> m_running;
   codecs::ffmpeg::Codec m_codec;
 
-  Counter m_bytes_in;
-  Counter m_bytes_out;
+  metrics::Gauge m_bytes_in;
+  metrics::Gauge m_bytes_out;
 };
 
 }

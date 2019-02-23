@@ -8,7 +8,7 @@
 #include <mutex>
 
 #include "metric_description.hpp"
-#include "counter.hpp"
+#include "gauge.hpp"
 #include "histogram.hpp"
 #include "logger.hpp"
 #include "newtype.hpp"
@@ -16,14 +16,14 @@
 
 namespace shar::metrics {
 
-class Metrics;
+class Registry;
 
-using MetricsPtr = std::shared_ptr<Metrics>;
+using RegistryPtr = std::shared_ptr<Registry>;
 
-class Metrics {
+class Registry {
 public:
 
-  Metrics(Logger logger);
+  Registry(Logger logger);
 
   template<typename MetricType, typename... Args>
   MetricType add(MetricDescription context, Args&&... metric_args);
@@ -39,11 +39,11 @@ private:
 };
 
 
-// Avaliable MetricTypes: Counter, Histogram
-// Args for Counter: None
+// Avaliable MetricTypes: Gauge, Histogram
+// Args for Gauge: None
 // Args for Histogram: std::vector<double> bounds
 template<typename MetricType, typename... Args>
-MetricType Metrics::add(MetricDescription context, Args &&... metric_args)  {
+MetricType Registry::add(MetricDescription context, Args &&... metric_args)  {
   return MetricType(context, m_registry, std::forward<Args>(metric_args)...);
 }
 

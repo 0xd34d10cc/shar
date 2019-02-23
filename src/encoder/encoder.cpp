@@ -8,8 +8,8 @@ Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
   , m_running(false)
   , m_codec({ m_config->get_subconfig("encoder"),  m_logger,  m_metrics }, frame_size, fps)
   {
-  m_bytes_in = m_metrics->add<Counter>({ "Encoder_in", "Encoder bytes in", "bytes" });
-  m_bytes_out = m_metrics->add<Counter>({ "Encoder_out", "Encoder bytes out", "bytes" });
+  m_bytes_in = std::move(m_metrics->add<metrics::Gauge>({ "Encoder_in", "Encoder bytes in", "bytes" }));
+  m_bytes_out = std::move(m_metrics->add<metrics::Gauge>({ "Encoder_out", "Encoder bytes out", "bytes" }));
   }
 
 void Encoder::run(Receiver<Frame> input, Sender<Packet> output) {
