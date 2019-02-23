@@ -11,6 +11,6 @@ namespace shar {
 struct Context {
     ConfigPtr            m_config;
     Logger               m_logger;
-    metrics::RegistryPtr m_metrics;
+    metrics::RegistryPtr m_registry;
 };
 }

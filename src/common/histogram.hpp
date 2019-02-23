@@ -4,11 +4,7 @@
 #include <vector>
 
 #include "metric_description.hpp"
-
-#include "disable_warnings_push.hpp"
-#include <prometheus/registry.h>
-#include <prometheus/exposer.h>
-#include "disable_warnings_pop.hpp"
+#include "registry.hpp"
 
 namespace shar::metrics {
 
@@ -28,8 +24,8 @@ class Histogram {
 public:
   Histogram();
 
-  Histogram(const MetricDescription description, const std::shared_ptr<prometheus::Registry>& registry, 
-                                                       std::vector<double> bounds);
+  Histogram(const MetricDescription description, const RegistryPtr& registry, 
+                                                 std::vector<double> bounds);
   Histogram(const Histogram&) = delete;
   Histogram& operator=(const Histogram&) = delete;
   Histogram& operator=(Histogram&& histogram) = default;

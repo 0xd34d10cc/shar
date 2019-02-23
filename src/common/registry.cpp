@@ -16,4 +16,9 @@ void Registry::register_on(prometheus::Exposer & exposer)
   exposer.RegisterCollectable(m_registry);
 }
 
+Registry::RegistryPtr Registry::registry()
+{
+  return m_registry;
+}
+
 }

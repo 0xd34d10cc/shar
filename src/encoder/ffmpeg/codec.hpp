@@ -6,6 +6,7 @@
 #include "logger.hpp"
 #include "config.hpp"
 #include "common/context.hpp"
+#include "common/histogram.hpp"
 #include "network/packet.hpp"
 #include "capture/frame.hpp"
 #include "options.hpp"

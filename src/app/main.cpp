@@ -105,7 +105,7 @@ static int run() {
   auto capture = create_capture(context, monitor);
   auto encoder = create_encoder(context, monitor);
   auto network = create_network(context);
-  context.m_metrics->register_on(exposer);
+  context.m_registry->register_on(exposer);
 
   if (!shar::SignalHandler::setup()) {
     context.m_logger.error("Failed to setup signal handler");

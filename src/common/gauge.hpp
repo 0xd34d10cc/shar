@@ -3,11 +3,7 @@
 #include <memory>
 
 #include "metric_description.hpp"
-
-#include "disable_warnings_push.hpp"
-#include <prometheus/registry.h>
-#include <prometheus/exposer.h>
-#include "disable_warnings_pop.hpp"
+#include "registry.hpp"
 
 namespace shar::metrics {
 
@@ -28,7 +24,7 @@ class Gauge {
   
 public:
   Gauge();
-  Gauge(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry);
+  Gauge(const MetricDescription context, const RegistryPtr& registry);
   Gauge(const Gauge&) = delete;
   Gauge& operator=(const Gauge&) = delete;
   Gauge& operator=(Gauge&& gauge) = default;

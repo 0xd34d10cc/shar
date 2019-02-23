@@ -4,12 +4,12 @@ namespace shar::metrics {
 
 Gauge::Gauge() : m_gauge(nullptr) {}
 
-Gauge::Gauge(const MetricDescription context, const std::shared_ptr<prometheus::Registry>& registry) {
+Gauge::Gauge(const MetricDescription context, const RegistryPtr& registry) {
   auto family = &prometheus::BuildGauge()
     .Name(context.m_name)
     .Help(std::move(context.m_help))
     .Labels({ {std::move(context.m_name), std::move(context.m_output_type)} })
-    .Register(*registry);
+    .Register(*registry->registry());
   auto gauge = &family->Add({});
   m_gauge = GaugePtr(gauge, GaugeRemover{ family });
 }
