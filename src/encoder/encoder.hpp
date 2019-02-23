@@ -6,7 +6,7 @@
 #include "capture/frame.hpp"
 #include "common/counter.hpp"
 #include "common/context.hpp"
-#include "common/metrics_context.hpp"
+#include "common/metric_description.hpp"
 #include "common/histogram.hpp"
 #include "channel.hpp"
 #include "ffmpeg/codec.hpp"

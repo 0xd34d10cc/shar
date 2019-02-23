@@ -7,14 +7,14 @@
 #include <limits>
 #include <mutex>
 
-#include "metrics_description.hpp"
+#include "metric_description.hpp"
 #include "counter.hpp"
 #include "histogram.hpp"
 #include "logger.hpp"
 #include "newtype.hpp"
 
 
-namespace shar {
+namespace shar::metrics {
 
 class Metrics;
 

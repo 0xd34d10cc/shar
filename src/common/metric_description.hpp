@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace shar {
+namespace shar::metrics {
 
 struct MetricDescription {
   std::string m_name;
