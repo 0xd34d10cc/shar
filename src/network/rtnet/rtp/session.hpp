@@ -3,14 +3,14 @@
 #include "packet.hpp"
 
 #include "disable_warnings_push.hpp"
-#include <boost/asio/ip/udp.hpp>
+#include <asio/ip/udp.hpp>
 #include "disable_warnings_pop.hpp"
 
 
 namespace shar::rtp {
 
-using UDPSocket = boost::asio::ip::udp::socket;
-using Endpoint = boost::asio::ip::udp::endpoint;
+using UDPSocket = asio::ip::udp::socket;
+using Endpoint = asio::ip::udp::endpoint;
 
 class Session {
 public:

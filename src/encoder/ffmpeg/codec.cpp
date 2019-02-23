@@ -19,12 +19,14 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
 
   Options opts{};
   auto options = config->get_subconfig("options");
-  for (const auto& iter : *options) {
-    const char* key = iter.first.c_str();
-    const std::string value = iter.second.get_value<std::string>();
+  for (const auto& [key, value]: *options) {
+    if (!value.is_string()) {
+      m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
+      continue;
+    }
 
-    if (!opts.set(key, value.c_str())) {
-      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
+    if (!opts.set(key.c_str(), value.get<std::string>().c_str())) {
+      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value.dump());
     }
   }
 

@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "app.hpp"
 
 #include "network/network.hpp"
@@ -10,7 +12,8 @@ static Context make_context() {
   auto logger = Logger("shar.log"); // TODO: make configurable
   auto config = [&]{
     try {
-      return Config::parse_from_file("config.json");
+      std::fstream config_file{"config.json"};
+      return Config::parse(config_file);
     }
     catch (const std::exception& e) {
       logger.warning("Unable to read config: {}. Default will be used.", e.what());
