@@ -1,10 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "size.hpp"
 #include "logger.hpp"
 #include "config.hpp"
+#include "common/context.hpp"
+#include "common/histogram.hpp"
 #include "network/packet.hpp"
 #include "capture/frame.hpp"
 #include "options.hpp"
@@ -13,13 +16,12 @@
 
 namespace shar::codecs::ffmpeg {
 
-class Codec {
+class Codec : protected Context {
 
 public:
-  Codec(Size frame_size,
-        std::size_t fps,
-        Logger logger,
-        const ConfigPtr& config);
+  Codec(Context context,
+        Size frame_size,
+        std::size_t fps);
   Codec(const Codec&) = delete;
   Codec(Codec&& rhs) = default;
   Codec& operator=(const Codec&) = delete;
@@ -27,18 +29,16 @@ public:
   ~Codec() = default;
 
   std::vector<Packet> encode(const Frame& image);
-
 private:
   int get_pts();
-  AVCodec* select_codec(const ConfigPtr& config,
-                        Options& opts,
+  AVCodec* select_codec(Options& opts,
                         Size frame_size,
                         std::size_t fps);
 
-  ContextPtr      m_context;
-  AVCodec*        m_encoder;
-  Logger          m_logger;
-  std::uint32_t   m_frame_counter;
+  ffmpeg::ContextPtr      m_context;
+  AVCodec*                m_encoder;
+  metrics::Histogram      m_full_delay;
+  std::uint32_t           m_frame_counter;
 
 };
 

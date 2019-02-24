@@ -2,17 +2,18 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <chrono>
 #include <memory>
 
+#include "common/time.hpp"
 #include "size.hpp"
-
 
 namespace shar {
 
 class Frame { // in BGRA format
 public:
   Frame() noexcept;
-  Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size);
+  Frame(std::unique_ptr<std::uint8_t[]> raw_image, shar::Size size, const Clock::time_point& time_stamp);
   Frame(const Frame&) = delete;
   Frame(Frame&&) noexcept;
   Frame& operator=(const Frame&) = delete;
@@ -53,9 +54,14 @@ public:
     return m_size.height();
   }
 
+  Clock::time_point timestamp() const noexcept {
+    return m_timestamp;
+  }
+
 private:
   std::unique_ptr<uint8_t[]> m_bytes;
   shar::Size                 m_size;
+  Clock::time_point m_timestamp;
 };
 
 }

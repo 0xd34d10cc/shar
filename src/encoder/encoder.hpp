@@ -2,14 +2,17 @@
 
 #include <atomic>
 
-#include "context.hpp"
+
+#include "capture/frame.hpp"
+#include "common/gauge.hpp"
+#include "common/context.hpp"
+#include "common/metric_description.hpp"
+#include "common/histogram.hpp"
+#include "channel.hpp"
+#include "ffmpeg/codec.hpp"
 #include "size.hpp"
 #include "cancellation.hpp"
-#include "counter.hpp"
-#include "channel.hpp"
-#include "capture/frame.hpp"
 #include "network/packet.hpp"
-#include "ffmpeg/codec.hpp"
 
 
 namespace shar {
@@ -30,8 +33,8 @@ private:
   Cancellation m_running;
   codecs::ffmpeg::Codec m_codec;
 
-  Counter m_bytes_in;
-  Counter m_bytes_out;
+  metrics::Gauge m_bytes_in;
+  metrics::Gauge m_bytes_out;
 };
 
 }

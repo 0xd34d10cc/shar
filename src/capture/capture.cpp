@@ -5,7 +5,7 @@ namespace {
 
 using namespace shar;
 
-Frame convert(const sc::Image& image) noexcept {
+Frame convert(const sc::Image& image, const Clock::time_point& time_stamp) noexcept {
   const auto width  = static_cast<std::size_t>(Width(image));
   const auto height = static_cast<std::size_t>(Height(image));
   const std::size_t pixels = width * height;
@@ -18,7 +18,7 @@ Frame convert(const sc::Image& image) noexcept {
   assert(bytes != nullptr);
   sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
 
-  return Frame {std::move(bytes), size};
+  return Frame {std::move(bytes), size, time_stamp };
 }
 
 
@@ -27,7 +27,7 @@ struct FrameHandler {
       : m_consumer(std::move(consumer)) {}
 
   void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
-    Frame buffer = convert(frame);
+    Frame buffer = convert(frame, Clock::now());
 
     // ignore return value here,
     // if channel was disconnected ScreenCapture will stop

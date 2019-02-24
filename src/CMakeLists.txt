@@ -8,13 +8,16 @@ add_executable(shar
                app/signal_handler.cpp
                app/signal_handler.hpp
                # common code
-               common/counter.cpp
-               common/counter.hpp
-               common/metrics.cpp
-               common/metrics.hpp
+               common/gauge.cpp
+               common/gauge.hpp
+               common/histogram.cpp
+               common/histogram.hpp
+               common/registry.cpp
+               common/registry.hpp
                common/logger.hpp
                common/config.hpp
                common/context.hpp
+               common/metric_description.hpp
                common/channel.hpp
                common/size.hpp
                common/disable_warnings_push.hpp

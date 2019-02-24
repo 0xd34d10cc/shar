@@ -4,8 +4,10 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
+#include "encoder/convert.hpp"
+#include "common/time.hpp"
 #include "codec.hpp"
-#include "../convert.hpp"
+
 
 
 namespace shar::codecs::ffmpeg {
@@ -13,12 +15,12 @@ namespace shar::codecs::ffmpeg {
 // Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
 static const unsigned int CLOCK_RATE = 90000;
 
-Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& config)
-  : m_logger(std::move(logger))
+Codec::Codec(Context context, Size frame_size, std::size_t fps)
+  : Context(std::move(context))
   , m_frame_counter(0) {
 
   Options opts{};
-  auto options = config->get_subconfig("options");
+  auto options = m_config->get_subconfig("options");
   for (const auto& [key, value]: *options) {
     if (!value.is_string()) {
       m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
@@ -29,8 +31,10 @@ Codec::Codec(Size frame_size, std::size_t fps, Logger logger, const ConfigPtr& c
       m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value.dump());
     }
   }
+  m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" }, m_registry,
+    std::vector<double>{15, 30, 60});
 
-  m_encoder = select_codec(config, opts, frame_size, fps);
+  m_encoder = select_codec(opts, frame_size, fps);
   assert(m_context.get());
   assert(m_encoder);
 
@@ -88,6 +92,8 @@ std::vector<Packet> Codec::encode(const shar::Frame& image) {
       // before doing anything else, but who trust docs?
       av_packet_unref(&packet);
       ret = avcodec_receive_packet(m_context.get(), &packet);
+      m_full_delay.Observe(
+        std::chrono::duration_cast<Milliseconds>(Clock::now() - image.timestamp()).count());
     }
 
     av_packet_unref(&packet);
@@ -105,20 +111,19 @@ int Codec::get_pts() {
   return pts;
 }
 
-AVCodec* Codec::select_codec(const ConfigPtr& config,
-                             Options& opts,
+AVCodec* Codec::select_codec(Options& opts,
                              Size frame_size,
                              std::size_t fps)
 {
 
-  const std::string codec_name = config->get<std::string>("codec", "");
-  const std::size_t kbits = config->get<std::size_t>("bitrate", 5000);
+  const std::string codec_name = m_config->get<std::string>("codec", "");
+  const std::size_t kbits = m_config->get<std::size_t>("bitrate", 5000);
 
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
 
       m_logger.info("Using {} encoder from config", codec_name);
-      ContextPtr context{ kbits, codec, frame_size, fps };
+      ffmpeg::ContextPtr context{ kbits, codec, frame_size, fps };
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
         m_logger.info("Using {} encoder", codec_name);
         m_context = std::move(context);
@@ -129,15 +134,14 @@ AVCodec* Codec::select_codec(const ConfigPtr& config,
     m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
-  static std::array<const char*, 5> codecs = {
-      "h264_nvenc",
-      "h264_amf",
-      "h264_qsv",
-      // TODO: implement
-      //"h264_vaapi",
-      //"h264_v4l2m2m",
-      "h264_videotoolbox",
-      "h264_omx"
+  static std::array<const char*, 4> codecs = {
+      "h264_nvenc", // https://github.com/0xd34d10cc/shar/issues/89
+      //"h264_amf", // https://github.com/0xd34d10cc/shar/issues/54
+      "h264_qsv", // https://github.com/0xd34d10cc/shar/issues/92
+      //"h264_vaapi", // https://github.com/0xd34d10cc/shar/issues/27
+      //"h264_v4l2m2m", // https://github.com/0xd34d10cc/shar/issues/112
+      "h264_videotoolbox", // https://github.com/0xd34d10cc/shar/issues/84
+      "h264_omx" // didn't tested yet
   };
 
   for (const char* name : codecs) {
@@ -154,7 +158,7 @@ AVCodec* Codec::select_codec(const ConfigPtr& config,
 
   m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
   auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
-  m_context = ContextPtr(kbits, codec, frame_size, fps);
+  m_context = ffmpeg::ContextPtr(kbits, codec, frame_size, fps);
 
   if (avcodec_open2(m_context.get(), codec, &opts.get_ptr()) >= 0) {
    return codec;

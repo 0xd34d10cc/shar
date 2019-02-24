@@ -2,6 +2,7 @@
 
 #include "app.hpp"
 
+#include "common/registry.hpp"
 #include "network/network.hpp"
 #include "signal_handler.hpp"
 
@@ -20,9 +21,9 @@ static Context make_context() {
       return Config::make_default();
     }
   }();
-  auto metrics = std::make_shared<shar::Metrics>(logger);
+  auto registry = std::make_shared<shar::metrics::Registry>(logger);
 
-  return Context{ std::move(config), std::move(logger), std::move(metrics) };
+  return Context{ std::move(config), std::move(logger), std::move(registry) };
 }
 
 static sc::Monitor select_monitor(const Context& context) {
@@ -95,7 +96,7 @@ App::App(int /*argc*/, const char* /*argv*/[])
     throw std::runtime_error("Failed to initialize signal handler");
   }
 
-  m_context.m_metrics->register_on(*m_exposer);
+  m_context.m_registry->register_on(*m_exposer);
 }
 
 int App::run() {
