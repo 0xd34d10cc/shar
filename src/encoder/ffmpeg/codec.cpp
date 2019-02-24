@@ -8,7 +8,13 @@ extern "C" {
 #include "common/time.hpp"
 #include "codec.hpp"
 
-
+namespace {
+  void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
+    char buf[250];
+    vsprintf(buf, fmt, args);
+    spdlog::get("shar")->info(buf);
+  }
+}
 
 namespace shar::codecs::ffmpeg {
 
@@ -38,6 +44,10 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   assert(m_context.get());
   assert(m_encoder);
 
+  av_log_set_callback(avlog_callback);
+  av_log_set_level(AV_LOG_DEBUG);
+  
+  // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
       opts.count(), opts.to_string());
@@ -113,9 +123,7 @@ int Codec::get_pts() {
 
 AVCodec* Codec::select_codec(Options& opts,
                              Size frame_size,
-                             std::size_t fps)
-{
-
+                             std::size_t fps) {
   const std::string codec_name = m_config->get<std::string>("codec", "");
   const std::size_t kbits = m_config->get<std::size_t>("bitrate", 5000);
 
