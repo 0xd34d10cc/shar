@@ -9,13 +9,15 @@
 
 #include "context.hpp"
 #include "module.hpp"
-#include "packet.hpp"
+#include "encoder/ffmpeg/unit.hpp"
 #include "channel.hpp"
 #include "packetizer.hpp"
 #include "cancellation.hpp"
 
 
 namespace shar::rtp {
+
+using encoder::ffmpeg::Unit;
 
 class Network
   : public INetworkModule
@@ -34,11 +36,11 @@ public:
     Network(Network&&) = delete;
     ~Network() override = default;
 
-    void run(Receiver<shar::Packet> packets) override;
+    void run(Receiver<Unit> packets) override;
     void shutdown() override;
 
 private:
-    void set_packet(Packet packet);
+    void set_packet(Unit packet);
     void send();
 
     using Socket = asio::ip::udp::socket;
@@ -50,7 +52,7 @@ private:
     IOContext m_context;
     Socket    m_socket;
 
-    Packet     m_current_packet;
+    Unit       m_current_packet;
     Packetizer m_packetizer;
 
     std::uint16_t  m_sequence;

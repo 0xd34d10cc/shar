@@ -1,21 +1,16 @@
 #pragma once
 
-#include <atomic>
-
-
-#include "capture/frame.hpp"
-#include "common/gauge.hpp"
-#include "common/context.hpp"
-#include "common/metric_description.hpp"
-#include "common/histogram.hpp"
+#include "context.hpp"
 #include "channel.hpp"
-#include "ffmpeg/codec.hpp"
 #include "size.hpp"
 #include "cancellation.hpp"
-#include "network/packet.hpp"
+#include "metrics/gauge.hpp"
+#include "capture/frame.hpp"
+#include "ffmpeg/unit.hpp"
+#include "ffmpeg/codec.hpp"
 
 
-namespace shar {
+namespace shar::encoder {
 
 class Encoder : private Context {
 public:
@@ -26,12 +21,12 @@ public:
   Encoder& operator=(Encoder&&) = default;
   ~Encoder() = default;
 
-  void run(Receiver<Frame> input, Sender<Packet> output);
+  void run(Receiver<Frame> input, Sender<ffmpeg::Unit> output);
   void shutdown();
 
 private:
   Cancellation m_running;
-  codecs::ffmpeg::Codec m_codec;
+  ffmpeg::Codec m_codec;
 
   metrics::Gauge m_bytes_in;
   metrics::Gauge m_bytes_out;

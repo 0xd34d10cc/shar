@@ -8,23 +8,23 @@ add_executable(shar
                app/signal_handler.cpp
                app/signal_handler.hpp
                # common code
-               common/gauge.cpp
-               common/gauge.hpp
-               common/histogram.cpp
-               common/histogram.hpp
-               common/registry.cpp
-               common/registry.hpp
                common/logger.hpp
                common/config.hpp
                common/context.hpp
-               common/metric_description.hpp
                common/channel.hpp
                common/size.hpp
                common/disable_warnings_push.hpp
                common/disable_warnings_pop.hpp
-               common/newtype.hpp
                common/cancellation.hpp
                common/cancellation.cpp
+               # metrics
+               common/metrics/gauge.cpp
+               common/metrics/gauge.hpp
+               common/metrics/histogram.cpp
+               common/metrics/histogram.hpp
+               common/metrics/registry.cpp
+               common/metrics/registry.hpp
+               common/metrics/description.hpp
                # encoder subsystem
                encoder/convert.cpp
                encoder/convert.hpp
@@ -34,6 +34,8 @@ add_executable(shar
                encoder/ffmpeg/avcontext.cpp
                encoder/ffmpeg/codec.hpp
                encoder/ffmpeg/codec.cpp
+               encoder/ffmpeg/unit.hpp
+               encoder/ffmpeg/unit.cpp
                encoder/encoder.cpp
                encoder/encoder.hpp
                # capture subsystem

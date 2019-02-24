@@ -1,8 +1,6 @@
 add_library(network
     network.cpp
     network.hpp
-    packet.cpp
-    packet.hpp
     packetizer.hpp
     packetizer.cpp
     fragment.hpp

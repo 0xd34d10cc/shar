@@ -34,7 +34,7 @@ private:
   Context m_context;
   sc::Monitor m_monitor;
   Capture m_capture;
-  Encoder m_encoder;
+  encoder::Encoder m_encoder;
   NetworkPtr m_network;
 
   ExposerPtr m_exposer;

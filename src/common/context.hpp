@@ -4,7 +4,7 @@
 
 #include "logger.hpp"
 #include "config.hpp"
-#include "registry.hpp"
+#include "metrics/registry.hpp"
 
 
 namespace shar {
