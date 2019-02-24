@@ -2,9 +2,7 @@
 
 namespace shar::metrics {
 
-Histogram::Histogram() : m_histogram(nullptr) {}
-
-Histogram::Histogram(const MetricDescription description, const RegistryPtr& registry,
+Histogram::Histogram(MetricDescription description, const RegistryPtr& registry,
                                                           std::vector<double> bounds) {
   std::map<std::string, std::string> labels = { {description.m_name, 
                                                  std::move(description.m_output_type)} };
@@ -18,7 +16,9 @@ Histogram::Histogram(const MetricDescription description, const RegistryPtr& reg
 }
 
 void Histogram::Observe(const double value) {
+  if (m_histogram != nullptr) {
     m_histogram->Observe(value);
+  }
 }
 
 }

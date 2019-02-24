@@ -17,8 +17,7 @@ static const unsigned int CLOCK_RATE = 90000;
 
 Codec::Codec(Context context, Size frame_size, std::size_t fps)
   : Context(std::move(context))
-  , m_frame_counter(0)
-  {
+  , m_frame_counter(0) {
 
   Options opts{};
   auto options = m_config->get_subconfig("options");

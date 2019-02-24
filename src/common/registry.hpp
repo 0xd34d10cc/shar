@@ -1,12 +1,5 @@
 #pragma once
 
-#include <cstdlib> // std::size_t
-#include <atomic>
-#include <vector>
-#include <optional>
-#include <limits>
-#include <mutex>
-
 #include "metric_description.hpp"
 #include "logger.hpp"
 #include "newtype.hpp"
@@ -37,12 +30,10 @@ private:
   friend class Histogram;
   friend class Gauge;
 
-  using RegistryPtr = std::shared_ptr<prometheus::Registry>;
+  using PrometheusRegistryPtr = std::shared_ptr<prometheus::Registry>;
 
-  RegistryPtr registry();
-
-  Logger       m_logger;
-  RegistryPtr  m_registry;
+  PrometheusRegistryPtr registry();
+  PrometheusRegistryPtr m_registry;
 };
 
 }

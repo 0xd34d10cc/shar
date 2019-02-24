@@ -4,7 +4,7 @@ namespace shar::metrics {
 
 Gauge::Gauge() : m_gauge(nullptr) {}
 
-Gauge::Gauge(const MetricDescription context, const RegistryPtr& registry) {
+Gauge::Gauge(MetricDescription context, const RegistryPtr& registry) {
   auto family = &prometheus::BuildGauge()
     .Name(context.m_name)
     .Help(std::move(context.m_help))
@@ -15,11 +15,11 @@ Gauge::Gauge(const MetricDescription context, const RegistryPtr& registry) {
 }
 
 void Gauge::increment() {
-  m_gauge->Increment();
+  increment(1.0);
 }
 
 void Gauge::decrement() {
-  m_gauge->Decrement();
+  decrement(1.0);
 }
 
 void Gauge::increment(double amount) {

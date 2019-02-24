@@ -7,19 +7,6 @@
 
 namespace shar::metrics {
 
-using GaugeFamily = prometheus::Family<prometheus::Gauge>;
-
-struct GaugeRemover {
-  GaugeFamily* m_family;
-  void operator()(prometheus::Gauge* gauge) {
-    m_family->Remove(gauge);
-    delete gauge;
-    delete m_family;
-  }
-};
-
-using GaugePtr = std::unique_ptr<prometheus::Gauge, GaugeRemover>;
-
 class Gauge {
   
 public:
@@ -36,6 +23,19 @@ public:
   void decrement(double);
 
 private:
+  using GaugeFamily = prometheus::Family<prometheus::Gauge>;
+
+  struct GaugeRemover {
+    GaugeFamily* m_family;
+    void operator()(prometheus::Gauge* gauge) {
+      m_family->Remove(gauge);
+      delete gauge;
+      delete m_family;
+    }
+  };
+
+  using GaugePtr = std::unique_ptr<prometheus::Gauge, GaugeRemover>;
+
   GaugePtr m_gauge;
 };
 

@@ -8,21 +8,10 @@
 
 namespace shar::metrics {
 
-using HistogramFamily = prometheus::Family<prometheus::Histogram>;
-
-struct HistogramRemover {
-  HistogramFamily* m_family;
-  void operator()(prometheus::Histogram* histogram) {
-    m_family->Remove(histogram);
-  }
-};
-
-using HistogramPtr = std::unique_ptr<prometheus::Histogram, HistogramRemover>;
-
 class Histogram {
 
 public:
-  Histogram();
+  Histogram() = default;
 
   Histogram(const MetricDescription description, const RegistryPtr& registry, 
                                                  std::vector<double> bounds);
@@ -34,6 +23,17 @@ public:
   void Observe(const double value);
 
 private:
+  using HistogramFamily = prometheus::Family<prometheus::Histogram>;
+
+  struct HistogramRemover {
+    HistogramFamily* m_family;
+    void operator()(prometheus::Histogram* histogram) {
+      m_family->Remove(histogram);
+    }
+  };
+
+  using HistogramPtr = std::unique_ptr<prometheus::Histogram, HistogramRemover>;
+
   HistogramPtr m_histogram;
 };
 
