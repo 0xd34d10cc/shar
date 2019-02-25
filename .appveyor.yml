@@ -5,6 +5,7 @@ platform:
 
 configuration:
   - Release
+  - Debug
 
 matrix:
   fast_finish: true
@@ -16,17 +17,19 @@ install:
   - cmd: conan user
   - cmd: conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - cmd: conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-  - cmd: conan remote add --force p1q https://api.bintray.com/conan/p1q/ffmpeg
   - cmd: conan config set storage.path=c:\Users\appveyor\conanCache
-  - cmd: mkdir build
-  - cmd: cd build
+  - cmd: mkdir %configuration%
+  - cmd: cd %configuration%
 
 build_script:
-  - cmd: conan install --build=missing ..
+  - cmd: conan install .. --build=missing -s build_type=%configuration%
   - cmd: set generator=Visual Studio 15 2017 Win64
   - cmd: cmake .. -G"%generator%"
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
-  - cmd: ctest -C %configuration%
+
+test_script:
+  - ctest -C %configuration% -T Test
+  - ../scripts/upload-ctest-report.ps1
 
 cache:
   - C:\Users\Appveyor\.conan -> conanfile.py
