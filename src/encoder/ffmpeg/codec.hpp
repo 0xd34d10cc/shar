@@ -1,23 +1,20 @@
 #pragma once
 
 #include <vector>
-#include <string>
 
 #include "size.hpp"
-#include "logger.hpp"
-#include "config.hpp"
-#include "common/context.hpp"
-#include "common/histogram.hpp"
-#include "network/packet.hpp"
+#include "context.hpp"
+#include "metrics/histogram.hpp"
 #include "capture/frame.hpp"
+
 #include "options.hpp"
 #include "avcontext.hpp"
+#include "unit.hpp"
 
 
-namespace shar::codecs::ffmpeg {
+namespace shar::encoder::ffmpeg {
 
 class Codec : protected Context {
-
 public:
   Codec(Context context,
         Size frame_size,
@@ -28,9 +25,10 @@ public:
   Codec& operator=(Codec&&) = delete;
   ~Codec() = default;
 
-  std::vector<Packet> encode(const Frame& image);
+  std::vector<Unit> encode(const Frame& image);
+
 private:
-  int get_pts();
+  int next_pts();
   AVCodec* select_codec(Options& opts,
                         Size frame_size,
                         std::size_t fps);

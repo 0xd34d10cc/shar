@@ -2,7 +2,7 @@
 #include "capture/frame.hpp"
 
 
-namespace shar::codecs {
+namespace shar::encoder {
 
 static Slice alloc(std::size_t size) {
   return {std::make_unique<std::uint8_t[]>(size), size};
@@ -65,6 +65,13 @@ std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
   return {std::move(ys), std::move(us), std::move(vs)};
 }
 
+template<typename T>
+static const T& clamp(const T& v, const T& lo, const T& hi) {
+  return v > hi ? hi :
+    v < lo ? lo :
+    v;
+}
+
 Slice yuv420_to_bgra(const std::uint8_t* ys,
                      const std::uint8_t* us,
                      const std::uint8_t* vs,
@@ -88,9 +95,9 @@ Slice yuv420_to_bgra(const std::uint8_t* ys,
       int d = u - 128;
       int e = v - 128;
 
-      uint8_t r = static_cast<uint8_t>(shar::codecs::clamp((298 * c + 409 * e + 128) >> 8, 0, 255));
-      uint8_t g = static_cast<uint8_t>(shar::codecs::clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255));
-      uint8_t b = static_cast<uint8_t>(shar::codecs::clamp((298 * c + 516 * d + 128) >> 8, 0, 255));
+      uint8_t r = static_cast<uint8_t>(clamp((298 * c + 409 * e + 128) >> 8, 0, 255));
+      uint8_t g = static_cast<uint8_t>(clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255));
+      uint8_t b = static_cast<uint8_t>(clamp((298 * c + 516 * d + 128) >> 8, 0, 255));
 
       bgra.data[i + 0] = b;
       bgra.data[i + 1] = g;

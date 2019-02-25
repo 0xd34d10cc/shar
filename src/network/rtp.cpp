@@ -16,7 +16,7 @@ Network::Network(Context context, IpAddress ip, Port port)
     , m_bytes_sent(0)
     {}
 
-void Network::run(Receiver<shar::Packet> packets) {
+void Network::run(Receiver<Unit> packets) {
     m_socket.open(asio::ip::udp::v4());
 
     while (auto packet = packets.receive()) {
@@ -36,7 +36,7 @@ void Network::shutdown() {
     m_running.cancel();
 }
 
-void Network::set_packet(shar::Packet packet) {
+void Network::set_packet(Unit packet) {
     m_current_packet = std::move(packet);
     m_packetizer.set(m_current_packet.data(), m_current_packet.size());
 

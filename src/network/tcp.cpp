@@ -17,7 +17,7 @@ Network::Network(Context context, IpAddress ip, Port port)
   , m_bytes_sent(0)
 {}
 
-void Network::run(Receiver<Packet> packets) {
+void Network::run(Receiver<Unit> packets) {
   while (auto packet = packets.receive()) {
     if (m_running.expired()) {
       break;
@@ -41,7 +41,7 @@ void Network::shutdown() {
   m_running.cancel();
 }
 
-void Network::set_packet(Packet packet) {
+void Network::set_packet(Unit packet) {
   m_current_packet = std::move(packet);
 
   const auto size = m_current_packet.size();
@@ -162,7 +162,7 @@ void Network::send_content() {
     if (m_bytes_sent >= m_current_packet.size()) {
       // packet content was sent, reset state
       m_state = State::SendingLength;
-      set_packet(shar::Packet());
+      set_packet(Unit());
       // no tasks to schedule
       return;
     }

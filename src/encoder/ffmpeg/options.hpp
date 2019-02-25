@@ -1,22 +1,13 @@
 #pragma once
-#include <cassert>
+
+#include <string>
 #include <cstdlib>
-#include <vector>
-#include <numeric>
 
-#include "disable_warnings_push.hpp"
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-#include "disable_warnings_pop.hpp"
 
-#include "size.hpp"
-#include "logger.hpp"
-#include "config.hpp"
-#include "network/packet.hpp"
-#include "capture/frame.hpp"
+struct AVDictionary;
 
-namespace shar::codecs::ffmpeg {
+namespace shar::encoder::ffmpeg {
+
 class Options {
 public:
   Options() = default;
@@ -32,4 +23,5 @@ public:
 private:
   AVDictionary* m_opts = nullptr;
 };
+
 }

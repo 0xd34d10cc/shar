@@ -9,7 +9,7 @@ namespace shar {
 class Frame;
 }
 
-namespace shar::codecs {
+namespace shar::encoder {
 
 using Bytes = std::unique_ptr<std::uint8_t[]>;
 
@@ -19,13 +19,6 @@ struct Slice {
 };
 
 
-template<typename T>
-const T& clamp(const T& v, const T& lo, const T& hi) {
-  return v > hi ? hi :
-         v < lo ? lo :
-         v;
-}
-
 Slice yuv420_to_bgra(const std::uint8_t* ys,
                      const std::uint8_t* us,
                      const std::uint8_t* vs,
@@ -34,6 +27,5 @@ Slice yuv420_to_bgra(const std::uint8_t* ys,
 
 
 std::array<Slice, 3> bgra_to_yuv420(const Frame& image);
-
 
 }
