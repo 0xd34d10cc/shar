@@ -1,13 +1,9 @@
 {
   "fps": 30,
   "url": "rtp://127.0.0.1:1336",
-
-  "encoder": {
-    "bitrate": 5000,
-    "options": {
-      "preset": "medium",
-      "tune": "zerolatency"
-    }
-  },
-  "metrics": "127.0.0.1:3228"
- }
+  "metrics": "127.0.0.1:3228",
+  "options": [
+    "preset=medium",
+    "tune=zerolatency"
+  ]
+}

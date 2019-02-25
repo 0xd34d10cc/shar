@@ -1,7 +1,6 @@
 #include <fstream>
 
 #include "app.hpp"
-
 #include "metrics/registry.hpp"
 #include "network/network.hpp"
 #include "signal_handler.hpp"
@@ -9,20 +8,11 @@
 
 namespace shar {
 
-static Context make_context() {
+static Context make_context(int argc, const char* argv[]) {
+  auto config = std::make_shared<Options>(Options::read(argc, argv));
   auto logger = Logger("shar.log"); // TODO: make configurable
-  auto config = [&]{
-    try {
-      std::fstream config_file{"config.json"};
-      return Config::parse(config_file);
-    }
-    catch (const std::exception& e) {
-      logger.warning("Unable to read config: {}. Default will be used.", e.what());
-      return Config::make_default();
-    }
-  }();
+  auto registry = std::make_shared<metrics::Registry>();
 
-  auto registry = std::make_shared<shar::metrics::Registry>();
   return Context{
     std::move(config),
     std::move(logger),
@@ -31,7 +21,7 @@ static Context make_context() {
 }
 
 static sc::Monitor select_monitor(const Context& context) {
-  auto i = context.m_config->get<std::size_t>("monitor", 0);
+  auto i = context.m_config->monitor;
   auto monitors = sc::GetMonitors();
 
   if (i >= monitors.size()) {
@@ -50,18 +40,16 @@ static sc::Monitor select_monitor(const Context& context) {
 
 static Capture create_capture(Context context, sc::Monitor monitor) {
   using namespace std::chrono_literals;
-  const auto fps = context.m_config->get<std::size_t>("fps", 30);
+  const auto fps = context.m_config->fps;
   const auto interval = 1000ms / fps;
 
   context.m_logger.info("Capturing {} {}x{}",
     monitor.Name, monitor.Width, monitor.Height);
-  context.m_logger.info("FPS: {}", fps);
-
   return Capture{ std::move(context), interval, std::move(monitor) };
 }
 
 static encoder::Encoder create_encoder(Context context, const sc::Monitor& monitor) {
-  const auto fps = context.m_config->get<std::size_t>("fps", 30);
+  const auto fps = context.m_config->fps;
 
   return encoder::Encoder{
     std::move(context),
@@ -74,20 +62,18 @@ static encoder::Encoder create_encoder(Context context, const sc::Monitor& monit
 }
 
 static ExposerPtr create_exposer(const Context& context) {
-  const auto host = context.m_config->get<std::string>("metrics", "127.0.0.1:3228");
+  const auto host = context.m_config->metrics;
   return std::make_unique<prometheus::Exposer>(host);
 }
 
 static NetworkPtr create_network(Context context) {
-  const auto url_str = context.m_config->get<std::string>("url", "tcp://127.0.0.1:1337");
+  const auto url_str = context.m_config->url;
   const auto url = Url::from_string(url_str);
-
-  context.m_logger.info("Streaming to {}", url.to_string());
   return create_module(std::move(context), std::move(url));
 }
 
-App::App(int /*argc*/, const char* /*argv*/[])
-  : m_context(make_context())
+App::App(int argc, const char* argv[])
+  : m_context(make_context(argc, argv))
   , m_monitor(select_monitor(m_context))
   , m_capture(create_capture(m_context, m_monitor))
   , m_encoder(create_encoder(m_context, m_monitor))

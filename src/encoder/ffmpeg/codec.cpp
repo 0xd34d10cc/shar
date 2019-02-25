@@ -19,20 +19,14 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   : Context(std::move(context))
   , m_frame_counter(0) {
 
-  Options opts{};
-  auto options = m_config->get_subconfig("options");
-  for (const auto& [key, value]: *options) {
-    if (!value.is_string()) {
-      m_logger.error("Invalid encoder option: {}. Expected string", value.dump());
-      continue;
-    }
-
-    if (!opts.set(key.c_str(), value.get<std::string>().c_str())) {
-      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value.dump());
+  m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
+                                     m_registry, { 15.0, 30.0, 60.0 });
+  ffmpeg::Options opts{};
+  for (const auto& [key, value]: m_config->options) {
+    if (!opts.set(key.c_str(), value.c_str())) {
+      m_logger.error("Failed to set {} encoder option to {}. Ignoring", key, value);
     }
   }
-  m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
-                                    m_registry, {15.0, 30.0, 60.0});
 
   m_encoder = select_codec(opts, frame_size, fps);
   assert(m_context.get());
@@ -104,9 +98,8 @@ AVCodec* Codec::select_codec(Options& opts,
                              Size frame_size,
                              std::size_t fps)
 {
-
-  const std::string codec_name = m_config->get<std::string>("codec", "");
-  const std::size_t kbits = m_config->get<std::size_t>("bitrate", 5000);
+  const std::string codec_name = m_config->codec;
+  const std::size_t kbits = m_config->bitrate;
 
   if (!codec_name.empty()) {
     if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {

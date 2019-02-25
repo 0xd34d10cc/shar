@@ -9,7 +9,8 @@ add_executable(shar
                app/signal_handler.hpp
                # common code
                common/logger.hpp
-               common/config.hpp
+               common/options.hpp
+               common/options.cpp
                common/context.hpp
                common/channel.hpp
                common/size.hpp
@@ -51,6 +52,7 @@ target_include_directories(shar
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_FFMPEG}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_JSONFORMODERNCPP}
                            PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
+                           PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_CLI11}
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
                            PRIVATE SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/core/include"

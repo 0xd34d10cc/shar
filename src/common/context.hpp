@@ -3,14 +3,18 @@
 #include <string>
 
 #include "logger.hpp"
-#include "config.hpp"
+#include "options.hpp"
 #include "metrics/registry.hpp"
 
 
 namespace shar {
+
+using OptionsPtr = std::shared_ptr<Options>;
+
 struct Context {
-    ConfigPtr            m_config;
-    Logger               m_logger;
-    metrics::RegistryPtr m_registry;
+  OptionsPtr           m_config;
+  Logger               m_logger;
+  metrics::RegistryPtr m_registry;
 };
+
 }

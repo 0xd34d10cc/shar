@@ -2,9 +2,8 @@
 
 
 int main(int argc, const char* argv[]) {
-  shar::App app{ argc, argv };
-
   try {
+    shar::App app{ argc, argv };
     return app.run();
   }
   catch (const std::exception& e) {
