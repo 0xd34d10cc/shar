@@ -4,15 +4,33 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
+#include <memory>
+
 #include "encoder/convert.hpp"
 #include "common/time.hpp"
 #include "codec.hpp"
 
 namespace {
-  void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
-    char buf[250];
-    vsprintf(buf, fmt, args);
-    spdlog::get("shar")->info(buf);
+  static const int    buf_size = 250;
+  static const int    prefix_length = 9;
+  static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
+  static shar::Logger cb_logger;
+
+  static void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
+    char buf[buf_size];
+    std::memcpy(buf, log_prefix, prefix_length);
+    vsprintf(buf + prefix_length, fmt, args);
+    cb_logger.info(buf);
+  }
+
+  static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
+    cb_logger = logger;
+
+    // match ffmpeg loglevels
+    av_log_set_level(AV_LOG_DEBUG);
+
+    av_log_set_callback(avlog_callback);
+    config->get<std::string>("loglevel", "quite");
   }
 }
 
@@ -44,9 +62,6 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   assert(m_context.get());
   assert(m_encoder);
 
-  av_log_set_callback(avlog_callback);
-  av_log_set_level(AV_LOG_DEBUG);
-  
   // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
