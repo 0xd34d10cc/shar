@@ -29,7 +29,7 @@ build_script:
 
 test_script:
   - ctest -C %configuration% -T Test
-  - ../scripts/upload-ctest-report.ps1
+  - ps: ../scripts/upload-ctest-report.ps1
 
 cache:
   - C:\Users\Appveyor\.conan -> conanfile.py
