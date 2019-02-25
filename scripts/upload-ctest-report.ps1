@@ -26,5 +26,6 @@ function upload-ctest-report()
 
 foreach($file in $(ls Testing\*\Test.xml))
 {
+    Write-Host "Uploading $file"
     upload-ctest-report $file
 }
