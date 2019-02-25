@@ -2,35 +2,38 @@
 
 #include <memory>
 
-#include "metric_description.hpp"
+#include "disable_warnings_push.hpp"
+#include <prometheus/family.h>
+#include <prometheus/gauge.h>
+#include "disable_warnings_pop.hpp"
+
+#include "description.hpp"
 #include "registry.hpp"
+
 
 namespace shar::metrics {
 
 class Gauge {
-  
+
 public:
-  Gauge();
-  Gauge(const MetricDescription context, const RegistryPtr& registry);
+  Gauge() = default;
+  Gauge(Description description, const RegistryPtr& registry);
   Gauge(const Gauge&) = delete;
   Gauge(Gauge&& gauge) = default;
   Gauge& operator=(const Gauge&) = delete;
   Gauge& operator=(Gauge&& gauge) = default;
 
-  void increment();
-  void decrement();
-  void increment(double);
-  void decrement(double);
+  void increment(double by=1.0);
+  void decrement(double by=1.0);
 
 private:
   using GaugeFamily = prometheus::Family<prometheus::Gauge>;
 
   struct GaugeRemover {
     GaugeFamily* m_family;
+
     void operator()(prometheus::Gauge* gauge) {
       m_family->Remove(gauge);
-      delete gauge;
-      delete m_family;
     }
   };
 

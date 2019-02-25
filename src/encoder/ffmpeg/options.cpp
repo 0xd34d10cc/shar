@@ -1,6 +1,13 @@
 #include "options.hpp"
 
-namespace shar::codecs::ffmpeg {
+#include "disable_warnings_push.hpp"
+extern "C" {
+#include <libavcodec/avdct.h>
+}
+#include "disable_warnings_pop.hpp"
+
+
+namespace shar::encoder::ffmpeg {
 
 Options::~Options() {
   av_dict_free(&m_opts);
@@ -21,11 +28,12 @@ AVDictionary*& Options::get_ptr() {
 std::string Options::to_string() {
   char* buffer = nullptr;
   if (av_dict_get_string(m_opts, &buffer, '=', ',') < 0) {
-    std::free(buffer);
+    av_free(buffer);
     return {};
   }
 
   std::string opts{ buffer };
+  av_free(buffer);
   return opts;
 }
 
