@@ -9,4 +9,5 @@ Header::Header(std::string key, std::string value)
 bool Header::operator==(const Header& rhs) const{
   return key == rhs.key && value == rhs.value;
 }
+
 }

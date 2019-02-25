@@ -5,17 +5,6 @@
 
 namespace shar::rtsp {
 
-static std::uint16_t parse_status_code(const char* begin, std::size_t size) {
-
-  std::uint16_t status_code;
-  auto[end_ptr, ec] = std::from_chars(begin, begin + size, status_code);
-
-  if (end_ptr != begin + size || ec != std::errc()) {
-    throw std::runtime_error("Status code failed parse");
-  }
-  return status_code;
-}
-
 Response Response::parse(const char * buffer, std::size_t size)
 {
   Response response;
@@ -28,27 +17,33 @@ Response Response::parse(const char * buffer, std::size_t size)
     throw std::runtime_error("Version is undefined");
   }
   std::size_t version = parse_version(begin, version_end - begin);
-  begin = version_end + 1;
+  begin = version_end + 1; //Move to first symbol after space
 
   const char* status_code_end = std::find(begin, end, ' ');
   if (status_code_end == end) {
     throw std::runtime_error("Status code is undefined");
   }
-  std::uint16_t status_code = parse_status_code(begin, status_code_end - begin);
-  begin = status_code_end + 1;
+  std::int64_t status_code = parse_int(begin, status_code_end - begin);
+  if (status_code < 100 || status_code > 600) {
+    throw std::runtime_error("Invalid status code value");
+  }
+  begin = status_code_end + 1; //Move to first symbol after space
 
   const char* reason_end = find_line_ending(begin, end);
   std::string reason(begin, reason_end);
 
   response.set_version(version);
-  response.set_status_code(status_code);
+  response.set_status_code(static_cast<uint16_t>(status_code));
   response.set_reason(reason);
 
 
-  if (reason_end != end) {
+  if (reason_end + 2 != find_line_ending(reason_end + 2, end)) {
 
-    begin = reason_end + 2;
-    parse_headers(begin, end, response.m_headers);
+    begin = reason_end + 2; //Move to first symbol after line_ending
+    begin = parse_headers(begin, end, response.m_headers);
+    if (get_content_length(response.headers()) != std::nullopt) {
+      response.set_body(std::string(begin + 2, end)); //Move to first symbol after line_ending
+    }
   }
   return response;
 }
@@ -69,6 +64,10 @@ const std::vector<Header>& Response::headers() const noexcept {
   return m_headers;
 }
 
+const std::string& Response::body() const noexcept {
+  return m_body;
+}
+
 void Response::set_version(std::size_t version) {
   m_version = version;
 }
@@ -83,6 +82,10 @@ void Response::set_reason(std::string reason){
 
 void Response::add_header(std::string key, std::string value) {
   m_headers.push_back(Header(std::move(key), std::move(value)));
+}
+
+void Response::set_body(std::string body) {
+  m_body = std::move(body);
 }
 
 }

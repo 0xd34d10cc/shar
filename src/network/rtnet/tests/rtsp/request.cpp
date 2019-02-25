@@ -7,7 +7,8 @@
 using namespace shar;
 
 TEST(rtsp_request, simple_request) {
-  const char* example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0";
+  const char* example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0\r\n"
+    "\r\n";
   rtsp::Request request = rtsp::Request::parse(example_request, std::strlen(example_request));
   EXPECT_EQ(request.type(), rtsp::Request::Type::PLAY);
   EXPECT_EQ(request.address(), "rtsp://server/path/test.mpg");
@@ -15,7 +16,8 @@ TEST(rtsp_request, simple_request) {
 }
 
 TEST(rtsp_request, trash_request) {
-  const char* trash_request = "dasdadasdfdcalxaa";
+  const char* trash_request = "dasdadasdfdcalxaa\r\n"
+    "\r\n";
   ASSERT_THROW(rtsp::Request::parse(trash_request, std::strlen(trash_request)), std::runtime_error);
 }
 
@@ -25,24 +27,28 @@ TEST(rtsp_request, empty_request) {
 }
 
 TEST(rtsp_request, incorrect_type) {
-  const char* empty_request = "OPTI2ONS RTSP/1.0";
+  const char* empty_request = "OPTI2ONS RTSP/1.0\r\n"
+    "\r\n";
   ASSERT_THROW(rtsp::Request::parse(empty_request, std::strlen(empty_request)), std::runtime_error);
 }
 
 TEST(rtsp_request, request_without_address) {
-  const char* empty_request = "TEARDOWN RTSP/1.0";
+  const char* empty_request = "TEARDOWN RTSP/1.0\r\n"
+    "\r\n";
   ASSERT_THROW(rtsp::Request::parse(empty_request, std::strlen(empty_request)), std::runtime_error);
 }
 
 TEST(rtsp_request, request_without_version) {
-  const char* empty_request = "PAUSE RTSP/1.0";
+  const char* empty_request = "PAUSE RTSP/1.0\r\n"
+    "\r\n";
   ASSERT_THROW(rtsp::Request::parse(empty_request, std::strlen(empty_request)), std::runtime_error);
 }
 
 TEST(rtsp_request, request_with_header) {
   const char* request_with_header = 
     "DESCRIBE rtsp://example.com/media.mp4 RTSP/1.0\r\n"
-    "CSeq: 2";
+    "CSeq: 2\r\n"
+    "\r\n";
   auto request = rtsp::Request::parse(request_with_header, std::strlen(request_with_header));
   EXPECT_EQ(request.type(), rtsp::Request::Type::DESCRIBE);
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
@@ -57,7 +63,8 @@ TEST(rtsp_request, large_request) {
     "CSeq: 10\r\n"
     "Content-length: 20\r\n"
     "Content-type: text/parameters\r\n"
-    "barparam: barstuff";
+    "barparam: barstuff\r\n"
+    "\r\n";
   auto request = rtsp::Request::parse(large_request, std::strlen(large_request));
   EXPECT_EQ(request.type(), rtsp::Request::Type::SET_PARAMETER);
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
@@ -77,7 +84,8 @@ TEST(rtsp_request, header_without_value) {
   const char* request_without_value =
     "GET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
     "CSeq: 9\r\n"
-    "packets_received";
+    "packets_received\r\n"
+    "\r\n";
   auto request = rtsp::Request::parse(request_without_value, std::strlen(request_without_value));
   EXPECT_EQ(request.type(), rtsp::Request::Type::GET_PARAMETER);
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");

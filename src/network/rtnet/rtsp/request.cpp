@@ -31,36 +31,45 @@ Request Request::parse(const char * buffer, const std::size_t size) {
 
   Request request;
 
-  const char* begin = buffer;
-  const char* end = begin + size;
+  const char* current = buffer;
+  const char* end = current + size;
 
-  const char* type_end = std::find(begin, end, ' ');
+  const char* type_end = std::find(current, end, ' ');
   if (type_end == end) {
     throw std::runtime_error("Type not found");
   }
 
-  std::size_t type_size = type_end - begin;
-  Request::Type type = parse_type(begin, type_size);
-  begin += type_size+1;
+  std::size_t type_size = type_end - current;
+  Request::Type type = parse_type(current, type_size);
+  current += type_size+1; //Move to first symbol after space
 
-  const char* address_end = std::find(begin, end, ' ');
+  const char* address_end = std::find(current, end, ' ');
   if (address_end == end) {
     throw std::runtime_error("Address not found");
   }
-  std::string address = std::string(begin, address_end);
-  begin = address_end+1;
+  std::string address = std::string(current, address_end);
+  current = address_end+1; //Move to first symbol after space
 
-  const char* version_end = find_line_ending(begin, end);
-  std::size_t version = parse_version(begin, version_end-begin);
+  const char* version_end = find_line_ending(current, end);
+  if (version_end == end) {
+    throw std::runtime_error("Request finishes not on Line_ending");
+  }
+  std::size_t version = parse_version(current, version_end-current);
 
   request.set_type(type);
   request.set_address(std::move(address));
   request.set_version(version);
-  
-  if (version_end != end) {
-    begin = version_end + 2;
 
-    parse_headers(begin, end, request.m_headers);
+  if (version_end + 2 == end) {
+    throw std::runtime_error("Request finishes not on Line_ending");
+  }
+  if (version_end + 2 != find_line_ending(version_end+2,end)) {
+    current = version_end + 2; //Move to first symbol after line ending
+
+    current = parse_headers(current, end, request.m_headers);
+    if (get_content_length(request.headers()) != std::nullopt) {
+      request.set_body(std::string(current+2, end)); //Move to first symbol after line ending
+    }
   }
   return request;
 }
@@ -76,9 +85,15 @@ const std::string & Request::address() const noexcept {
 std::size_t Request::version() const noexcept {
   return m_version;
 }
+
 const std::vector<Header>& Request::headers() const noexcept {
   return m_headers;
 }
+
+const std::string& Request::body() const noexcept {
+  return m_body;
+}
+
 void Request::set_type(Type type) {
   m_type = type;
 }
@@ -93,6 +108,10 @@ void Request::set_version(std::size_t version) {
 
 void Request::add_header(std::string key, std::string value) {
   m_headers.push_back(Header(std::move(key), std::move(value)));
+}
+
+void Request::set_body(std::string body) {
+  m_body = std::move(body);
 }
 
 }

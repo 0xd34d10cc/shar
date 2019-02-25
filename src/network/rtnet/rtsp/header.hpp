@@ -1,9 +1,8 @@
 #include <string>
-
+#include <vector>
 
 namespace shar::rtsp {
 struct Header {
-
   Header() = delete;
 
   Header(std::string key, std::string value);
@@ -20,4 +19,5 @@ struct Header {
   std::string value;
 };
 
+using Headers = std::vector<Header>;
 }
