@@ -5,6 +5,7 @@ extern "C" {
 #include "disable_warnings_pop.hpp"
 
 #include <memory>
+#include <optional>
 
 #include "encoder/convert.hpp"
 #include "common/time.hpp"
@@ -26,11 +27,35 @@ namespace {
   static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
     cb_logger = logger;
 
-    // match ffmpeg loglevels
-    av_log_set_level(AV_LOG_DEBUG);
+    std::map<std::string, int> log_levels = {
+        { "quiet"  , AV_LOG_QUIET   },
+        { "panic"  , AV_LOG_PANIC   },
+        { "fatal"  , AV_LOG_FATAL   },
+        { "error"  , AV_LOG_ERROR   },
+        { "warning", AV_LOG_WARNING },
+        { "info"   , AV_LOG_INFO    },
+        { "verbose", AV_LOG_VERBOSE },
+        { "debug"  , AV_LOG_DEBUG   },
+        { "trace"  , AV_LOG_TRACE   },
+    };
 
-    av_log_set_callback(avlog_callback);
-    config->get<std::string>("loglevel", "quite");
+    auto get_input_loglvl = [&log_levels](std::string log_level) -> std::optional<int> {
+      if (auto it = log_levels.find(log_level); it != log_levels.end()) {
+        return it->second;
+      }
+      else {
+        return std::nullopt;
+      }
+    };
+
+    // Try to get loglevel from encoder config
+    auto available_lvl = get_input_loglvl(config->get<std::string>("loglevel", ""));
+
+    if (!available_lvl) {
+      available_lvl = check_input_loglvl(config->get<std::string>("loglevel", "panic"));
+    }
+
+    av_log_set_level(available_lvl.value_or(AV_LOG_PANIC));
   }
 }
 
