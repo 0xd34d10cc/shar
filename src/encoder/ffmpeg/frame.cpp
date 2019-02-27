@@ -72,19 +72,22 @@ std::size_t Frame::height() const noexcept {
   return m_frame ? m_frame->height : 0;
 }
 
+static Frame::Channel make_channel(const std::uint8_t* data,
+                                   std::size_t width,
+                                   std::size_t height) {
+  return Frame::Channel{data, width, height, width * height};
+}
+
 Frame::Channel Frame::y() const noexcept {
-  return m_frame ? Channel{ m_frame->data[0], width(), height(), total_size() }
-                 : Channel{};
+  return m_frame ? make_channel(m_frame->data[0], width(), height()) : Channel{};
 }
 
 Frame::Channel Frame::u() const noexcept {
-  return m_frame ? Channel{ m_frame->data[1], width() / 2, height() / 2, total_size() / 4 }
-                 : Channel{};
+  return m_frame ? make_channel(m_frame->data[1], width() / 2, height() / 2) : Channel{};
 }
 
 Frame::Channel Frame::v() const noexcept {
-  return m_frame ? Channel{ m_frame->data[2], width() / 2, height() / 2, total_size() / 4 }
-                 : Channel{};
+  return m_frame ? make_channel(m_frame->data[2], width() / 2, height() / 2) : Channel{};
 }
 
 AVFrame* Frame::raw() noexcept {
