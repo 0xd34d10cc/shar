@@ -53,8 +53,7 @@ TEST(rtsp_request, request_with_header) {
   EXPECT_EQ(request.type(), rtsp::Request::Type::DESCRIBE);
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.version(), 1);
-  EXPECT_EQ(request.headers()[0].key, "CSeq");
-  EXPECT_EQ(request.headers()[0].value, "2");
+  EXPECT_EQ(request.headers()[0], rtsp::Header("CSeq","2"));
 }
 
 TEST(rtsp_request, large_request) {
@@ -70,14 +69,10 @@ TEST(rtsp_request, large_request) {
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.version(), 1);
   auto headers = request.headers();
-  EXPECT_EQ(headers[0].key, "CSeq");
-  EXPECT_EQ(headers[0].value, "10");
-  EXPECT_EQ(headers[1].key, "Content-length");
-  EXPECT_EQ(headers[1].value, "20");
-  EXPECT_EQ(headers[2].key, "Content-type");
-  EXPECT_EQ(headers[2].value, "text/parameters");
-  EXPECT_EQ(headers[3].key, "barparam");
-  EXPECT_EQ(headers[3].value, "barstuff");
+  EXPECT_EQ(headers[0], rtsp::Header("CSeq", "2"));
+  EXPECT_EQ(headers[1], rtsp::Header("Content-length", "20"));
+  EXPECT_EQ(headers[2].key, rtsp::Header("Content-type", "text/parameters"));
+  EXPECT_EQ(headers[3].key, rtsp::Header("barparam","barstuff"));
 }
 
 TEST(rtsp_request, header_without_value) {
@@ -91,10 +86,8 @@ TEST(rtsp_request, header_without_value) {
   EXPECT_EQ(request.address(), "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.version(), 1);
   auto headers = request.headers();
-  EXPECT_EQ(headers[0].key, "CSeq");
-  EXPECT_EQ(headers[0].value, "9");
-  EXPECT_EQ(headers[1].key, "packets_received");
-  EXPECT_EQ(headers[1].value, "");
+  EXPECT_EQ(headers[0], rtsp::Header("CSeq","9"));
+  EXPECT_EQ(headers[1], rtsp::Header("packets_received","");
 }
 
 TEST(rtsp_request, serialization_small_buffer) {
