@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstring>
+#include <map>
 #include <memory>
 
 #include "disable_warnings_push.hpp"
@@ -9,17 +10,39 @@
 #include "spdlog/spdlog.h"
 #include "disable_warnings_pop.hpp"
 
+namespace {
+
+  spdlog::level::level_enum get_loglvl(const std::string& loglvl) {
+    
+    std::map<std::string, spdlog::level::level_enum> loglvls {
+      {"trace", spdlog::level::trace},
+      {"debug", spdlog::level::debug},
+      {"info" , spdlog::level::info},
+      {"warn" , spdlog::level::warn},
+      {"err"  , spdlog::level::critical},
+      {"off"  , spdlog::level::off}
+    };
+
+    if (auto it = loglvls.find(loglvl); it != loglvls.end()) {
+      return it->second;
+    }
+    else {
+      return spdlog::level::trace;
+    }
+  }
+
+}
+
 namespace shar {
 
 class Logger {
 public:
-  explicit Logger(const std::string& file_path) {
+  explicit Logger(const std::string& file_path, const std::string& loglvl) {
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
     m_logger = std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
-    // TODO: make configurable
-    m_logger->set_level(spdlog::level::debug);
+    m_logger->set_level(get_loglvl(loglvl));
     m_logger->set_pattern("[%D %T] [%n] %v");
     spdlog::register_logger(m_logger);
     m_logger->info("Logger has been initialized");

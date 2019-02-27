@@ -127,6 +127,9 @@ Options Options::read(int argc, const char* argv[]) {
   app.add_option("--codec", opts.codec, "Which codec to use");
   app.add_option("-b,--bitrate", opts.bitrate, "Target bitrate (kbit)", true);
   app.add_option("--metrics", opts.metrics, "Where to expose metrics", true);
+  app.add_option("--logfile", opts.log_file, "Name of logfile", true);
+  app.add_option("--loglvl", opts.loglvl, "loglvl for shar logger", true);
+  app.add_option("--encoder_loglvl", opts.encoder_loglvl, "loglvl for encoder logger", true);
   app.add_option("-o,--options", codec_options, "Codec options, in key=value format");
 
   try {

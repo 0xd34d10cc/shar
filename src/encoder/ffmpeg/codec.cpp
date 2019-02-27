@@ -15,19 +15,41 @@ namespace {
   static const int    buf_size = 250;
   static const int    prefix_length = 9;
   static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
-  static shar::Logger cb_logger;
+  static std::optional<shar::Logger> cb_logger;
 
   static void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
-    char buf[buf_size];
-    std::memcpy(buf, log_prefix, prefix_length);
-    vsprintf(buf + prefix_length, fmt, args);
-    cb_logger.info(buf);
+    if (cb_logger) {
+      char buf[buf_size];
+      std::memcpy(buf, log_prefix, prefix_length);
+      vsprintf(buf + prefix_length, fmt, args);
+      switch (level) {
+      case AV_LOG_DEBUG:
+      case AV_LOG_VERBOSE:
+        cb_logger->debug(buf);
+        break;
+      case AV_LOG_INFO:
+        cb_logger->info(buf);
+        break;
+      case AV_LOG_WARNING:
+        cb_logger->warning(buf);
+        break;
+      case AV_LOG_ERROR:
+        cb_logger->error(buf);
+        break;
+      case AV_LOG_FATAL:
+      case AV_LOG_PANIC:
+        cb_logger->critical(buf);
+        break;
+      default:
+        break;
+      }
+    }
   }
 
-  static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
+  static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
     cb_logger = logger;
 
-    std::map<std::string, int> log_levels = {
+    const std::map<std::string, int> log_levels = {
         { "quiet"  , AV_LOG_QUIET   },
         { "panic"  , AV_LOG_PANIC   },
         { "fatal"  , AV_LOG_FATAL   },
@@ -48,11 +70,11 @@ namespace {
       }
     };
 
-    // Try to get loglevel from encoder config
-    auto available_lvl = get_input_loglvl(config->get<std::string>("loglevel", ""));
+    auto available_lvl = get_input_loglvl(config->encoder_loglvl);
 
     if (!available_lvl) {
-      available_lvl = get_input_loglvl(config->get<std::string>("loglevel", "panic"));
+      // if loglvl in encoder_loglvl set incorectly, get loglvl from shar logger 
+      available_lvl = get_input_loglvl(config->loglvl);
     }
 
     av_log_set_level(available_lvl.value_or(AV_LOG_PANIC));
@@ -166,9 +188,9 @@ AVCodec* Codec::select_codec(Options& opts,
     m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
-  static std::array<const char*, 4> codecs = {
+  static std::array<const char*, 5> codecs = {
       "h264_nvenc", // https://github.com/0xd34d10cc/shar/issues/89
-      //"h264_amf", // https://github.com/0xd34d10cc/shar/issues/54
+      "h264_amf", // https://github.com/0xd34d10cc/shar/issues/54
       "h264_qsv", // https://github.com/0xd34d10cc/shar/issues/92
       //"h264_vaapi", // https://github.com/0xd34d10cc/shar/issues/27
       //"h264_v4l2m2m", // https://github.com/0xd34d10cc/shar/issues/112

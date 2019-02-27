@@ -13,6 +13,9 @@ struct Options {
   std::string codec;                         // which codec to use
   std::size_t bitrate{ 5000 };               // target bitrate (in kbits)
   std::string metrics{ "127.0.0.1:3228" };   // where to expose metrics
+  std::string loglvl{ "trace" };             // loglvl for shar logger
+  std::string log_file{ "shar.log" };        // name of logfile 
+  std::string encoder_loglvl{ "panic" };     // loglvl for encoder logger 
   using Option = std::pair<std::string, std::string>;
   std::vector<Option> options;               // options for codec
 

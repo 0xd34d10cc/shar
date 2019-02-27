@@ -10,7 +10,7 @@ namespace shar {
 
 static Context make_context(int argc, const char* argv[]) {
   auto config = std::make_shared<Options>(Options::read(argc, argv));
-  auto logger = Logger("shar.log"); // TODO: make configurable
+  auto logger = Logger(config->log_file, config->loglvl);
   auto registry = std::make_shared<metrics::Registry>();
 
   return Context{
