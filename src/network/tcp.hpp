@@ -10,12 +10,14 @@
 
 #include "context.hpp"
 #include "module.hpp"
-#include "packet.hpp"
+#include "encoder/ffmpeg/unit.hpp"
 #include "channel.hpp"
 #include "cancellation.hpp"
 
 
 namespace shar::tcp {
+
+using encoder::ffmpeg::Unit;
 
 class Network
   : public INetworkModule
@@ -34,11 +36,11 @@ public:
   Network(Network&&) = delete;
   ~Network() override = default;
 
-  void run(Receiver<Packet> packets) override;
+  void run(Receiver<Unit> packets) override;
   void shutdown() override;
 
 private:
-  void set_packet(Packet packet);
+  void set_packet(Unit packet);
   void schedule();
   void connect();
   void send_length();
@@ -56,7 +58,7 @@ private:
   Socket    m_socket;
   Timer     m_timer;
 
-  Packet    m_current_packet;
+  Unit m_current_packet;
 
   enum class State {
     Disconnected,

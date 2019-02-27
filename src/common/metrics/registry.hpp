@@ -1,14 +1,10 @@
 #pragma once
 
-#include "metric_description.hpp"
-#include "logger.hpp"
-#include "newtype.hpp"
 
-#include "disable_warnings_push.hpp"
-#include <prometheus/registry.h>
-#include <prometheus/exposer.h>
-#include "disable_warnings_pop.hpp"
-
+namespace prometheus {
+class Registry;
+class Exposer;
+}
 
 namespace shar::metrics {
 
@@ -20,13 +16,10 @@ using RegistryPtr = std::shared_ptr<Registry>;
 
 class Registry {
 public:
-
-  Registry(Logger logger);
-  
+  Registry();
   void register_on(prometheus::Exposer& exposer);
 
 private:
-
   friend class Histogram;
   friend class Gauge;
 

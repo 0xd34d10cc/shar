@@ -7,7 +7,8 @@
       "project": "CMakeLists.txt",
       "projectTarget": "shar.exe (bin\\shar.exe)",
       "name": "shar.exe (bin\\shar.exe)",
-      "currentDir": "${workspaceRoot}\\conf"
+      "currentDir": "${workspaceRoot}\\conf",
+      "args": ["--config", "config.json"]
     }
   ]
 }

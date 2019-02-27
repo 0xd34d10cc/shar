@@ -1,12 +1,16 @@
-#include "registry.hpp"
+#include <memory>
 
-#include <cassert>
-#include <array>
+#include "disable_warnings_push.hpp"
+#include <prometheus/registry.h>
+#include <prometheus/exposer.h>
+#include "disable_warnings_pop.hpp"
+
+#include "registry.hpp"
 
 
 namespace shar::metrics {
 
-Registry::Registry(Logger logger)
+Registry::Registry()
     : m_registry(std::make_shared<prometheus::Registry>()) {}
 
 void Registry::register_on(prometheus::Exposer & exposer) {

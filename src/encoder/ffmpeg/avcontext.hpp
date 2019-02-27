@@ -1,37 +1,45 @@
 #pragma once
 
-#include "disable_warnings_push.hpp"
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-#include "disable_warnings_pop.hpp"
+#include <cstdlib>
+#include <memory>
 
 #include "size.hpp"
-#include "logger.hpp"
-#include "config.hpp"
 
 
-namespace shar::codecs::ffmpeg {
+extern "C" {
+struct AVCodecContext;
+struct AVCodec;
 
+void avcodec_free_context(AVCodecContext **avctx);
+}
+
+namespace shar::encoder::ffmpeg {
+
+// TODO: remove this class
 class ContextPtr {
-
 public:
   ContextPtr() = default;
-  ContextPtr(const size_t kbits,
+  ContextPtr(std::size_t kbits,
              AVCodec* codec,
              Size frame_size,
              std::size_t fps);
   ContextPtr(const ContextPtr&) = delete;
-  ContextPtr(ContextPtr&& context);
+  ContextPtr(ContextPtr&& context) = default;
   ContextPtr operator=(const ContextPtr& rh) = delete;
-  ContextPtr& operator=(ContextPtr&& rh);
+  ContextPtr& operator=(ContextPtr&& rh) = default;
+  ~ContextPtr() = default;
 
   AVCodecContext* get();
-  ~ContextPtr();
 
 private:
-  AVCodecContext* m_context{nullptr};
+  struct Deleter {
+    void operator()(AVCodecContext* context) {
+      avcodec_free_context(&context);
+    }
+  };
 
+  using AVContextPtr = std::unique_ptr<AVCodecContext, Deleter>;
+  AVContextPtr m_context;
 };
 
 }
