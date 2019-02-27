@@ -30,30 +30,24 @@ public:
 
   static Frame from_bgra(const char* data, Size size);
 
-  std::uint8_t* channel_data(std::size_t index) noexcept;
-  const std::uint8_t* channel_data(std::size_t index) const noexcept;
-  std::size_t channel_size(std::size_t index) const noexcept;
-
-  Triple<std::size_t> sizes() const noexcept;
+  std::uint8_t* data() noexcept;
+  const std::uint8_t* data() const noexcept;
+  std::size_t total_size() const noexcept;
 
   std::size_t width() const noexcept;
   std::size_t height() const noexcept;
 
-  std::uint8_t* ys() noexcept;
-  const std::uint8_t* ys() const noexcept;
-  std::size_t y_len() const noexcept;
+  struct Channel {
+    const std::uint8_t* data{ nullptr };
 
-  std::uint8_t* us() noexcept;
-  const std::uint8_t* us() const noexcept;
-  std::size_t u_len() const noexcept;
+    std::size_t width{ 0 };
+    std::size_t height{ 0 };
+    std::size_t size { 0 };
+  };
 
-  std::uint8_t* vs() noexcept;
-  const std::uint8_t* vs() const noexcept;
-  std::size_t v_len() const noexcept;
-
-  std::uint8_t* data() noexcept;
-  const std::uint8_t* data() const noexcept;
-  std::size_t total_size() const noexcept;
+  Channel y() const noexcept;
+  Channel u() const noexcept;
+  Channel v() const noexcept;
 
   AVFrame* raw() noexcept;
   const AVFrame* raw() const noexcept;
