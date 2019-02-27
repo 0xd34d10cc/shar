@@ -23,6 +23,8 @@ namespace {
       std::memcpy(buf, log_prefix, prefix_length);
       vsprintf(buf + prefix_length, fmt, args);
       switch (level) {
+      case AV_LOG_TRACE:
+        cb_logger->trace(buf);
       case AV_LOG_DEBUG:
       case AV_LOG_VERBOSE:
         cb_logger->debug(buf);
@@ -102,6 +104,8 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   m_encoder = select_codec(opts, frame_size, fps);
   assert(m_context.get());
   assert(m_encoder);
+
+  setup_logging(m_config, m_logger);
 
   // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
