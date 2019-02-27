@@ -58,11 +58,13 @@ const std::uint8_t* Frame::channel_data(std::size_t index) const noexcept {
 
 std::size_t Frame::channel_size(std::size_t index) const noexcept {
   assert(index < 3);
-  return m_frame && index < AV_NUM_DATA_POINTERS ? m_frame->linesize[index] : 0;
+  std::size_t w = m_frame && index < AV_NUM_DATA_POINTERS ? m_frame->linesize[index] : 0;
+  std::size_t h = height();
+  return index == 0 ? w * h : w * h/2;
 }
 
 Triple<std::size_t> Frame::sizes() const noexcept {
-  return {channel_size(0), channel_size(1), channel_size(2)};
+  return { channel_size(0), channel_size(1), channel_size(2)};
 }
 
 std::size_t Frame::width() const noexcept {
