@@ -1,7 +1,10 @@
 #include <algorithm>
 #include <cstring>
+#include <cassert>
 
 #include "request.hpp"
+#include "serializer.hpp"
+
 
 namespace shar::rtsp {
 
@@ -112,6 +115,53 @@ void Request::add_header(std::string key, std::string value) {
 
 void Request::set_body(std::string body) {
   m_body = std::move(body);
+}
+
+static char* type_to_string(Request::Type type) {
+
+  switch (type) {
+    case Request::Type::OPTIONS: return "OPTIONS";
+    case Request::Type::DESCRIBE: return "DESCRIBE";
+    case Request::Type::SETUP: return "SETUP";
+    case Request::Type::TEARDOWN: return "TEARDOWN";
+    case Request::Type::PLAY: return "PLAY";
+    case Request::Type::PAUSE: return "PAUSE";
+    case Request::Type::GET_PARAMETER: return "GET_PARAMETER";
+    case Request::Type::SET_PARAMETER: return "SET_PARAMETER";
+    case Request::Type::REDIRECT: return "REDIRECT";
+    case Request::Type::ANNOUNCE: return "ANNOUNCE";
+    case Request::Type::RECORD: return "RECORD";
+    default: assert(false); return "";
+  }
+
+}
+
+bool Request::serialize(char* destination, std::size_t size) {
+
+  Serializer serializer(destination, size);
+#define TRY_SERIALIZE(EXP) if(!(EXP)) return false
+  //serialize type
+  TRY_SERIALIZE(serializer.append_string(type_to_string(m_type)));
+  TRY_SERIALIZE(serializer.append_string(" "));
+  //s
+  TRY_SERIALIZE(serializer.append_string(m_address.c_str()));
+  TRY_SERIALIZE(serializer.append_string(" "));
+  //serialize version
+  TRY_SERIALIZE(serializer.append_string("RTSP/1.0\r\n"));
+  //serialize headers
+  for (auto& header : m_headers) {
+    TRY_SERIALIZE(serializer.append_string(header.key.c_str()));
+    TRY_SERIALIZE(serializer.append_string(": "));
+    TRY_SERIALIZE(serializer.append_string(header.value.c_str()));
+    TRY_SERIALIZE(serializer.append_string("\r\n"));
+  }
+  //serialize empty line after headers
+  TRY_SERIALIZE(serializer.append_string("\r\n"));
+  //serialize body
+  TRY_SERIALIZE(serializer.append_string(m_body.c_str()));
+
+  return true;
+#undef TRY_SERIALIZE
 }
 
 }

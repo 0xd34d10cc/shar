@@ -38,6 +38,8 @@ public:
 
   static Request parse(const char* buffer, std::size_t size);
 
+  bool serialize(char* destionation, std::size_t);
+
 private:
 
   Type                m_type;

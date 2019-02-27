@@ -96,3 +96,37 @@ TEST(rtsp_request, header_without_value) {
   EXPECT_EQ(headers[1].key, "packets_received");
   EXPECT_EQ(headers[1].value, "");
 }
+
+TEST(rtsp_request, serialization_small_buffer) {
+  std::string base_request =
+    "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
+    "CSeq: 10\r\n"
+    "Content-length: 20\r\n"
+    "Content-type: text/parameters\r\n"
+    "barparam: barstuff\r\n"
+    "\r\n";
+  std::string body =
+    "m=video 0 RTP/AVP 96\""
+    "a=control : streamid=0\r\n"
+    "a=range : npt=0-7.741000\r\n"
+    "a=length : npt=7.741000\r\n"
+    "a=rtpmap : 96 MP4V-ES / 5544\r\n"
+    "a=mimetype : string; \"video/MP4V-ES\"\r\n"
+    "a=AvgBitRate:integer; 304018\r\n"
+    "a=StreamName:string; \"hinted video track\"\r\n"
+    "m=audio 0 RTP / AVP 97\r\n"
+    "a=control:streamid = 1\r\n"
+    "a=range : npt = 0 - 7.712000\r\n"
+    "a=length : npt = 7.712000\r\n"
+    "a=rtpmap : 97 mpeg4 - generic / 32000 / 2\r\n"
+    "a=mimetype : string; \"audio/mpeg4-generic\"\r\n"
+    "a=AvgBitRate:integer; 65790\r\n"
+    "a=StreamName:string; \"hinted audio track\"\r\n";
+  auto request_with_body = base_request + body;
+  auto request
+    = rtsp::Request::parse(
+      request_with_body.c_str(), request_with_body.size());
+  std::unique_ptr<char[]> destination = std::make_unique<char[]>(10);
+  bool serialize_res = request.serialize(destination.get(), 10);
+  EXPECT_EQ(serialize_res, false);
+}

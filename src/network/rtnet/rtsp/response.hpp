@@ -22,6 +22,8 @@ public:
   void set_body(std::string body);
 
   static Response parse(const char* buffer, std::size_t size);
+  //return false if we haven't enough space in buffer
+  bool serialize(char* destination, std::size_t size);
 
 private:
   std::size_t         m_version;

@@ -1,7 +1,7 @@
 #include <charconv>
 
 #include "response.hpp"
-
+#include "serializer.hpp"
 
 namespace shar::rtsp {
 
@@ -81,11 +81,44 @@ void Response::set_reason(std::string reason){
 }
 
 void Response::add_header(std::string key, std::string value) {
-  m_headers.push_back(Header(std::move(key), std::move(value)));
+  m_headers.emplace_back(Header(std::move(key), std::move(value)));
 }
 
 void Response::set_body(std::string body) {
   m_body = std::move(body);
+}
+
+static void add_to_buffer(char* buffer, std::size_t buffer_size, char* source) {
+
+}
+
+bool Response::serialize(char* destination, std::size_t size) {
+  Serializer serializer(destination, size);
+  //serialize version
+#define TRY_SERIALIZE(EXP) if(!(EXP)) return false
+  TRY_SERIALIZE(serializer.append_string("RTSP/1.0 "));
+  //serialize status code
+  TRY_SERIALIZE(serializer.append_number(m_status_code));
+  //append space after number
+  TRY_SERIALIZE(serializer.append_string(" "));
+  //serialize reason-phrase
+  TRY_SERIALIZE(serializer.append_string(m_reason.c_str()));
+  //serialize end of line
+  TRY_SERIALIZE(serializer.append_string("\r\n"));
+  //serialize headers
+  for (auto& header : m_headers) {
+    TRY_SERIALIZE(serializer.append_string(header.key.c_str()));
+    TRY_SERIALIZE(serializer.append_string(": "));
+    TRY_SERIALIZE(serializer.append_string(header.value.c_str()));
+    TRY_SERIALIZE(serializer.append_string("\r\n"));
+  }
+  //serialize empty line after headers
+  TRY_SERIALIZE(serializer.append_string("\r\n"));
+  //serialize body
+  TRY_SERIALIZE(serializer.append_string(m_body.c_str()));
+
+  return true;
+#undef TRY_SERIALIZE
 }
 
 }
