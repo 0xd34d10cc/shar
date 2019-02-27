@@ -52,7 +52,7 @@ namespace {
     auto available_lvl = get_input_loglvl(config->get<std::string>("loglevel", ""));
 
     if (!available_lvl) {
-      available_lvl = check_input_loglvl(config->get<std::string>("loglevel", "panic"));
+      available_lvl = get_input_loglvl(config->get<std::string>("loglevel", "panic"));
     }
 
     av_log_set_level(available_lvl.value_or(AV_LOG_PANIC));
