@@ -20,7 +20,7 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   , m_frame_counter(0) {
 
   m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
-                                     m_registry, { 15.0, 30.0, 60.0 });
+                                     m_registry, { 5.0, 10.0, 15.0, 30.0 });
   ffmpeg::Options opts{};
   for (const auto& [key, value]: m_config->options) {
     if (!opts.set(key.c_str(), value.c_str())) {
