@@ -1,5 +1,4 @@
 #include "convert.hpp"
-#include "capture/frame.hpp"
 
 
 namespace shar::encoder {
@@ -9,22 +8,29 @@ static Slice alloc(std::size_t size) {
 }
 
 
-std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
-  Slice ys = alloc(image.total_pixels());
-  Slice us = alloc(image.total_pixels() / 4);
-  Slice vs = alloc(image.total_pixels() / 4);
+YUVImage bgra_to_yuv420(const char* data, Size size) {
+  Slice image = alloc(size.total_pixels() + size.total_pixels() / 2);
+
+  std::uint8_t* ys = image.data.get();
+  std::size_t ys_size = size.total_pixels();
+
+  std::uint8_t* us = ys + ys_size;
+  std::size_t us_size = size.total_pixels() / 4;
+
+  std::uint8_t* vs = us + us_size;
+  std::size_t vs_size = us_size;
 
   const auto luma = [](uint8_t r, uint8_t g, uint8_t b) {
     return static_cast<uint8_t >(((66 * r + 129 * g + 25 * b) >> 8) + 16);
   };
 
-  const std::uint8_t* raw_image = image.bytes();
+  const std::uint8_t* raw_image = reinterpret_cast<const std::uint8_t*>(data);
   std::size_t i  = 0;
   std::size_t ui = 0;
 
-  for (std::size_t line = 0; line < image.height(); ++line) {
+  for (std::size_t line = 0; line < size.height(); ++line) {
     if (line % 2 == 0) {
-      for (std::size_t x = 0; x < image.width(); x += 2) {
+      for (std::size_t x = 0; x < size.width(); x += 2) {
         uint8_t r = raw_image[4 * i + 2];
         uint8_t g = raw_image[4 * i + 1];
         uint8_t b = raw_image[4 * i];
@@ -33,9 +39,9 @@ std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
         auto u = static_cast<uint8_t>(((-38 * r + -74 * g + 112 * b) >> 8) + 128);
         auto v = static_cast<uint8_t>(((112 * r + -94 * g + -18 * b) >> 8) + 128);
 
-        ys.data[i]  = y;
-        us.data[ui] = u;
-        vs.data[ui] = v;
+        ys[i]  = y;
+        us[ui] = u;
+        vs[ui] = v;
 
         i++;
         ui++;
@@ -45,24 +51,29 @@ std::array<Slice, 3> bgra_to_yuv420(const shar::Frame& image) {
         b = raw_image[4 * i];
 
         y = luma(r, g, b);
-        ys.data[i] = y;
+        ys[i] = y;
         i++;
       }
     }
     else {
-      for (size_t x = 0; x < image.width(); x += 1) {
+      for (size_t x = 0; x < size.width(); x += 1) {
         uint8_t r = raw_image[4 * i + 2];
         uint8_t g = raw_image[4 * i + 1];
         uint8_t b = raw_image[4 * i];
 
         uint8_t y = luma(r, g, b);
-        ys.data[i] = y;
+        ys[i] = y;
         i++;
       }
     }
   }
 
-  return {std::move(ys), std::move(us), std::move(vs)};
+  return YUVImage{
+    std::move(image),
+    ys_size,
+    us_size,
+    vs_size
+  };
 }
 
 template<typename T>

@@ -5,7 +5,8 @@
 #include "size.hpp"
 #include "cancellation.hpp"
 #include "metrics/gauge.hpp"
-#include "capture/frame.hpp"
+
+#include "ffmpeg/frame.hpp"
 #include "ffmpeg/unit.hpp"
 #include "ffmpeg/codec.hpp"
 
@@ -21,7 +22,7 @@ public:
   Encoder& operator=(Encoder&&) = default;
   ~Encoder() = default;
 
-  void run(Receiver<Frame> input, Sender<ffmpeg::Unit> output);
+  void run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output);
   void shutdown();
 
 private:

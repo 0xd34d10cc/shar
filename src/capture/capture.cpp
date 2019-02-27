@@ -4,35 +4,30 @@
 namespace {
 
 using namespace shar;
+using Frame = encoder::ffmpeg::Frame;
 
-Frame convert(const sc::Image& image, const Clock::time_point& time_stamp) noexcept {
+Frame convert(const sc::Image& image) noexcept {
   const auto width  = static_cast<std::size_t>(Width(image));
   const auto height = static_cast<std::size_t>(Height(image));
-  const std::size_t pixels = width * height;
-
-  const std::size_t PIXEL_SIZE = 4;
-
-  auto bytes = std::make_unique<uint8_t[]>(pixels * PIXEL_SIZE);
   auto size  = Size {height, width};
 
-  assert(bytes != nullptr);
-  sc::Extract(image, bytes.get(), pixels * PIXEL_SIZE);
-
-  return Frame {std::move(bytes), size, time_stamp };
+  assert(sc::isDataContiguous(image));
+  const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
+  return Frame::from_bgra(data, size);
 }
-
 
 struct FrameHandler {
   explicit FrameHandler(std::shared_ptr<Sender<Frame>> consumer)
       : m_consumer(std::move(consumer)) {}
 
-  void operator()(const sc::Image& frame, const sc::Monitor& /* monitor */) {
-    Frame buffer = convert(frame, Clock::now());
+  void operator()(const sc::Image& buffer, const sc::Monitor& /* monitor */) {
+    Frame frame = convert(buffer);
+    frame.set_timestamp(Clock::now());
 
     // ignore return value here,
     // if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
-    m_consumer->send(std::move(buffer));
+    m_consumer->send(std::move(frame));
   }
 
   std::shared_ptr<Sender<Frame>> m_consumer;

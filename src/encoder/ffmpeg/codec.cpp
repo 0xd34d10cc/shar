@@ -38,29 +38,14 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   }
 }
 
-std::vector<Unit> Codec::encode(const shar::Frame& image) {
+std::vector<Unit> Codec::encode(Frame image) {
   assert(m_context.get()->width == image.width());
   assert(m_context.get()->height == image.height());
 
-  auto[y, u, v] = bgra_to_yuv420(image);
-
-  AVFrame* frame = av_frame_alloc();
-  std::fill_n(reinterpret_cast<char*>(frame), sizeof(AVFrame), 0);
-  frame->format = AV_PIX_FMT_YUV420P;
-  frame->height = static_cast<int>(image.height());
-  frame->width = static_cast<int>(image.width());
-
-  frame->data[0] = y.data.get();
-  frame->data[1] = u.data.get();
-  frame->data[2] = v.data.get();
-
-  frame->linesize[0] = static_cast<int>(image.width());
-  frame->linesize[1] = static_cast<int>(image.width() / 2);
-  frame->linesize[2] = static_cast<int>(image.width() / 2);
   int pts = next_pts();
-  frame->pts = pts;
+  image.raw()->pts = pts;
 
-  int ret = avcodec_send_frame(m_context.get(), frame);
+  int ret = avcodec_send_frame(m_context.get(), image.raw());
   std::vector<Unit> packets;
 
   assert(ret==0);
@@ -82,7 +67,6 @@ std::vector<Unit> Codec::encode(const shar::Frame& image) {
     }
   }
 
-  av_frame_free(&frame);
   return packets;
 }
 
