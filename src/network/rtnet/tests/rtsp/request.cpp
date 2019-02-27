@@ -87,7 +87,7 @@ TEST(rtsp_request, header_without_value) {
   EXPECT_EQ(request.version(), 1);
   auto headers = request.headers();
   EXPECT_EQ(headers[0], rtsp::Header("CSeq","9"));
-  EXPECT_EQ(headers[1], rtsp::Header("packets_received","");
+  EXPECT_EQ(headers[1], rtsp::Header("packets_received",""));
 }
 
 TEST(rtsp_request, serialization_small_buffer) {
