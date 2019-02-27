@@ -192,9 +192,9 @@ AVCodec* Codec::select_codec(Options& opts,
     m_logger.warning("Encoder {} requested but not found", codec_name);
   }
 
-  static std::array<const char*, 5> codecs = {
+  static std::array<const char*, 4> codecs = {
       "h264_nvenc", // https://github.com/0xd34d10cc/shar/issues/89
-      "h264_amf", // https://github.com/0xd34d10cc/shar/issues/54
+      //"h264_amf", // https://github.com/0xd34d10cc/shar/issues/54
       "h264_qsv", // https://github.com/0xd34d10cc/shar/issues/92
       //"h264_vaapi", // https://github.com/0xd34d10cc/shar/issues/27
       //"h264_v4l2m2m", // https://github.com/0xd34d10cc/shar/issues/112
