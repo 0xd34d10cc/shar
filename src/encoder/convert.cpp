@@ -9,9 +9,9 @@ static Slice alloc(std::size_t size) {
 
 
 YUVImage bgra_to_yuv420(const char* data, Size size) {
-  Slice image = alloc(size.total_pixels() + size.total_pixels() / 2);
+  Slice buffer = alloc(size.total_pixels() + size.total_pixels() / 2);
 
-  std::uint8_t* ys = image.data.get();
+  std::uint8_t* ys = buffer.data.get();
   std::size_t ys_size = size.total_pixels();
 
   std::uint8_t* us = ys + ys_size;
@@ -68,12 +68,13 @@ YUVImage bgra_to_yuv420(const char* data, Size size) {
     }
   }
 
-  return YUVImage{
-    std::move(image),
-    ys_size,
-    us_size,
-    vs_size
-  };
+  YUVImage image;
+  image.data = std::move(buffer.data);
+  image.size = buffer.size;
+  image.y_size = ys_size;
+  image.u_size = us_size;
+  image.v_size = vs_size;
+  return image;
 }
 
 template<typename T>

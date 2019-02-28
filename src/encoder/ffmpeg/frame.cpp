@@ -20,7 +20,7 @@ Frame::Frame(FramePtr frame, std::unique_ptr<std::uint8_t[]> data)
 
 Frame Frame::from_bgra(const char* data, Size size) {
   auto image = bgra_to_yuv420(data, size);
-  assert(image.data.size == image.y_size + image.u_size + image.v_size);
+  assert(image.size == image.y_size + image.u_size + image.v_size);
 
   auto frame = FramePtr(av_frame_alloc());
   assert(frame);
@@ -29,9 +29,9 @@ Frame Frame::from_bgra(const char* data, Size size) {
   frame->height = static_cast<int>(size.height());
   frame->width = static_cast<int>(size.width());
 
-  frame->data[0] = image.data.data.get();
-  frame->data[1] = image.data.data.get() + image.y_size;
-  frame->data[2] = image.data.data.get() + image.y_size + image.u_size;
+  frame->data[0] = image.data.get();
+  frame->data[1] = image.data.get() + image.y_size;
+  frame->data[2] = image.data.get() + image.y_size + image.u_size;
 
   frame->extended_data = &frame->data[0];
 
@@ -43,10 +43,9 @@ Frame Frame::from_bgra(const char* data, Size size) {
   frame->sample_aspect_ratio.num = static_cast<int>(size.width() / divisor);
   frame->sample_aspect_ratio.den = static_cast<int>(size.height() / divisor);
 
-  return Frame(std::move(frame), std::move(image.data.data));
+  return Frame(std::move(frame), std::move(image.data));
 }
 
-// all data
 std::uint8_t* Frame::data() noexcept {
   return m_data.get();
 }

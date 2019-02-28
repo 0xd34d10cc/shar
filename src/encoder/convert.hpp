@@ -11,15 +11,14 @@ namespace shar::encoder {
 using Bytes = std::unique_ptr<std::uint8_t[]>;
 
 struct Slice {
-  Bytes       data;
-  std::size_t size;
+  Bytes       data{ nullptr };
+  std::size_t size{ 0 };
 };
 
-struct YUVImage {
-  Slice data;
-  std::size_t y_size;
-  std::size_t u_size;
-  std::size_t v_size;
+struct YUVImage: Slice {
+  std::size_t y_size{ 0 };
+  std::size_t u_size{ 0 };
+  std::size_t v_size{ 0 };
 };
 
 

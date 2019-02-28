@@ -16,9 +16,6 @@ void av_frame_free(AVFrame** frame);
 
 namespace shar::encoder::ffmpeg {
 
-template <typename T>
-using Triple = std::tuple<T, T, T>;
-
 class Frame {
 public:
   Frame() = default;
