@@ -9,8 +9,10 @@ using Frame = encoder::ffmpeg::Frame;
 Frame convert(const sc::Image& image) noexcept {
   const auto width  = static_cast<std::size_t>(Width(image));
   const auto height = static_cast<std::size_t>(Height(image));
-  auto size  = Size {height, width};
+  auto size  = Size{ height, width };
 
+  // Frame::from_bgra expects no padding, for now
+  // TODO: support padded images
   assert(sc::isDataContiguous(image));
   const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
   return Frame::from_bgra(data, size);
@@ -30,6 +32,8 @@ struct FrameHandler {
     m_consumer->send(std::move(frame));
   }
 
+  // shared_ptr is used here because FrameHandler has to be copyable
+  // onNewFrame accepts handler by const reference
   std::shared_ptr<Sender<Frame>> m_consumer;
 };
 

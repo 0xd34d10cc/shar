@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <memory>
 
 #include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>

@@ -12,7 +12,7 @@ Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
 
 void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
   while (auto frame = input.receive()) {
-    if (m_running.expired()) {
+    if (m_running.expired() || !output.connected()) {
       break;
     }
 
@@ -24,6 +24,8 @@ void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
     }
 
   }
+
+  shutdown();
 }
 
 void Encoder::shutdown() {
