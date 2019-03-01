@@ -37,13 +37,13 @@ add_executable(shar
                encoder/ffmpeg/codec.cpp
                encoder/ffmpeg/unit.hpp
                encoder/ffmpeg/unit.cpp
+               encoder/ffmpeg/frame.hpp
+               encoder/ffmpeg/frame.cpp
                encoder/encoder.cpp
                encoder/encoder.hpp
                # capture subsystem
                capture/capture.cpp
                capture/capture.hpp
-               capture/frame.cpp
-               capture/frame.hpp
                )
 
 target_include_directories(shar

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <memory>
 
 #include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>
@@ -8,7 +8,8 @@
 
 #include "context.hpp"
 #include "channel.hpp"
-#include "frame.hpp"
+#include "time.hpp"
+#include "encoder/ffmpeg/frame.hpp"
 
 
 namespace sc = SL::Screen_Capture;
@@ -17,7 +18,6 @@ using CaptureConfigPtr = std::shared_ptr<
     sc::ICaptureConfiguration<sc::ScreenCaptureCallback>
 >;
 using CaptureManagerPtr = std::shared_ptr<sc::IScreenCaptureManager>;
-using Milliseconds = std::chrono::milliseconds;
 
 namespace shar {
 
@@ -32,7 +32,7 @@ public:
   Capture& operator=(Capture&&) noexcept = default;
   ~Capture() = default;
 
-  void run(Sender<Frame> output);
+  void run(Sender<encoder::ffmpeg::Frame> output);
   void shutdown();
 
 private:
