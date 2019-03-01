@@ -20,11 +20,12 @@ namespace {
   static void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
     if (cb_logger) {
       char buf[buf_size];
-      std::memcpy(buf, log_prefix, prefix_length);
-      vsprintf(buf + prefix_length, fmt, args);
+      std::memcpy(buf, log_prefix, prefix_length);  
+      vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
       switch (level) {
       case AV_LOG_TRACE:
         cb_logger->trace(buf);
+        break;
       case AV_LOG_DEBUG:
       case AV_LOG_VERBOSE:
         cb_logger->debug(buf);
@@ -43,6 +44,7 @@ namespace {
         cb_logger->critical(buf);
         break;
       default:
+        assert(false);
         break;
       }
     }

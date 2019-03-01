@@ -10,30 +10,41 @@
 #include "spdlog/spdlog.h"
 #include "disable_warnings_pop.hpp"
 
+namespace shar {
+
+enum class LogLevel
+{
+  quite,
+  trace,
+  debug,
+  info,
+  warning,
+  error,
+  critical,
+};
+
 namespace {
 
-  spdlog::level::level_enum get_loglvl(const std::string& loglvl) {
-    
-    std::map<std::string, spdlog::level::level_enum> loglvls {
-      {"trace", spdlog::level::trace},
-      {"debug", spdlog::level::debug},
-      {"info" , spdlog::level::info},
-      {"warn" , spdlog::level::warn},
-      {"err"  , spdlog::level::critical},
-      {"off"  , spdlog::level::off}
+  spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
+
+    std::map<LogLevel, spdlog::level::level_enum> loglvls {
+      {LogLevel::trace,   spdlog::level::trace},
+      {LogLevel::debug,   spdlog::level::debug},
+      {LogLevel::info,    spdlog::level::info},
+      {LogLevel::warning, spdlog::level::warn},
+      {LogLevel::error,   spdlog::level::critical},
+      {LogLevel::quite,   spdlog::level::off}
     };
 
     if (auto it = loglvls.find(loglvl); it != loglvls.end()) {
       return it->second;
     }
     else {
-      return spdlog::level::trace;
+      throw std::runtime_error(fmt::format("Invalid loglvl: {}", loglvl));
     }
   }
 
 }
-
-namespace shar {
 
 class Logger {
 public:
