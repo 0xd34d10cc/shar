@@ -8,19 +8,9 @@
 
 namespace shar {
 
-namespace {
-std::map<std::string, LogLevel> loglvls = { {"quite",    LogLevel::quite},
-                                            {"trace",    LogLevel::trace},
-                                            {"debug",    LogLevel::debug},
-                                            {"info",     LogLevel::info},
-                                            {"warning",  LogLevel::warning},
-                                            {"error",    LogLevel::error},
-                                            {"critical", LogLevel::critical} };
-}
-
 static Context make_context(int argc, const char* argv[]) {
   auto config = std::make_shared<Options>(Options::read(argc, argv));
-  auto logger = Logger(config->log_file, loglvls[config->loglvl]);
+  auto logger = Logger(config->log_file, string_loglvls[config->loglvl]);
   auto registry = std::make_shared<metrics::Registry>();
 
   return Context{

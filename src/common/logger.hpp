@@ -23,6 +23,14 @@ enum class LogLevel
   critical,
 };
 
+std::map<std::string, LogLevel> string_loglvls = { {"quite",    LogLevel::quite},
+                                                   {"trace",    LogLevel::trace},
+                                                   {"debug",    LogLevel::debug},
+                                                   {"info",     LogLevel::info},
+                                                   {"warning",  LogLevel::warning},
+                                                   {"error",    LogLevel::error},
+                                                   {"critical", LogLevel::critical} };
+
 namespace {
 
   spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
@@ -53,7 +61,7 @@ public:
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
     m_logger = std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
-    m_logger->set_level(get_loglvl(loglvl));
+    m_logger->set_level(get_spdlog_level(loglvl));
     m_logger->set_pattern("[%D %T] [%n] %v");
     spdlog::register_logger(m_logger);
     m_logger->info("Logger has been initialized");

@@ -53,35 +53,20 @@ namespace {
   static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
     cb_logger = logger;
 
-    const std::map<std::string, int> log_levels = {
-        { "quiet"  , AV_LOG_QUIET   },
-        { "panic"  , AV_LOG_PANIC   },
-        { "fatal"  , AV_LOG_FATAL   },
-        { "error"  , AV_LOG_ERROR   },
-        { "warning", AV_LOG_WARNING },
-        { "info"   , AV_LOG_INFO    },
-        { "verbose", AV_LOG_VERBOSE },
-        { "debug"  , AV_LOG_DEBUG   },
-        { "trace"  , AV_LOG_TRACE   },
+    std::map<shar::LogLevel, int> log_levels = {
+        { shar::LogLevel::quite, AV_LOG_QUIET },
+        { shar::LogLevel::trace, AV_LOG_TRACE },
+        { shar::LogLevel::debug, AV_LOG_DEBUG },
+        { shar::LogLevel::info, AV_LOG_INFO },
+        { shar::LogLevel::warning, AV_LOG_WARNING },
+        { shar::LogLevel::critical, AV_LOG_FATAL },
+        { shar::LogLevel::error, AV_LOG_ERROR },
     };
 
-    auto get_input_loglvl = [&log_levels](std::string log_level) -> std::optional<int> {
-      if (auto it = log_levels.find(log_level); it != log_levels.end()) {
-        return it->second;
-      }
-      else {
-        return std::nullopt;
-      }
-    };
+    auto loglvl = shar::string_loglvls[config->encoder_loglvl];
+    auto available_lvl = log_levels[loglvl];
 
-    auto available_lvl = get_input_loglvl(config->encoder_loglvl);
-
-    if (!available_lvl) {
-      // if loglvl in encoder_loglvl set incorectly, get loglvl from shar logger 
-      available_lvl = get_input_loglvl(config->loglvl);
-    }
-
-    av_log_set_level(available_lvl.value_or(AV_LOG_PANIC));
+    av_log_set_level(available_lvl);
   }
 }
 
