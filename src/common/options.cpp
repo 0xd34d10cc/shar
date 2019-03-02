@@ -117,13 +117,9 @@ namespace shar {
 Options Options::read(int argc, const char* argv[]) {
   Options opts{}; // make default
   std::vector<std::string> codec_options;
-  std::map<std::string, LogLevel> loglvl_map = { {"quite",    LogLevel::quite},
-                                                 {"trace",    LogLevel::trace},
-                                                 {"debug",    LogLevel::debug},
-                                                 {"info",     LogLevel::info},
-                                                 {"warning",  LogLevel::warning}, 
-                                                 {"error",    LogLevel::error},
-                                                 {"critical", LogLevel::critical} };
+
+  std::set<std::string> loglvl_options{ "trace", "debug", "info", "warning",
+                                        "error", "critical" };
 
   CLI::App app{"shar - yet another tool for video streaming"};
   app.config_formatter(std::make_shared<ConfigJSON>());
@@ -136,10 +132,8 @@ Options Options::read(int argc, const char* argv[]) {
   app.add_option("-b,--bitrate", opts.bitrate, "Target bitrate (kbit)", true);
   app.add_option("--metrics", opts.metrics, "Where to expose metrics", true);
   app.add_option("--logfile", opts.log_file, "Name of logfile", true);
-  app.add_set("--loglvl", opts.loglvl, { "trace", "debug", "info", "warning",
-                                        "error", "critical" }, "loglvl for shar logger", true);
-  app.add_set("--encoder_loglvl", opts.encoder_loglvl, { "trace", "debug", "info", "warning",
-                                        "error", "critical" }, "loglvl for encoder logger", true);
+  app.add_set("--loglvl", opts.loglvl, loglvl_options, "loglvl for shar logger", true);
+  app.add_set("--encoder_loglvl", opts.encoder_loglvl, loglvl_options, "loglvl for encoder logger", true);
   app.add_option("-o,--options", codec_options, "Codec options, in key=value format");
 
   try {
