@@ -53,7 +53,7 @@ namespace {
   static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
     cb_logger = logger;
 
-    std::map<shar::LogLevel, int> log_levels = {
+    static std::map<shar::LogLevel, int> log_levels = {
         { shar::LogLevel::quite, AV_LOG_QUIET },
         { shar::LogLevel::trace, AV_LOG_TRACE },
         { shar::LogLevel::debug, AV_LOG_DEBUG },
@@ -63,10 +63,7 @@ namespace {
         { shar::LogLevel::error, AV_LOG_ERROR },
     };
 
-    auto loglvl = shar::string_loglvls[config->encoder_loglvl];
-    auto available_lvl = log_levels[loglvl];
-
-    av_log_set_level(available_lvl);
+    av_log_set_level(log_levels[config->encoder_loglvl]);
   }
 }
 

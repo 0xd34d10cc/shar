@@ -5,12 +5,15 @@
 #include "network/network.hpp"
 #include "signal_handler.hpp"
 
-
 namespace shar {
 
 static Context make_context(int argc, const char* argv[]) {
   auto config = std::make_shared<Options>(Options::read(argc, argv));
-  auto logger = Logger(config->log_file, string_loglvls[config->loglvl]);
+  auto shar_loglvl = config->loglvl;
+  if (shar_loglvl > config->encoder_loglvl) {
+    throw std::runtime_error("Encoder loglvl mustn't be less than general loglvl");
+  }
+  auto logger = Logger(config->log_file, shar_loglvl);
   auto registry = std::make_shared<metrics::Registry>();
 
   return Context{

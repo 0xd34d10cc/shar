@@ -10,45 +10,37 @@
 #include "spdlog/spdlog.h"
 #include "disable_warnings_pop.hpp"
 
+#include "options.hpp"
+
+
 namespace shar {
-
-enum class LogLevel
-{
-  quite,
-  trace,
-  debug,
-  info,
-  warning,
-  error,
-  critical,
-};
-
-std::map<std::string, LogLevel> string_loglvls = { {"quite",    LogLevel::quite},
-                                                   {"trace",    LogLevel::trace},
-                                                   {"debug",    LogLevel::debug},
-                                                   {"info",     LogLevel::info},
-                                                   {"warning",  LogLevel::warning},
-                                                   {"error",    LogLevel::error},
-                                                   {"critical", LogLevel::critical} };
 
 namespace {
 
   spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
 
-    std::map<LogLevel, spdlog::level::level_enum> loglvls {
-      {LogLevel::trace,   spdlog::level::trace},
-      {LogLevel::debug,   spdlog::level::debug},
-      {LogLevel::info,    spdlog::level::info},
-      {LogLevel::warning, spdlog::level::warn},
-      {LogLevel::error,   spdlog::level::critical},
-      {LogLevel::quite,   spdlog::level::off}
-    };
-
-    if (auto it = loglvls.find(loglvl); it != loglvls.end()) {
-      return it->second;
+    switch (loglvl) {
+    case(LogLevel::trace): {
+      return spdlog::level::trace;
     }
-    else {
-      throw std::runtime_error(fmt::format("Invalid loglvl: {}", loglvl));
+    case(LogLevel::debug): {
+      return spdlog::level::debug;
+    }
+    case(LogLevel::info): {
+      return spdlog::level::info;
+    }
+    case(LogLevel::warning): {
+      return spdlog::level::warn;
+    }
+    case(LogLevel::error): {
+      return spdlog::level::critical;
+    }
+    case(LogLevel::quite): {
+      return spdlog::level::off;
+    }
+    default: {
+      throw std::runtime_error("Uknown loglvl");
+    }
     }
   }
 
@@ -105,7 +97,6 @@ public:
 
 private:
   Logger() = default;
-
   std::shared_ptr<spdlog::logger> m_logger;
 };
 

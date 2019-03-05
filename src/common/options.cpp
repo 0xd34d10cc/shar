@@ -11,6 +11,15 @@
 namespace {
 using nlohmann::json;
 
+static std::map<std::string, shar::LogLevel> loglvl_strings = { 
+                                  {"quite",    shar::LogLevel::quite},
+                                  {"trace",    shar::LogLevel::trace},
+                                  {"debug",    shar::LogLevel::debug},
+                                  {"info",     shar::LogLevel::info},
+                                  {"warning",  shar::LogLevel::warning},
+                                  {"error",    shar::LogLevel::error},
+                                  {"critical", shar::LogLevel::critical} };
+
 class ConfigJSON : public CLI::Config {
 public:
   std::string to_config(const CLI::App *app, bool default_also, bool, std::string) const override {
@@ -117,6 +126,8 @@ namespace shar {
 Options Options::read(int argc, const char* argv[]) {
   Options opts{}; // make default
   std::vector<std::string> codec_options;
+  std::string loglvl_option;
+  std::string encoder_loglvl_option;
 
   std::set<std::string> loglvl_options{ "trace", "debug", "info", "warning",
                                         "error", "critical" };
@@ -132,8 +143,8 @@ Options Options::read(int argc, const char* argv[]) {
   app.add_option("-b,--bitrate", opts.bitrate, "Target bitrate (kbit)", true);
   app.add_option("--metrics", opts.metrics, "Where to expose metrics", true);
   app.add_option("--logfile", opts.log_file, "Name of logfile", true);
-  app.add_set("--loglvl", opts.loglvl, loglvl_options, "loglvl for shar logger", true);
-  app.add_set("--encoder_loglvl", opts.encoder_loglvl, loglvl_options, "loglvl for encoder logger", true);
+  app.add_set("--loglvl", loglvl_option, loglvl_options, "loglvl for shar logger", true);
+  app.add_set("--encoder_loglvl", encoder_loglvl_option, loglvl_options, "loglvl for encoder logger", true);
   app.add_option("-o,--options", codec_options, "Codec options, in key=value format");
 
   try {
@@ -157,6 +168,14 @@ Options Options::read(int argc, const char* argv[]) {
       opts.options.emplace_back(std::move(key), std::move(value));
     }
 
+  }
+
+  if (!loglvl_option.empty()) {
+    opts.loglvl = loglvl_strings[loglvl_option];
+  }
+
+  if (!encoder_loglvl_option.empty()) {
+    opts.encoder_loglvl = loglvl_strings[encoder_loglvl_option];
   }
 
   fmt::print("Running with:\n{}\n", app.config_to_str(true, true));
