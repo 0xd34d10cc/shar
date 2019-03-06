@@ -2,20 +2,23 @@
 
 #include <cstdint>
 #include <memory>
-#include <array>
 
+#include "size.hpp"
 
-namespace shar {
-class Frame;
-}
 
 namespace shar::encoder {
 
 using Bytes = std::unique_ptr<std::uint8_t[]>;
 
 struct Slice {
-  Bytes       data;
-  std::size_t size;
+  Bytes       data{ nullptr };
+  std::size_t size{ 0 };
+};
+
+struct YUVImage: Slice {
+  std::size_t y_size{ 0 };
+  std::size_t u_size{ 0 };
+  std::size_t v_size{ 0 };
 };
 
 
@@ -26,6 +29,6 @@ Slice yuv420_to_bgra(const std::uint8_t* ys,
                      std::size_t y_pad, std::size_t uv_pad);
 
 
-std::array<Slice, 3> bgra_to_yuv420(const Frame& image);
+YUVImage bgra_to_yuv420(const char* data, Size size);
 
 }

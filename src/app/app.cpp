@@ -93,7 +93,7 @@ App::App(int argc, const char* argv[])
 }
 
 int App::run() {
-  auto[frames_tx, frames_rx] = channel<Frame>(30);
+  auto[frames_tx, frames_rx] = channel<encoder::ffmpeg::Frame>(30);
   auto[packets_tx, packets_rx] = channel<encoder::ffmpeg::Unit>(30);
 
   // NOTE: current capture implementation starts background thread.
