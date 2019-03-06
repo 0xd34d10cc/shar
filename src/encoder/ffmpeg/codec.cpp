@@ -4,11 +4,68 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
-#include "codec.hpp"
+#include <memory>
+#include <optional>
 
 #include "encoder/convert.hpp"
 #include "common/time.hpp"
+#include "codec.hpp"
 
+namespace {
+  static const int    buf_size = 250;
+  static const int    prefix_length = 9;
+  static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
+  static std::optional<shar::Logger> cb_logger;
+
+  static void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
+    if (cb_logger) {
+      char buf[buf_size];
+      std::memcpy(buf, log_prefix, prefix_length);  
+      vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+      switch (level) {
+      case AV_LOG_TRACE:
+        cb_logger->trace(buf);
+        break;
+      case AV_LOG_DEBUG:
+      case AV_LOG_VERBOSE:
+        cb_logger->debug(buf);
+        break;
+      case AV_LOG_INFO:
+        cb_logger->info(buf);
+        break;
+      case AV_LOG_WARNING:
+        cb_logger->warning(buf);
+        break;
+      case AV_LOG_ERROR:
+        cb_logger->error(buf);
+        break;
+      case AV_LOG_FATAL:
+      case AV_LOG_PANIC:
+        cb_logger->critical(buf);
+        break;
+      default:
+        assert(false);
+        break;
+      }
+    }
+  }
+
+  static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
+    cb_logger = logger;
+
+    static std::map<shar::LogLevel, int> log_levels = {
+        { shar::LogLevel::quite, AV_LOG_QUIET },
+        { shar::LogLevel::trace, AV_LOG_TRACE },
+        { shar::LogLevel::debug, AV_LOG_DEBUG },
+        { shar::LogLevel::info, AV_LOG_INFO },
+        { shar::LogLevel::warning, AV_LOG_WARNING },
+        { shar::LogLevel::critical, AV_LOG_FATAL },
+        { shar::LogLevel::error, AV_LOG_ERROR },
+    };
+
+    av_log_set_level(log_levels[config->encoder_loglvl]);
+  }
+}
 
 namespace shar::encoder::ffmpeg {
 
@@ -32,6 +89,9 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
   assert(m_context.get());
   assert(m_encoder);
 
+  setup_logging(m_config, m_logger);
+
+  // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
       opts.count(), opts.to_string());
