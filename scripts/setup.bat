@@ -37,5 +37,5 @@ if not exist build\profile (
 )
 
 pushd build\profile
-conan install ..\.. --build=missing -s build_type=Release
+conan install ..\.. --build=missing -s build_type=RelWithDebInfo
 popd
