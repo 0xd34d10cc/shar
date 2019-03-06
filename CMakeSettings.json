@@ -8,9 +8,6 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\debug",
       "installRoot": "${workspaceRoot}\\build\\debug\\bin",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
       "variables": [
         {
           "name": "CMAKE_BUILD_TYPE",
@@ -25,9 +22,6 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\release",
       "installRoot": "${workspaceRoot}\\build\\release\\bin",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
       "variables": [
         {
           "name": "CMAKE_BUILD_TYPE",
@@ -42,9 +36,6 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\profile",
       "installRoot": "${workspaceRoot}\\build\\profile\\bin",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
       "variables": [
         {
           "name": "CMAKE_BUILD_TYPE",
