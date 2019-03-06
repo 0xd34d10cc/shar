@@ -34,6 +34,23 @@
           "value": "Release"
         }
       ]
+    },
+    {
+      "name": "x64-Profile",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${workspaceRoot}\\build\\profile",
+      "installRoot": "${workspaceRoot}\\build\\profile\\bin",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "RelWithDebInfo"
+        }
+      ]
     }
   ]
 }

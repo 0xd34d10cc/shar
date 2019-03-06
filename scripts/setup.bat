@@ -13,6 +13,7 @@ if not exist build (
   mkdir build
 )
 
+rem Debug
 if not exist build\debug (
   mkdir build\debug
 )
@@ -21,10 +22,20 @@ pushd build\debug
 conan install ..\.. --build=missing -s build_type=Debug
 popd
 
+rem Release
 if not exist build\release (
   mkdir build\release
 )
 
 pushd build\release
+conan install ..\.. --build=missing -s build_type=Release
+popd
+
+rem Profile (release with debug info)
+if not exist build\profile (
+  mkdir build\profile
+)
+
+pushd build\profile
 conan install ..\.. --build=missing -s build_type=Release
 popd
