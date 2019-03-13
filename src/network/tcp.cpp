@@ -99,6 +99,21 @@ void Network::connect() {
   });
 }
 
+void Network::on_connection_close(const ErrorCode& ec) {
+  if (ec) {
+    m_logger.error("Connection aborted due to error: {}", ec.message());
+  }
+  else {
+    m_logger.info("Connection closed");
+  }
+
+  m_socket.shutdown(Socket::shutdown_both);
+  m_socket.close();
+  m_state = State::Disconnected;
+
+  schedule();
+}
+
 void Network::send_length() {
   assert(m_state == State::SendingLength);
 
@@ -108,17 +123,8 @@ void Network::send_length() {
   );
 
   m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
-    if (ec) {
-      m_logger.error("Failed to send packet length: {}", ec.message());
-      m_state = State::Disconnected;
-      schedule();
-      return;
-    }
-
-    if (bytes_sent == 0) {
-      m_logger.error("Unexpected EOF while sending length");
-      m_state = State::Disconnected;
-      schedule();
+    if (ec || bytes_sent == 0) {
+      on_connection_close(ec);
       return;
     }
 
@@ -143,18 +149,8 @@ void Network::send_content() {
   );
 
   m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
-    if (ec) {
-      m_logger.error("Failed to send packet content: {}", ec.message());
-      m_state = State::Disconnected;
-      schedule();
-      return;
-    }
-
-
-    if (bytes_sent == 0) {
-      m_logger.error("Unexpected EOF while sending content");
-      m_state = State::Disconnected;
-      schedule();
+    if (ec || bytes_sent == 0) {
+      on_connection_close(ec);
       return;
     }
 

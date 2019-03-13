@@ -43,6 +43,7 @@ private:
   void set_packet(Unit packet);
   void schedule();
   void connect();
+  void on_connection_close(const ErrorCode& ec);
   void send_length();
   void send_content();
 
