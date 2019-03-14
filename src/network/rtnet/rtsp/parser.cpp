@@ -3,46 +3,72 @@
 #include "parser.hpp"
 namespace shar::rtsp {
 
-std::size_t parse_version(const char* begin, std::size_t size) {
-  if ((size != 8) && !std::memcmp(begin, "RTSP/1.0", size)) {
-    throw std::runtime_error("RTSP version is incorrect");
+std::optional<std::uint8_t> parse_version(const char* begin, std::size_t size) {
+  int i = std::memcmp(begin, "RTSP/1.0", size);
+  if ((size == 8) && i == 0) {
+    return 1;
   }
-  return 1;
+  if (i == 0 && size != 8) {
+    return std::nullopt;
+  }
+  throw std::runtime_error("Incorrect protocol version");
 }
 
 Header parse_header(const char* begin, std::size_t size) {
+
   const char* header_begin = begin;
-  const char* key_end = std::find(begin, begin + size, ':');
+  const char* end = begin + size;
+  const char* key_end = std::find(begin, end, ':');
 
   if (key_end == begin) {
-    throw std::runtime_error("Incorrect additional parameter");
+    throw std::runtime_error("Header key is empty");
   }
-  std::string key = std::string(begin, key_end);
-
-  header_begin = key_end;
-  if (key_end != begin + size) {
-    header_begin += 2; //Move to first symbol after line_ending
+  if (key_end == end) {
+    throw std::runtime_error("Header missin ':'");
   }
-  std::string value = std::string(header_begin, begin + size);
+  if (end - key_end <= 2) {
+    throw std::runtime_error("Header value is empty");
+  }
+  if (key_end[1] != ' ') {
+    throw std::runtime_error("Missing space after ':'");
+  }
 
-  return Header(key,value);
+  auto key = std::string_view(begin, key_end - begin);
+  auto value = std::string_view(key_end + 2, end - key_end - 2);
+
+  return Header(key, value);
 }
 
-const char* parse_headers(const char * begin, const char * end, Headers& headers) {
+std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, Headers headers) {
+
   const char* header_begin = begin;
-  const char* header_end;
-  bool is_headers_end = false;
-  do {
-    header_end = find_line_ending(header_begin, end);
+  const char* end = begin + size;
+  const char* header_end = find_line_ending(header_begin, end);
+  std::size_t index = 0;
+
+  while (header_begin != header_end) {
+
     if (header_end == end) {
-      throw std::runtime_error("Line ending not found");
+      return std::nullopt;
     }
+
     auto[key, value] = parse_header(header_begin, header_end - header_begin);
-    headers.emplace_back(Header(std::move(key), std::move(value)));
-    is_headers_end = header_end + 2 == find_line_ending(header_end + 2, end);
+    if (index == headers.len) {
+      throw std::runtime_error("Too many headers");
+    }
+    headers.data[index] = Header(std::move(key), std::move(value));
+
     header_begin = header_end + 2; //Move to first symbol after line_ending
-  } while (!is_headers_end);
-  return header_begin;
+    header_end = find_line_ending(header_begin, end);
+    index++;
+
+  }
+
+  if (header_end == end) {
+    return std::nullopt;
+  }
+
+  return header_begin - begin + 2;
 }
 
 const char * find_line_ending(const char * begin, const char * end)
@@ -55,20 +81,6 @@ const char * find_line_ending(const char * begin, const char * end)
   return it;
 }
 
-std::optional<std::size_t> get_content_length(const Headers & headers)
-{
-  std::int64_t content_length;
-  for (auto& header : headers) {
-    if (header.key == "Content-Length") {
-      content_length = parse_int(header.value.c_str(), header.value.size());
-      if (content_length < 0) {
-        throw std::runtime_error("Content-length can't have negative value");
-      }
-      return static_cast<std::size_t>(content_length);
-    }
-  }
-  return std::nullopt;
-}
 
 std::int64_t parse_int(const char* begin, std::size_t size) {
 

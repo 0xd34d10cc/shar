@@ -1,14 +1,15 @@
 #include <string>
 #include <vector>
-#include <utility>
+#include <optional>
 
 #include "parser.hpp"
 
+
 namespace shar::rtsp {
 
-class Request {
-  
-public:
+struct Request {
+
+  Request(Headers headers);
 
   enum class Type {
     OPTIONS,
@@ -24,29 +25,14 @@ public:
     RECORD
   };
 
-  Type                type() const noexcept;
-  const std::string&  address() const noexcept;
-  std::size_t         version() const noexcept;
-  const std::vector<Header>& headers() const noexcept;
-  const std::string&  body() const noexcept;
-
-  void set_type(Type type);
-  void set_address(std::string address);
-  void set_version(std::size_t version);
-  void add_header(std::string key, std::string value);
-  void set_body(std::string body);
-
-  static Request parse(const char* buffer, std::size_t size);
+  std::optional<std::size_t> parse(const char* buffer, std::size_t size);
 
   bool serialize(char* destionation, std::size_t);
 
-private:
-
-  Type                m_type;
-  std::string         m_address;
-  std::size_t         m_version;
-  std::vector<Header> m_headers;
-  std::string         m_body;
+  std::optional<Type> m_type;
+  std::optional<std::string_view> m_address;
+  std::optional<std::uint8_t> m_version;
+  Headers m_headers;
 };
 
 }

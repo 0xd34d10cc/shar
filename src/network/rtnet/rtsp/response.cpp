@@ -1,4 +1,4 @@
-#include <charconv>
+/*#include <charconv>
 
 #include "response.hpp"
 #include "serializer.hpp"
@@ -60,12 +60,8 @@ const std::string & Response::reason() const noexcept {
   return m_reason;
 }
 
-const std::vector<Header>& Response::headers() const noexcept {
+Headers Response::headers() const noexcept {
   return m_headers;
-}
-
-const std::string& Response::body() const noexcept {
-  return m_body;
 }
 
 void Response::set_version(std::size_t version) {
@@ -82,10 +78,6 @@ void Response::set_reason(std::string reason){
 
 void Response::add_header(std::string key, std::string value) {
   m_headers.emplace_back(Header(std::move(key), std::move(value)));
-}
-
-void Response::set_body(std::string body) {
-  m_body = std::move(body);
 }
 
 static void add_to_buffer(char* buffer, std::size_t buffer_size, char* source) {
@@ -121,4 +113,4 @@ bool Response::serialize(char* destination, std::size_t size) {
 #undef TRY_SERIALIZE
 }
 
-}
+}*/

@@ -1,3 +1,6 @@
+#include <cstring>
+#include <cstdio>
+
 #include "serializer.hpp"
 
 
@@ -20,7 +23,7 @@ bool Serializer::append_string(const char * string) {
 bool Serializer::append_number(std::size_t number) {
 
   std::size_t num_len = snprintf(m_buffer_begin + m_written_bytes
-    , m_size - m_written_bytes, "%d", number);
+    , m_size - m_written_bytes, "%u", number);
   if (num_len > m_size - m_written_bytes) {
     return false;
   }

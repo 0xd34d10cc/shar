@@ -1,11 +1,13 @@
-#include <string>
+#include <string_view>
 #include <vector>
 
-namespace shar::rtsp {
-struct Header {
-  Header() = delete;
 
-  Header(std::string key, std::string value);
+namespace shar::rtsp {
+
+struct Header {
+  Header() = default;
+
+  Header(std::string_view key, std::string_view value);
 
   Header(const Header&) = default;
   Header(Header&&) = default;
@@ -15,9 +17,16 @@ struct Header {
 
   bool operator==(const Header& rhs) const;
 
-  std::string key;
-  std::string value;
+  bool empty() const noexcept;
+
+  std::string_view key;
+  std::string_view value;
 };
 
-using Headers = std::vector<Header>;
+struct Headers {
+
+  Header* data{ nullptr };
+  std::size_t len{ 0 };
+};
+
 }

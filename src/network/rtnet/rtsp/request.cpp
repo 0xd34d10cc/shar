@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cassert>
+#include <cmath>
 
 #include "request.hpp"
 #include "serializer.hpp"
@@ -8,11 +9,21 @@
 
 namespace shar::rtsp {
 
-static Request::Type parse_type(const char* begin, std::size_t size) {
+Request::Request(Headers headers) : m_headers(std::move(headers)) {}
+
+static std::optional<Request::Type> parse_type(const char* begin, std::size_t size) {
+
+  int i = 0;
+  std::size_t len = 0;
 
 #define TRY_TYPE(TYPE)\
-if((size == strlen(#TYPE)) && !memcmp(begin, #TYPE, size)) {\
+i = memcmp(begin, #TYPE, size);\
+len = strlen(#TYPE);\
+if(size == len && i == 0) {\
   return Request::Type::TYPE;\
+}\
+if(i==0 && size != len){\
+  return std::nullopt;\
 }
 
   TRY_TYPE(OPTIONS);
@@ -30,91 +41,74 @@ if((size == strlen(#TYPE)) && !memcmp(begin, #TYPE, size)) {\
 #undef TRY_TYPE
 }
 
-Request Request::parse(const char * buffer, const std::size_t size) {
+static bool is_valid_address(std::string_view address) {
 
-  Request request;
+  for (auto c : address) {
+    switch (c) {
+      case '\r':
+      case '\n':
+      case ' ':
+        return false;
+      default:
+        break;
+    }
+  }
+
+  return true;
+}
+
+std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t size) {
 
   const char* current = buffer;
   const char* end = current + size;
 
   const char* type_end = std::find(current, end, ' ');
-  if (type_end == end) {
-    throw std::runtime_error("Type not found");
-  }
 
   std::size_t type_size = type_end - current;
-  Request::Type type = parse_type(current, type_size);
-  current += type_size+1; //Move to first symbol after space
+  auto type = parse_type(current, type_size);
+  if (!type.has_value() || type_end == end) {
+    return std::nullopt;
+  }
+  m_type = type;
+  current += type_size + 1; //Move to first symbol after space
 
   const char* address_end = std::find(current, end, ' ');
-  if (address_end == end) {
-    throw std::runtime_error("Address not found");
+  if (address_end - current >= 512) {
+    throw std::runtime_error("Address is too big");
   }
-  std::string address = std::string(current, address_end);
-  current = address_end+1; //Move to first symbol after space
+  if (!is_valid_address(std::string_view(current, address_end - current))) {
+    throw std::runtime_error("Address contains invalid characters");
+  }
+  if (address_end == end) {
+    return std::nullopt;
+  }
+  m_address = std::string_view(current, address_end-current);
+  current = address_end + 1; //Move to first symbol after space
 
   const char* version_end = find_line_ending(current, end);
-  if (version_end == end) {
-    throw std::runtime_error("Request finishes not on Line_ending");
+  auto version = parse_version(current, version_end - current);
+  if (version_end != end && !version.has_value()) {
+    throw std::runtime_error("Protocol version is invalid");
   }
-  std::size_t version = parse_version(current, version_end-current);
-
-  request.set_type(type);
-  request.set_address(std::move(address));
-  request.set_version(version);
-
-  if (version_end + 2 == end) {
-    throw std::runtime_error("Request finishes not on Line_ending");
+  if (!version.has_value() || version_end == end) {
+    return std::nullopt;
   }
-  if (version_end + 2 != find_line_ending(version_end+2,end)) {
-    current = version_end + 2; //Move to first symbol after line ending
-
-    current = parse_headers(current, end, request.m_headers);
-    if (get_content_length(request.headers()) != std::nullopt) {
-      request.set_body(std::string(current+2, end)); //Move to first symbol after line ending
-    }
-  }
-  return request;
-}
-
-Request::Type Request::type() const noexcept {
-  return m_type;
-}
-
-const std::string & Request::address() const noexcept {
-  return m_address;
-}
-
-std::size_t Request::version() const noexcept {
-  return m_version;
-}
-
-const std::vector<Header>& Request::headers() const noexcept {
-  return m_headers;
-}
-
-const std::string& Request::body() const noexcept {
-  return m_body;
-}
-
-void Request::set_type(Type type) {
-  m_type = type;
-}
-
-void Request::set_address(std::string address) {
-  m_address = std::move(address);
-}
-
-void Request::set_version(std::size_t version) {
   m_version = version;
-}
+  //Check for requests ending without line ending
+  if (version_end + 2 == end) {
+    return std::nullopt;
+  }
 
-void Request::add_header(std::string key, std::string value) {
-  m_headers.push_back(Header(std::move(key), std::move(value)));
-}
+  current = version_end + 2; //Move to first symbol after line ending
 
-void Request::set_body(std::string body) {
-  m_body = std::move(body);
+  auto headers_len = parse_headers(current, end-current, m_headers);
+  if (!headers_len.has_value()) {
+    return std::nullopt;
+  }
+
+  std::size_t request_line_size = current - buffer;
+
+  return request_line_size + headers_len.value();
 }
 
 static char* type_to_string(Request::Type type) {
@@ -137,7 +131,7 @@ static char* type_to_string(Request::Type type) {
 }
 
 bool Request::serialize(char* destination, std::size_t size) {
-
+  /*
   Serializer serializer(destination, size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) return false
   //serialize type
@@ -159,9 +153,9 @@ bool Request::serialize(char* destination, std::size_t size) {
   TRY_SERIALIZE(serializer.append_string("\r\n"));
   //serialize body
   TRY_SERIALIZE(serializer.append_string(m_body.c_str()));
-
-  return true;
 #undef TRY_SERIALIZE
+  */
+  return true;
 }
 
 }
