@@ -71,8 +71,7 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
   return header_begin - begin + 2;
 }
 
-const char * find_line_ending(const char * begin, const char * end)
-{
+const char * find_line_ending(const char * begin, const char * end) {
   const char* it = std::find(begin, end, '\r');
   if (begin == end || (it != end &&
     *it == '\r' && *(it + 1) != '\n')) {
@@ -82,7 +81,7 @@ const char * find_line_ending(const char * begin, const char * end)
 }
 
 
-std::int64_t parse_int(const char* begin, std::size_t size) {
+std::uint16_t parse_status_code(const char* begin, std::size_t size) {
 
   std::uint16_t number;
   auto[end_ptr, ec] = std::from_chars(begin, begin + size, number);

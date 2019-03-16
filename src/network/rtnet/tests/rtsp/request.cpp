@@ -1,7 +1,9 @@
 #include <cstring>
 #include <array>
 
+#include "disable_warnings_push.hpp"
 #include <gtest/gtest.h>
+#include "disable_warnings_pop.hpp"
 
 #include "rtsp/request.hpp"
 
@@ -106,8 +108,8 @@ TEST(rtsp_request, header_without_value) {
     "\r\n"
   );
 }
-/*
-TEST(rtsp_request, serialization_small_buffer) {
+
+TEST(rtsp_request, request_serialization) {
   std::string base_request =
     "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
     "CSeq: 10\r\n"
@@ -115,29 +117,49 @@ TEST(rtsp_request, serialization_small_buffer) {
     "Content-type: text/parameters\r\n"
     "barparam: barstuff\r\n"
     "\r\n";
-  std::string body =
-    "m=video 0 RTP/AVP 96\""
-    "a=control : streamid=0\r\n"
-    "a=range : npt=0-7.741000\r\n"
-    "a=length : npt=7.741000\r\n"
-    "a=rtpmap : 96 MP4V-ES / 5544\r\n"
-    "a=mimetype : string; \"video/MP4V-ES\"\r\n"
-    "a=AvgBitRate:integer; 304018\r\n"
-    "a=StreamName:string; \"hinted video track\"\r\n"
-    "m=audio 0 RTP / AVP 97\r\n"
-    "a=control:streamid = 1\r\n"
-    "a=range : npt = 0 - 7.712000\r\n"
-    "a=length : npt = 7.712000\r\n"
-    "a=rtpmap : 97 mpeg4 - generic / 32000 / 2\r\n"
-    "a=mimetype : string; \"audio/mpeg4-generic\"\r\n"
-    "a=AvgBitRate:integer; 65790\r\n"
-    "a=StreamName:string; \"hinted audio track\"\r\n";
-  auto request_with_body = base_request + body;
-  auto request
-    = rtsp::Request::parse(
-      request_with_body.c_str(), request_with_body.size());
-  std::unique_ptr<char[]> destination = std::make_unique<char[]>(10);
-  bool serialize_res = request.serialize(destination.get(), 10);
-  EXPECT_FALSE(serialize_res);
-}*/
-//TODO: add incomplete checking tests
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
+  auto request_size = request.parse(base_request.c_str(), base_request.size());
+  EXPECT_TRUE(request_size.has_value());
+  EXPECT_EQ(request_size.value(), base_request.size());
+  std::unique_ptr<char[]> destination = std::make_unique<char[]>(512);
+  EXPECT_TRUE(request.serialize(destination.get(), 512));
+}
+
+TEST(rtsp_request, incompete_type) {
+  const char* request_str = "DESCRI";
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
+  EXPECT_EQ(request.parse(request_str, strlen(request_str)),std::nullopt);
+}
+
+TEST(rtsp_request, incomplete_address) {
+  const char* request_str = "OPTIONS rtsp://";
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
+  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.m_type, rtsp::Request::Type::OPTIONS);
+}
+
+TEST(rtsp_request, incomplete_version) {
+  const char* request_str = "PLAY rtsp://server/path/test.mpg RTS";
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
+  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.m_type, rtsp::Request::Type::PLAY);
+  EXPECT_EQ(request.m_address, "rtsp://server/path/test.mpg");
+}
+
+TEST(rtsp_request, incomplete_headers) {
+  const char* request_str =
+    "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
+    "CSeq: 10\r\n"
+    "Content-length";
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
+  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.m_type, rtsp::Request::Type::SET_PARAMETER);
+  EXPECT_EQ(request.m_address, "rtsp://example.com/media.mp4");
+  EXPECT_EQ(request.m_version, 1);
+  EXPECT_EQ(request.m_headers.data[0], rtsp::Header("CSeq", "10"));
+}

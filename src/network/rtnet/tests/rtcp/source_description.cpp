@@ -2,7 +2,9 @@
 #include <vector>
 #include <cstring> // strcmp
 
+#include "disable_warnings_push.hpp"
 #include <gtest/gtest.h>
+#include "disable_warnings_pop.hpp"
 
 #include "rtcp/source_description.hpp"
 

@@ -13,6 +13,6 @@ Header       parse_header(const char* begin, std::size_t size);
 std::optional<std::size_t>  parse_headers(const char* begin, std::size_t size, Headers headers);
 const char*  find_line_ending(const char* begin, const char* end);
 std::optional<std::size_t> get_content_length(const Headers& headers);
-std::int64_t parse_int(const char* begin, std::size_t size);
+std::uint16_t parse_status_code(const char* begin, std::size_t size);
 }
 

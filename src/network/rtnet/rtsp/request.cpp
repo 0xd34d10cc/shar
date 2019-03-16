@@ -131,30 +131,27 @@ static char* type_to_string(Request::Type type) {
 }
 
 bool Request::serialize(char* destination, std::size_t size) {
-  /*
+
   Serializer serializer(destination, size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) return false
   //serialize type
-  TRY_SERIALIZE(serializer.append_string(type_to_string(m_type)));
+  TRY_SERIALIZE(serializer.append_string(type_to_string(m_type.value())));
   TRY_SERIALIZE(serializer.append_string(" "));
   //s
-  TRY_SERIALIZE(serializer.append_string(m_address.c_str()));
+  TRY_SERIALIZE(serializer.append_string(m_address.value()));
   TRY_SERIALIZE(serializer.append_string(" "));
   //serialize version
   TRY_SERIALIZE(serializer.append_string("RTSP/1.0\r\n"));
   //serialize headers
-  for (auto& header : m_headers) {
-    TRY_SERIALIZE(serializer.append_string(header.key.c_str()));
+  for (std::size_t i = 0; i < m_headers.len; ++i) {
+    TRY_SERIALIZE(serializer.append_string(m_headers.data[i].key));
     TRY_SERIALIZE(serializer.append_string(": "));
-    TRY_SERIALIZE(serializer.append_string(header.value.c_str()));
+    TRY_SERIALIZE(serializer.append_string(m_headers.data[i].value));
     TRY_SERIALIZE(serializer.append_string("\r\n"));
   }
   //serialize empty line after headers
   TRY_SERIALIZE(serializer.append_string("\r\n"));
-  //serialize body
-  TRY_SERIALIZE(serializer.append_string(m_body.c_str()));
 #undef TRY_SERIALIZE
-  */
   return true;
 }
 

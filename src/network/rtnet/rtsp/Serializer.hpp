@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <string_view>
 
 
 namespace shar::rtsp {
@@ -8,7 +9,7 @@ class Serializer {
 public:
   Serializer(char* buffer, std::size_t size);
 
-  bool append_string(const char* string);
+  bool append_string(std::string_view string);
   bool append_number(std::size_t number);
 
 private:
