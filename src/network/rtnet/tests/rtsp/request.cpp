@@ -36,6 +36,7 @@ TEST(rtsp_request, simple_request) {
 TEST(rtsp_request, trash_request) {
   assert_fails("dasdadasdfdcalxaa\r\n\r\n");
 }
+
 TEST(rtsp_request, empty_request) {
   const char* empty_request = "";
   std::array<rtsp::Header, 16> headers;
@@ -52,6 +53,7 @@ TEST(rtsp_request, incorrect_type) {
 TEST(rtsp_request, request_without_address) {
   assert_fails("TEARDOWN RTSP/1.0\r\n\r\n");
 }
+
 TEST(rtsp_request, request_without_version) {
   assert_fails("PAUSE rtsp://address.address \r\n\r\n");
 }
