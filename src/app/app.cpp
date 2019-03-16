@@ -5,12 +5,15 @@
 #include "network/network.hpp"
 #include "signal_handler.hpp"
 
-
 namespace shar {
 
 static Context make_context(int argc, const char* argv[]) {
   auto config = std::make_shared<Options>(Options::read(argc, argv));
-  auto logger = Logger("shar.log"); // TODO: make configurable
+  auto shar_loglvl = config->loglvl;
+  if (shar_loglvl > config->encoder_loglvl) {
+    throw std::runtime_error("Encoder loglvl mustn't be less than general loglvl");
+  }
+  auto logger = Logger(config->log_file, shar_loglvl);
   auto registry = std::make_shared<metrics::Registry>();
 
   return Context{
@@ -90,7 +93,7 @@ App::App(int argc, const char* argv[])
 }
 
 int App::run() {
-  auto[frames_tx, frames_rx] = channel<Frame>(30);
+  auto[frames_tx, frames_rx] = channel<encoder::ffmpeg::Frame>(30);
   auto[packets_tx, packets_rx] = channel<encoder::ffmpeg::Unit>(30);
 
   // NOTE: current capture implementation starts background thread.

@@ -10,20 +10,22 @@ Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
   m_bytes_out = metrics::Gauge({ "Encoder_out", "Encoder bytes out", "bytes" }, m_registry);
 }
 
-void Encoder::run(Receiver<Frame> input, Sender<ffmpeg::Unit> output) {
+void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
   while (auto frame = input.receive()) {
-    if (m_running.expired()) {
+    if (m_running.expired() || !output.connected()) {
       break;
     }
 
-    auto units = m_codec.encode(*frame);
-    m_bytes_in.increment(frame->size_bytes());
+    m_bytes_in.increment(static_cast<double>(frame->total_size()));
+    auto units = m_codec.encode(std::move(*frame));
     for (auto& unit: units) {
-      m_bytes_out.increment(unit.size());
+      m_bytes_out.increment(static_cast<double>(unit.size()));
       output.send(std::move(unit));
     }
 
   }
+
+  shutdown();
 }
 
 void Encoder::shutdown() {

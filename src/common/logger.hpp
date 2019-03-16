@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstring>
+#include <map>
 #include <memory>
 
 #include "disable_warnings_push.hpp"
@@ -9,17 +10,50 @@
 #include "spdlog/spdlog.h"
 #include "disable_warnings_pop.hpp"
 
+#include "options.hpp"
+
+
 namespace shar {
+
+namespace {
+
+  spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
+
+    switch (loglvl) {
+    case(LogLevel::trace): {
+      return spdlog::level::trace;
+    }
+    case(LogLevel::debug): {
+      return spdlog::level::debug;
+    }
+    case(LogLevel::info): {
+      return spdlog::level::info;
+    }
+    case(LogLevel::warning): {
+      return spdlog::level::warn;
+    }
+    case(LogLevel::error): {
+      return spdlog::level::critical;
+    }
+    case(LogLevel::quite): {
+      return spdlog::level::off;
+    }
+    default: {
+      throw std::runtime_error("Uknown loglvl");
+    }
+    }
+  }
+
+}
 
 class Logger {
 public:
-  explicit Logger(const std::string& file_path) {
+  explicit Logger(const std::string& file_path, LogLevel loglvl) {
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
     m_logger = std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
-    // TODO: make configurable
-    m_logger->set_level(spdlog::level::debug);
+    m_logger->set_level(get_spdlog_level(loglvl));
     m_logger->set_pattern("[%D %T] [%n] %v");
     spdlog::register_logger(m_logger);
     m_logger->info("Logger has been initialized");
@@ -63,7 +97,6 @@ public:
 
 private:
   Logger() = default;
-
   std::shared_ptr<spdlog::logger> m_logger;
 };
 

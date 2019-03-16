@@ -5,8 +5,8 @@
 #include "size.hpp"
 #include "context.hpp"
 #include "metrics/histogram.hpp"
-#include "capture/frame.hpp"
 
+#include "frame.hpp"
 #include "options.hpp"
 #include "avcontext.hpp"
 #include "unit.hpp"
@@ -25,7 +25,7 @@ public:
   Codec& operator=(Codec&&) = delete;
   ~Codec() = default;
 
-  std::vector<Unit> encode(const Frame& image);
+  std::vector<Unit> encode(Frame image);
 
 private:
   int next_pts();
