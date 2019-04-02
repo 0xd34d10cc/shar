@@ -100,26 +100,27 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
 }
 
 std::vector<Unit> Codec::encode(Frame image) {
-  assert(static_cast<std::size_t>(m_context.get()->width) == image.width());
-  assert(static_cast<std::size_t>(m_context.get()->height) == image.height());
+  auto* context = m_context.get();
+  assert(static_cast<std::size_t>(context->width) == image.width());
+  assert(static_cast<std::size_t>(context->height) == image.height());
 
   int pts = next_pts();
   image.raw()->pts = pts;
 
-  int ret = avcodec_send_frame(m_context.get(), image.raw());
+  int ret = avcodec_send_frame(context, image.raw());
   std::vector<Unit> packets;
 
   assert(ret==0);
   if (ret == 0) {
     auto unit = Unit::allocate();
 
-    ret = avcodec_receive_packet(m_context.get(), unit.raw());
+    ret = avcodec_receive_packet(context, unit.raw());
     while (ret != AVERROR(EAGAIN)) {
       unit.raw()->pts = pts;
       packets.emplace_back(std::move(unit));
 
       unit = Unit::allocate();
-      ret = avcodec_receive_packet(m_context.get(), unit.raw());
+      ret = avcodec_receive_packet(context, unit.raw());
 
       // NOTE: this delay is incorrect, because encoder is able to buffer frames.
       const auto delay = Clock::now() - image.timestamp();
