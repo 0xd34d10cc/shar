@@ -32,7 +32,7 @@ const std::uint8_t* Unit::data() const noexcept {
 }
 
 std::size_t Unit::size() const noexcept {
-  return m_packet ? m_packet->size : 0;
+  return m_packet ? static_cast<std::size_t>(m_packet->size) : 0;
 }
 
 std::uint32_t Unit::timestamp() const noexcept {

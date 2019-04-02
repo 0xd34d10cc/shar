@@ -15,7 +15,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-undefined-func-template # false positives
         -Wno-weak-vtables
         -Wno-covered-switch-default
-        )
+        -Wno-undef # _MSC_VER is undefined
+        -Wno-format-nonliteral # we have to trust |fmt| arg provided to avlog_callback
+)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     set(ENABLED_WARNINGS -Wall -Wextra -pedantic)

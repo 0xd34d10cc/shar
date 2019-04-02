@@ -68,7 +68,8 @@ Url Url::from_string(const std::string& str) {
     throw std::runtime_error("Unknown protocol");
   }();
 
-  const char* host_end = find(":", proto_end+3 - begin); // could be |end|
+  const std::size_t offset = static_cast<std::size_t>(proto_end+3 - begin);
+  const char* host_end = find(":", offset); // could be |end|
   const auto host = IpAddress::from_string(std::string(proto_end+3, host_end));
   const auto port = [&] {
     if (host_end == end) {
@@ -87,13 +88,13 @@ Url Url::from_string(const std::string& str) {
     }
 
     // parse port
-    std::uint16_t port = 0;
-    auto[ptr, err] = std::from_chars(host_end+1, end, port);
+    std::uint16_t port_number = 0;
+    auto[ptr, err] = std::from_chars(host_end+1, end, port_number);
     if (err != std::errc()) {
       throw std::runtime_error("Failed to parse port");
     }
 
-    return Port(port);
+    return Port(port_number);
   }();
 
   return Url(protocol, host, port);
