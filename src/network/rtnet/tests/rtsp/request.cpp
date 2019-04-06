@@ -1,5 +1,6 @@
 #include <cstring>
 #include <array>
+#include <string_view>
 
 #include "disable_warnings_push.hpp"
 #include <gtest/gtest.h>
@@ -10,22 +11,22 @@
 
 using namespace shar;
 
-static void assert_fails(const char* request_text) {
+static void assert_fails(std::string_view request_text) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(), headers.size() });
 
-  ASSERT_THROW(request.parse(request_text, std::strlen(request_text)), std::runtime_error);
+  ASSERT_THROW(request.parse(request_text.data(), request_text.size()), std::runtime_error);
 
 }
 
 TEST(rtsp_request, simple_request) {
-  const char* example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0\r\n"
+  std::string_view example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0\r\n"
     "\r\n";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(), headers.size() });
-  auto request_size = request.parse(example_request, std::strlen(example_request));
+  auto request_size = request.parse(example_request.data(), example_request.size());
   EXPECT_TRUE(request_size.has_value());
-  EXPECT_EQ(request_size.value(), strlen(example_request));
+  EXPECT_EQ(request_size.value(), example_request.size());
   EXPECT_EQ(request.m_type, rtsp::Request::Type::PLAY);
   EXPECT_EQ(request.m_address, "rtsp://server/path/test.mpg");
   EXPECT_EQ(request.m_version, 1);
@@ -38,10 +39,10 @@ TEST(rtsp_request, trash_request) {
 }
 
 TEST(rtsp_request, empty_request) {
-  const char* empty_request = "";
+  std::string_view empty_request = "";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(), headers.size() });
-  ASSERT_FALSE(request.parse(empty_request, std::strlen(empty_request)).has_value());
+  ASSERT_FALSE(request.parse(empty_request.data(), empty_request.size()).has_value());
   EXPECT_TRUE(std::all_of(headers.begin(), headers.end(),
     [](const auto header) { return header.empty(); }));
 }
@@ -59,15 +60,16 @@ TEST(rtsp_request, request_without_version) {
 }
 
 TEST(rtsp_request, request_with_header) {
-  const char* request_with_header =
+  std::string_view request_with_header =
     "DESCRIBE rtsp://example.com/media.mp4 RTSP/1.0\r\n"
     "CSeq: 2\r\n"
     "\r\n";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  auto request_size = request.parse(request_with_header, std::strlen(request_with_header));
+  auto request_size = 
+    request.parse(request_with_header.data(), request_with_header.size());
   EXPECT_TRUE(request_size.has_value());
-  EXPECT_EQ(request_size.value(), std::strlen(request_with_header));
+  EXPECT_EQ(request_size.value(), request_with_header.size());
   EXPECT_EQ(request.m_type, rtsp::Request::Type::DESCRIBE);
   EXPECT_EQ(request.m_address, "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.m_version, 1);
@@ -78,7 +80,7 @@ TEST(rtsp_request, request_with_header) {
 
 
 TEST(rtsp_request, large_request) {
-  const char* large_request =
+  std::string_view large_request =
     "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
     "CSeq: 10\r\n"
     "Content-length: 20\r\n"
@@ -87,9 +89,9 @@ TEST(rtsp_request, large_request) {
     "\r\n";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  auto request_size = request.parse(large_request, std::strlen(large_request));
+  auto request_size = request.parse(large_request.data(), large_request.size());
   EXPECT_TRUE(request_size.has_value());
-  EXPECT_EQ(request_size.value(), std::strlen(large_request));
+  EXPECT_EQ(request_size.value(), large_request.size());
   EXPECT_EQ(request.m_type, rtsp::Request::Type::SET_PARAMETER);
   EXPECT_EQ(request.m_address, "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.m_version, 1);
@@ -129,37 +131,37 @@ TEST(rtsp_request, request_serialization) {
 }
 
 TEST(rtsp_request, incompete_type) {
-  const char* request_str = "DESCRI";
+  std::string_view request_str = "DESCRI";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  EXPECT_EQ(request.parse(request_str, strlen(request_str)),std::nullopt);
+  EXPECT_EQ(request.parse(request_str.data(), request_str.size()),std::nullopt);
 }
 
 TEST(rtsp_request, incomplete_address) {
-  const char* request_str = "OPTIONS rtsp://";
+  std::string_view request_str = "OPTIONS rtsp://";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.parse(request_str.data(), request_str.size()), std::nullopt);
   EXPECT_EQ(request.m_type, rtsp::Request::Type::OPTIONS);
 }
 
 TEST(rtsp_request, incomplete_version) {
-  const char* request_str = "PLAY rtsp://server/path/test.mpg RTS";
+  std::string_view request_str = "PLAY rtsp://server/path/test.mpg RTS";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.parse(request_str.data(), request_str.size()), std::nullopt);
   EXPECT_EQ(request.m_type, rtsp::Request::Type::PLAY);
   EXPECT_EQ(request.m_address, "rtsp://server/path/test.mpg");
 }
 
 TEST(rtsp_request, incomplete_headers) {
-  const char* request_str =
+  std::string_view request_str =
     "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
     "CSeq: 10\r\n"
     "Content-length";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
-  EXPECT_EQ(request.parse(request_str, strlen(request_str)), std::nullopt);
+  EXPECT_EQ(request.parse(request_str.data(), request_str.size()), std::nullopt);
   EXPECT_EQ(request.m_type, rtsp::Request::Type::SET_PARAMETER);
   EXPECT_EQ(request.m_address, "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.m_version, 1);

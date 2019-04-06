@@ -3,9 +3,12 @@
 #include "response.hpp"
 #include "serializer.hpp"
 
+
 namespace shar::rtsp {
 
-Response::Response(Headers headers) : m_headers(std::move(headers)) {}
+Response::Response(Headers headers)
+  : m_headers(std::move(headers))
+  , m_status_code(std::numeric_limits<uint16_t>::max()){}
 
 std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size)
 {
@@ -32,7 +35,7 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
   m_status_code = status_code;
   current = status_code_end + 1; //Move to first symbol after space
 
-  const char* reason_end = find_line_ending(current, end);
+  const char* reason_end = find_line_ending(current, end - current);
   if (reason_end == end) {
     return std::nullopt;
   }
@@ -55,13 +58,17 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
 }
 
 bool Response::serialize(char* destination, std::size_t size) {
+  if (!m_version.has_value() || !m_reason.has_value() ||
+       m_status_code == std::numeric_limits<std::uint16_t>::max()) {
+    throw std::runtime_error("One of fields is not initialized");
+  }
   Serializer serializer(destination, size);
-  //serialize version
 #define TRY_SERIALIZE(EXP) if(!(EXP)) return false
-  TRY_SERIALIZE(serializer.append_string("RTSP/1.0 "));
+  //serialize version
+  TRY_SERIALIZE(serializer.append_string("RTSP/1.0"));
+  TRY_SERIALIZE(serializer.append_string(" "));
   //serialize status code
   TRY_SERIALIZE(serializer.append_number(m_status_code));
-  //append space after number
   TRY_SERIALIZE(serializer.append_string(" "));
   //serialize reason-phrase
   TRY_SERIALIZE(serializer.append_string(m_reason.value()));

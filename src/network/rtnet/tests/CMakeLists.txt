@@ -13,7 +13,7 @@ add_executable(rtnettest
 
 target_include_directories(rtnettest
     PRIVATE ..
-	PRIVATE ${PROJECT_SOURCE_DIR}/src/common
+    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE ${CONAN_INCLUDE_DIRS_GTEST}
 )
 

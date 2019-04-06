@@ -9,7 +9,7 @@ namespace shar::rtsp {
 
 struct Request {
 
-  Request(Headers headers);
+  explicit Request(Headers headers);
 
   enum class Type {
     OPTIONS,
@@ -27,7 +27,7 @@ struct Request {
 
   std::optional<std::size_t> parse(const char* buffer, std::size_t size);
 
-  bool serialize(char* destionation, std::size_t);
+  bool serialize(char* destination, std::size_t);
 
   std::optional<Type> m_type;
   std::optional<std::string_view> m_address;

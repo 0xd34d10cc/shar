@@ -10,25 +10,26 @@
 
 using namespace shar;
 
-static void assert_fails(const char* response_text) {
+static void assert_fails(std::string_view response_text) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  ASSERT_THROW(response.parse(response_text, std::strlen(response_text)), std::runtime_error);
+  ASSERT_THROW(response.parse(response_text.data(), response_text.size()), std::runtime_error);
 
 }
 
 TEST(rtsp_response, simple_response) {
-  const char* simple_response =
+  std::string_view simple_response =
     "RTSP/1.0 200 OK\r\n"
     "\r\n";
 
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  auto response_size = response.parse(simple_response, std::strlen(simple_response));
+  auto response_size = 
+    response.parse(simple_response.data(), simple_response.size());
   EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, std::strlen(simple_response));
+  EXPECT_EQ(response_size, simple_response.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -41,16 +42,17 @@ TEST(rtsp_response, response_without_version) {
 }
 
 TEST(rtsp_response, single_header) {
-  const char* single_header = 
+  std::string_view single_header = 
     "RTSP/1.0 200 OK\r\n"
     "CSeq: 7\r\n"
     "\r\n";
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  auto response_size = response.parse(single_header, std::strlen(single_header));
+  auto response_size = 
+    response.parse(single_header.data(), single_header.size());
   EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, std::strlen(single_header));
+  EXPECT_EQ(response_size, single_header.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -62,13 +64,14 @@ TEST(rtsp_response, ends_on_single_line_end) {
 }
 
 TEST(rtsp_response, ends_wo_line_end) {
-  const char* response_str =
+  std::string_view response_str =
     "RTSP/1.0 200 OK\r\n"
     "CSeq: 7";
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  auto response_size = response.parse(response_str, std::strlen(response_str));
+  auto response_size = 
+    response.parse(response_str.data(), response_str.size());
   EXPECT_TRUE(!response_size.has_value());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
@@ -78,7 +81,7 @@ TEST(rtsp_response, ends_wo_line_end) {
 }
 
 TEST(rtsp_response, response_with_body) {
-  const char* base_response =
+  std::string_view base_response =
     "RTSP/1.0 200 OK\r\n"
     "CSeq: 2\r\n"
     "Content-Base: rtsp://example.com/media.mp4\r\n"
@@ -88,9 +91,9 @@ TEST(rtsp_response, response_with_body) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  auto response_size = response.parse(base_response, std::strlen(base_response));
+  auto response_size = response.parse(base_response.data(), base_response.size());
   EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, std::strlen(base_response));
+  EXPECT_EQ(response_size, base_response.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -103,7 +106,7 @@ TEST(rtsp_response, response_with_body) {
 
 TEST(rtsp_response, serialization_test) {
 
-  const char* base_response =
+  std::string_view base_response =
     "RTSP/1.0 200 OK\r\n"
     "CSeq: 2\r\n"
     "Content-Base: rtsp://example.com/media.mp4\r\n"
@@ -113,9 +116,10 @@ TEST(rtsp_response, serialization_test) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  auto response_size = response.parse(base_response, std::strlen(base_response));
+  auto response_size = 
+    response.parse(base_response.data(), base_response.size());
   EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, std::strlen(base_response));
+  EXPECT_EQ(response_size, base_response.size());
   std::unique_ptr<char[]> destination = std::make_unique<char[]>(512);
   EXPECT_TRUE(response.serialize(destination.get(), 512));;
 }
@@ -134,14 +138,40 @@ TEST(rtsp_response, status_code_incomplete) {
 }
 
 TEST(rtsp_response, reason_incomplete) {
-  const char* response_str = "RTSP/1.0 200 O";
+  std::string_view response_str = "RTSP/1.0 200 O";
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse(response_str, std::strlen(response_str)).has_value());
+  EXPECT_FALSE(response.parse(response_str.data(), response_str.size()).has_value());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
 }
 
 TEST(rtsp_response, status_code_invalid) {
   assert_fails("RTSP/1.0 AVS invalid status code");
+}
+
+TEST(rtsp_response, too_many_headers) {
+  std::string_view response_too_many_headers =
+    "RTSP/1.0 200 OK\r\n"
+    "CSeq: 2\r\n"
+    "Content-Base: rtsp://example.com/media.mp4\r\n"
+    "Content-Type: application/sdp\r\n"
+    "Content-Length: 460\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "A: A\r\n"
+    "\r\n";
+  assert_fails(response_too_many_headers);
 }

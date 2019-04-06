@@ -17,13 +17,15 @@ static std::optional<Request::Type> parse_type(const char* begin, std::size_t si
   std::size_t len = 0;
 
 #define TRY_TYPE(TYPE)\
-i = memcmp(begin, #TYPE, size);\
-len = strlen(#TYPE);\
-if(size == len && i == 0) {\
-  return Request::Type::TYPE;\
+len = std::strlen(#TYPE);\
+if(size<=len){\
+i = memcmp(begin, #TYPE, size); \
+if (size == len && i == 0) {\
+return Request::Type::TYPE;\
 }\
-if(i==0 && size != len){\
-  return std::nullopt;\
+if (i == 0 && size != len) {\
+return std::nullopt;\
+}\
 }
 
   TRY_TYPE(OPTIONS);
@@ -85,7 +87,7 @@ std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t
   m_address = std::string_view(current, address_end-current);
   current = address_end + 1; //Move to first symbol after space
 
-  const char* version_end = find_line_ending(current, end);
+  const char* version_end = find_line_ending(current, end-current);
   auto version = parse_version(current, version_end - current);
   if (version_end != end && !version.has_value()) {
     throw std::runtime_error("Protocol version is invalid");
@@ -131,13 +133,16 @@ static char* type_to_string(Request::Type type) {
 }
 
 bool Request::serialize(char* destination, std::size_t size) {
+  if (!m_type.has_value() || !m_address.has_value() || !m_version.has_value()) {
+    throw std::runtime_error("One of fields is not initialized");
+  }
 
   Serializer serializer(destination, size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) return false
   //serialize type
   TRY_SERIALIZE(serializer.append_string(type_to_string(m_type.value())));
   TRY_SERIALIZE(serializer.append_string(" "));
-  //s
+  //serialize address
   TRY_SERIALIZE(serializer.append_string(m_address.value()));
   TRY_SERIALIZE(serializer.append_string(" "));
   //serialize version

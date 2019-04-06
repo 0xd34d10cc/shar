@@ -1,9 +1,14 @@
 #include <charconv>
 
 #include "parser.hpp"
+
+
 namespace shar::rtsp {
 
 std::optional<std::uint8_t> parse_version(const char* begin, std::size_t size) {
+  if (size > 8) {
+    throw std::runtime_error("Incorrect protocol version");
+  }
   int i = std::memcmp(begin, "RTSP/1.0", size);
   if ((size == 8) && i == 0) {
     return 1;
@@ -16,7 +21,6 @@ std::optional<std::uint8_t> parse_version(const char* begin, std::size_t size) {
 
 Header parse_header(const char* begin, std::size_t size) {
 
-  const char* header_begin = begin;
   const char* end = begin + size;
   const char* key_end = std::find(begin, end, ':');
 
@@ -43,7 +47,7 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
 
   const char* header_begin = begin;
   const char* end = begin + size;
-  const char* header_end = find_line_ending(header_begin, end);
+  const char* header_end = find_line_ending(header_begin, size);
   std::size_t index = 0;
 
   while (header_begin != header_end) {
@@ -51,15 +55,16 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
     if (header_end == end) {
       return std::nullopt;
     }
+    std::size_t header_size = header_end - header_begin;
 
-    auto[key, value] = parse_header(header_begin, header_end - header_begin);
+    auto[key, value] = parse_header(header_begin, header_size);
     if (index == headers.len) {
       throw std::runtime_error("Too many headers");
     }
     headers.data[index] = Header(std::move(key), std::move(value));
 
     header_begin = header_end + 2; //Move to first symbol after line_ending
-    header_end = find_line_ending(header_begin, end);
+    header_end = find_line_ending(header_begin, end-header_begin);
     index++;
 
   }
@@ -71,15 +76,15 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
   return header_begin - begin + 2;
 }
 
-const char * find_line_ending(const char * begin, const char * end) {
+const char * find_line_ending(const char * begin, std::size_t size) {
+  const char* end = begin + size;
   const char* it = std::find(begin, end, '\r');
-  if (begin == end || (it != end &&
+  if (begin == end || (it != end && it != (end-1) &&
     *it == '\r' && *(it + 1) != '\n')) {
     throw std::runtime_error("CRLF not found");
   }
   return it;
 }
-
 
 std::uint16_t parse_status_code(const char* begin, std::size_t size) {
 

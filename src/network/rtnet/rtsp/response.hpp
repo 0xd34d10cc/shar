@@ -8,7 +8,7 @@ namespace shar::rtsp {
 
 struct Response {
 
-  Response(Headers headers);
+  explicit Response(Headers headers);
 
   std::optional<std::size_t> parse(const char* buffer, std::size_t size);
   //return false if we haven't enough space in buffer

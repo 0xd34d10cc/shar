@@ -21,15 +21,10 @@ bool Serializer::append_string(std::string_view string) {
 }
 
 bool Serializer::append_number(std::size_t number) {
-  std::size_t len = 3;
-  if (len > m_size - m_written_bytes) {
-    return false;
-  }
   char* curr = m_buffer_begin + m_written_bytes;
-  if (auto[p, ec] = 
-    std::to_chars(curr, curr + len, number);
-    ec == std::errc()) {
-    m_written_bytes += len;
+  auto[ptr, ec] = std::to_chars(curr, curr + (m_size-m_written_bytes), number);
+  if (ec == std::errc()) {
+    m_written_bytes += ptr-curr;
   }
   else {
     return false;
