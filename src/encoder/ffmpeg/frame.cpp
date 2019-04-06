@@ -64,11 +64,11 @@ std::size_t Frame::total_size() const noexcept {
 }
 
 std::size_t Frame::width() const noexcept {
-  return m_frame ? m_frame->width : 0;
+  return m_frame ? static_cast<std::size_t>(m_frame->width) : 0;
 }
 
 std::size_t Frame::height() const noexcept {
-  return m_frame ? m_frame->height : 0;
+  return m_frame ? static_cast<std::size_t>(m_frame->height) : 0;
 }
 
 static Frame::Channel make_channel(const std::uint8_t* data,

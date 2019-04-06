@@ -1,8 +1,6 @@
 add_library(rtnet
     rtp/packet.cpp
     rtp/packet.hpp
-    rtp/session.hpp
-    rtp/session.cpp
 
     rtcp/header.hpp
     rtcp/header.cpp

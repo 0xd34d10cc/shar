@@ -18,7 +18,6 @@ namespace shar {
 namespace {
 
   spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
-
     switch (loglvl) {
     case(LogLevel::trace): {
       return spdlog::level::trace;
@@ -38,6 +37,8 @@ namespace {
     case(LogLevel::quite): {
       return spdlog::level::off;
     }
+    case LogLevel::critical:
+      return spdlog::level::critical;
     default: {
       throw std::runtime_error("Uknown loglvl");
     }

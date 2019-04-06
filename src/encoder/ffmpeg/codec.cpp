@@ -17,7 +17,7 @@ namespace {
   static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
   static std::optional<shar::Logger> cb_logger;
 
-  static void avlog_callback(void * ptr, int level, const char * fmt, va_list args) {
+  static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_list args) {
     if (cb_logger) {
       char buf[buf_size];
       std::memcpy(buf, log_prefix, prefix_length);  
@@ -64,13 +64,14 @@ namespace {
     };
 
     av_log_set_level(log_levels[config->encoder_loglvl]);
+    av_log_set_callback(avlog_callback);
   }
 }
 
 namespace shar::encoder::ffmpeg {
 
 // Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
-static const unsigned int CLOCK_RATE = 90000;
+static const int CLOCK_RATE = 90000;
 
 Codec::Codec(Context context, Size frame_size, std::size_t fps)
   : Context(std::move(context))
@@ -99,26 +100,27 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
 }
 
 std::vector<Unit> Codec::encode(Frame image) {
-  assert(m_context.get()->width == image.width());
-  assert(m_context.get()->height == image.height());
+  auto* context = m_context.get();
+  assert(static_cast<std::size_t>(context->width) == image.width());
+  assert(static_cast<std::size_t>(context->height) == image.height());
 
   int pts = next_pts();
   image.raw()->pts = pts;
 
-  int ret = avcodec_send_frame(m_context.get(), image.raw());
+  int ret = avcodec_send_frame(context, image.raw());
   std::vector<Unit> packets;
 
   assert(ret==0);
   if (ret == 0) {
     auto unit = Unit::allocate();
 
-    ret = avcodec_receive_packet(m_context.get(), unit.raw());
+    ret = avcodec_receive_packet(context, unit.raw());
     while (ret != AVERROR(EAGAIN)) {
       unit.raw()->pts = pts;
       packets.emplace_back(std::move(unit));
 
       unit = Unit::allocate();
-      ret = avcodec_receive_packet(m_context.get(), unit.raw());
+      ret = avcodec_receive_packet(context, unit.raw());
 
       // NOTE: this delay is incorrect, because encoder is able to buffer frames.
       const auto delay = Clock::now() - image.timestamp();
@@ -131,9 +133,9 @@ std::vector<Unit> Codec::encode(Frame image) {
 }
 
 int Codec::next_pts() {
-  const auto fps = m_context.get()->time_base.den;
-  const auto ticks_per_frame = CLOCK_RATE / fps;
-  const auto pts = ticks_per_frame * m_frame_counter;
+  const int fps = m_context.get()->time_base.den;
+  const int ticks_per_frame = CLOCK_RATE / fps;
+  const int pts = ticks_per_frame * static_cast<int>(m_frame_counter);
   m_frame_counter++;
   return pts;
 }
