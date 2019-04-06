@@ -126,14 +126,16 @@ TEST(rtsp_response, serialization_test) {
 
 TEST(rtsp_response, version_incomplete) {
   std::array<rtsp::Header, 16> headers;
+  std::string_view version = "RTSP";
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse("RTSP", std::strlen("RTSP")).has_value());
+  EXPECT_FALSE(response.parse(version.data(), version.size()).has_value());
 }
 
 TEST(rtsp_response, status_code_incomplete) {
   std::array<rtsp::Header, 16> headers;
+  std::string_view response_incomplete = "RTSP/1.0 2";
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse("RTSP/1.0 2", std::strlen("RTSP/1.0 2")).has_value());
+  EXPECT_FALSE(response.parse(response_incomplete.data(), response_incomplete.size()).has_value());
   EXPECT_EQ(response.m_version, 1);
 }
 
@@ -174,4 +176,11 @@ TEST(rtsp_response, too_many_headers) {
     "A: A\r\n"
     "\r\n";
   assert_fails(response_too_many_headers);
+}
+
+TEST(rtsp_response, empty_field) {
+  std::array<rtsp::Header, 16> headers;
+  rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
+  auto ptr = nullptr;
+  ASSERT_THROW(response.serialize(ptr, 0), std::runtime_error);
 }

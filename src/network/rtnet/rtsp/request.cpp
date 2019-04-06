@@ -17,7 +17,7 @@ static std::optional<Request::Type> parse_type(const char* begin, std::size_t si
   std::size_t len = 0;
 
 #define TRY_TYPE(TYPE)\
-len = std::strlen(#TYPE);\
+len = std::string_view(#TYPE).size();\
 if(size<=len){\
 i = memcmp(begin, #TYPE, size); \
 if (size == len && i == 0) {\
