@@ -69,7 +69,7 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
 
   }
 
-  if (header_end == end && !header_end.has_value()) {
+  if (!header_end.has_value() || header_end.value() == end) {
     return std::nullopt;
   }
 
@@ -79,12 +79,13 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
 std::optional<const char *> find_line_ending(const char * begin, std::size_t size) {
   const char* end = begin + size;
   const char* it = std::find(begin, end, '\r');
-  if (begin == end || (it != end  &&
-    *it == '\r' && *(it + 1) != '\n')) {
-    throw std::runtime_error("CRLF not found");
-  }
+
   if (it == end - 1) {
     return std::nullopt;
+  }
+  if (begin == end || (it != end &&
+    *it == '\r' && *(it + 1) != '\n')) {
+    throw std::runtime_error("CRLF not found");
   }
   return it;
 }
