@@ -36,7 +36,7 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
   current = status_code_end + 1; //Move to first symbol after space
 
   auto reason_end = find_line_ending(current, end - current);
-  if (!reason_end.has_value() && reason_end.value() == end) {
+  if (!reason_end.has_value() || reason_end.value() == end) {
     return std::nullopt;
   }
   m_reason = std::string_view(current, reason_end.value() - current);
