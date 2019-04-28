@@ -1,7 +1,9 @@
 #include <vector>
 #include <array>
 
+#include "disable_warnings_push.hpp"
 #include <gtest/gtest.h>
+#include "disable_warnings_pop.hpp"
 
 #include "rtp/packet.hpp"
 

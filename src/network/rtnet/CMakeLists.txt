@@ -19,14 +19,28 @@ add_library(rtnet
     rtcp/app.hpp
     rtcp/app.cpp
 
+    rtsp/request.hpp
+    rtsp/request.cpp
+    rtsp/response.hpp
+    rtsp/response.cpp
+    rtsp/parser.hpp
+    rtsp/parser.cpp
+    rtsp/header.hpp
+    rtsp/header.cpp
+    rtsp/serializer.hpp
+    rtsp/serializer.cpp
+
     byteorder.cpp
     byteorder.hpp
     slice.hpp
     slice.cpp
-)
+) 
 
 target_include_directories(rtnet PRIVATE . ../../common)
 target_include_directories(rtnet PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_BOOST})
 target_link_libraries(rtnet ${CONAN_LIBS_BOOST})
+
+target_compile_definitions(rtnet PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(rtnet PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 add_subdirectory(tests)
