@@ -87,8 +87,11 @@ std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t
   m_address = std::string_view(current, address_end-current);
   current = address_end + 1; //Move to first symbol after space
 
-  const char* version_end = find_line_ending(current, end-current);
-  auto version = parse_version(current, version_end - current);
+  auto version_end = find_line_ending(current, end-current);
+  if (!version_end.has_value()) {
+    return std::nullopt;
+  }
+  auto version = parse_version(current, version_end.value() - current);
   if (version_end != end && !version.has_value()) {
     throw std::runtime_error("Protocol version is invalid");
   }
@@ -97,11 +100,11 @@ std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t
   }
   m_version = version;
   //Check for requests ending without line ending
-  if (version_end + 2 == end) {
+  if (version_end.value() + 2 == end) {
     return std::nullopt;
   }
 
-  current = version_end + 2; //Move to first symbol after line ending
+  current = version_end.value() + 2; //Move to first symbol after line ending
 
   auto headers_len = parse_headers(current, end-current, m_headers);
   if (!headers_len.has_value()) {

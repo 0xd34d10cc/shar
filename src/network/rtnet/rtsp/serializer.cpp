@@ -23,13 +23,12 @@ bool Serializer::append_string(std::string_view string) {
 bool Serializer::append_number(std::size_t number) {
   char* curr = m_buffer_begin + m_written_bytes;
   auto[ptr, ec] = std::to_chars(curr, curr + (m_size-m_written_bytes), number);
-  if (ec == std::errc()) {
+  
+  auto success = ec == std::errc();
+  if (success) {
     m_written_bytes += ptr-curr;
   }
-  else {
-    return false;
-  }
-  return true;
+  return success;
 }
 
 }

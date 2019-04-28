@@ -35,17 +35,17 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
   m_status_code = status_code;
   current = status_code_end + 1; //Move to first symbol after space
 
-  const char* reason_end = find_line_ending(current, end - current);
-  if (reason_end == end) {
+  auto reason_end = find_line_ending(current, end - current);
+  if (!reason_end.has_value() && reason_end.value() == end) {
     return std::nullopt;
   }
-  m_reason = std::string_view(current, reason_end - current);
+  m_reason = std::string_view(current, reason_end.value() - current);
 
-  if (reason_end + 2 == end) {
+  if (reason_end.value() + 2 == end) {
     return std::nullopt;
   }
 
-  current = reason_end + 2;
+  current = reason_end.value() + 2;
 
   auto headers_len = parse_headers(current, end - current, m_headers);
   if (!headers_len.has_value()) {

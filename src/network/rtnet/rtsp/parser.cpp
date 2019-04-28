@@ -47,15 +47,15 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
 
   const char* header_begin = begin;
   const char* end = begin + size;
-  const char* header_end = find_line_ending(header_begin, size);
+  auto header_end = find_line_ending(header_begin, size);
   std::size_t index = 0;
 
-  while (header_begin != header_end) {
+  while (header_end.has_value() && header_begin != header_end.value()) {
 
-    if (header_end == end) {
+    if (header_end.value() == end) {
       return std::nullopt;
     }
-    std::size_t header_size = header_end - header_begin;
+    std::size_t header_size = header_end.value() - header_begin;
 
     auto[key, value] = parse_header(header_begin, header_size);
     if (index == headers.len) {
@@ -63,25 +63,28 @@ std::optional<std::size_t> parse_headers(const char * begin, std::size_t size, H
     }
     headers.data[index] = Header(std::move(key), std::move(value));
 
-    header_begin = header_end + 2; //Move to first symbol after line_ending
+    header_begin = header_end.value() + 2; //Move to first symbol after line_ending
     header_end = find_line_ending(header_begin, end-header_begin);
     index++;
 
   }
 
-  if (header_end == end) {
+  if (header_end == end && !header_end.has_value()) {
     return std::nullopt;
   }
 
   return header_begin - begin + 2;
 }
 
-const char * find_line_ending(const char * begin, std::size_t size) {
+std::optional<const char *> find_line_ending(const char * begin, std::size_t size) {
   const char* end = begin + size;
   const char* it = std::find(begin, end, '\r');
-  if (begin == end || (it != end && it != (end-1) &&
+  if (begin == end || (it != end  &&
     *it == '\r' && *(it + 1) != '\n')) {
     throw std::runtime_error("CRLF not found");
+  }
+  if (it == end - 1) {
+    return std::nullopt;
   }
   return it;
 }
