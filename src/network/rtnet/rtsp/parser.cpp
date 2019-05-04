@@ -1,4 +1,5 @@
 #include <charconv>
+#include <stdexcept>
 
 #include "parser.hpp"
 
