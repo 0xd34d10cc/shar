@@ -14,7 +14,6 @@ void av_packet_free(AVPacket **pkt);
 namespace shar::encoder::ffmpeg {
 
 // h264 nal unit
-// TODO: make IUnit interface
 class Unit {
 public:
   enum class Type {
@@ -29,7 +28,11 @@ public:
   Unit& operator=(const Unit&) = delete;
   ~Unit() = default;
 
+  // allocate empty unit
   static Unit allocate() noexcept;
+
+  // create unit from data (NOTE: memcopy)
+  static Unit from_data(std::uint8_t* data, std::size_t size);
 
   bool empty() const noexcept;
   const std::uint8_t* data() const noexcept;

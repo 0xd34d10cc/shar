@@ -20,7 +20,7 @@ namespace {
   static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_list args) {
     if (cb_logger) {
       char buf[buf_size];
-      std::memcpy(buf, log_prefix, prefix_length);  
+      std::memcpy(buf, log_prefix, prefix_length);
       vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
       switch (level) {
       case AV_LOG_TRACE:
@@ -51,19 +51,32 @@ namespace {
   }
 
   static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
+    using shar::LogLevel;
+
     cb_logger = logger;
 
-    static std::map<shar::LogLevel, int> log_levels = {
-        { shar::LogLevel::quite, AV_LOG_QUIET },
-        { shar::LogLevel::trace, AV_LOG_TRACE },
-        { shar::LogLevel::debug, AV_LOG_DEBUG },
-        { shar::LogLevel::info, AV_LOG_INFO },
-        { shar::LogLevel::warning, AV_LOG_WARNING },
-        { shar::LogLevel::critical, AV_LOG_FATAL },
-        { shar::LogLevel::error, AV_LOG_ERROR },
+    const auto log_level_to_ffmpeg = [](LogLevel level) {
+      switch (level) {
+        case LogLevel::Quiet:
+          return AV_LOG_QUIET;
+        case LogLevel::Trace:
+          return AV_LOG_TRACE;
+        case LogLevel::Debug:
+          return AV_LOG_DEBUG;
+        case LogLevel::Info:
+          return AV_LOG_INFO;
+        case LogLevel::Warning:
+          return AV_LOG_WARNING;
+        case LogLevel::Critical:
+          return AV_LOG_FATAL;
+        case LogLevel::Error:
+          return AV_LOG_ERROR;
+        default:
+          throw std::runtime_error("Unknown log level");
+      }
     };
 
-    av_log_set_level(log_levels[config->encoder_loglvl]);
+    av_log_set_level(log_level_to_ffmpeg(config->encoder_loglvl));
     av_log_set_callback(avlog_callback);
   }
 }
@@ -125,7 +138,7 @@ std::vector<Unit> Codec::encode(Frame image) {
       // NOTE: this delay is incorrect, because encoder is able to buffer frames.
       const auto delay = Clock::now() - image.timestamp();
       const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
-      m_full_delay.Observe(delay_ms.count());
+      m_full_delay.Observe(static_cast<double>(delay_ms.count()));
     }
   }
 

@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "disable_warnings_push.hpp"
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -15,6 +17,15 @@ Unit::Unit(AVPacket* packet)
 
 Unit Unit::allocate() noexcept {
   return Unit(av_packet_alloc());
+}
+
+Unit Unit::from_data(std::uint8_t* data, std::size_t size) {
+  auto unit = Unit::allocate();
+  AVBufferRef* buffer = av_buffer_alloc(size);
+  std::memcpy(buffer->data, data, size);
+  assert(unit.raw()->buf == nullptr);
+  unit.raw()->buf = buffer;
+  return unit;
 }
 
 bool Unit::empty() const noexcept {
