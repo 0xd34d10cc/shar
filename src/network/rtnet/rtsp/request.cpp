@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
+#include <stdexcept>
 
 #include "request.hpp"
 #include "serializer.hpp"
@@ -19,7 +20,7 @@ static std::optional<Request::Type> parse_type(const char* begin, std::size_t si
 #define TRY_TYPE(TYPE)\
 len = std::string_view(#TYPE).size();\
 if(size<=len){\
-i = memcmp(begin, #TYPE, size); \
+i = std::memcmp(begin, #TYPE, size); \
 if (size == len && i == 0) {\
 return Request::Type::TYPE;\
 }\

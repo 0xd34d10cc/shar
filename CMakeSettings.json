@@ -1,5 +1,4 @@
 ﻿{
-  // See https://go.microsoft.com//fwlink//?linkid=834763 for more information about this file.
   "configurations": [
     {
       "name": "x64-Debug",
@@ -8,12 +7,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\debug",
       "installRoot": "${workspaceRoot}\\build\\debug\\bin",
-      "variables": [
-        {
-          "name": "CMAKE_BUILD_TYPE",
-          "value": "Debug"
-        }
-      ]
+      "variables": []
     },
     {
       "name": "x64-Release",
@@ -22,12 +16,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\release",
       "installRoot": "${workspaceRoot}\\build\\release\\bin",
-      "variables": [
-        {
-          "name": "CMAKE_BUILD_TYPE",
-          "value": "Release"
-        }
-      ]
+      "variables": []
     },
     {
       "name": "x64-Profile",
@@ -36,12 +25,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${workspaceRoot}\\build\\profile",
       "installRoot": "${workspaceRoot}\\build\\profile\\bin",
-      "variables": [
-        {
-          "name": "CMAKE_BUILD_TYPE",
-          "value": "RelWithDebInfo"
-        }
-      ]
+      "variables": []
     }
   ]
 }

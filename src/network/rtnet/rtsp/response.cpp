@@ -1,4 +1,5 @@
 #include <charconv>
+#include <stdexcept>
 
 #include "response.hpp"
 #include "serializer.hpp"
