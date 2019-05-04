@@ -25,6 +25,8 @@ Unit Unit::from_data(std::uint8_t* data, std::size_t size) {
   std::memcpy(buffer->data, data, size);
   assert(unit.raw()->buf == nullptr);
   unit.raw()->buf = buffer;
+  unit.raw()->data = buffer->data;
+  unit.raw()->size = buffer->size;
   return unit;
 }
 
