@@ -18,14 +18,21 @@ PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port)
 void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
   m_sender = &sender; // TODO: remove this hack
 
-  setup();
+  using Endpoint = asio::ip::tcp::endpoint;
+  Endpoint endpoint{ m_server_address, m_port };
+  m_receiver.connect(endpoint);
+
+  start_read();
 
   while (!m_running.expired() && sender.connected()) {
     m_context.run_for(Milliseconds(250));
   }
 
   shutdown();
-  teardown();
+
+  // close the connection
+  m_receiver.shutdown(Socket::shutdown_both);
+  m_receiver.close();
 
   m_sender = nullptr;
 }
@@ -33,25 +40,6 @@ void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
 void PacketReceiver::shutdown() {
   m_running.cancel();
 }
-
-void PacketReceiver::process() {
-  m_context.run_for(std::chrono::milliseconds(250));
-}
-
-void PacketReceiver::setup() {
-  using Endpoint = asio::ip::tcp::endpoint;
-  Endpoint endpoint {m_server_address, m_port};
-  m_receiver.connect(endpoint);
-
-  start_read();
-}
-
-void PacketReceiver::teardown() {
-  // close the connection
-  m_receiver.shutdown(Socket::shutdown_both);
-  m_receiver.close();
-}
-
 
 void PacketReceiver::start_read() {
   m_receiver.async_read_some(

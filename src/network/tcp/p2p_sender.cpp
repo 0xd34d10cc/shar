@@ -38,7 +38,7 @@ P2PSender::P2PSender(Context context, IpAddress ip, Port port)
 void P2PSender::run(Receiver<Unit> receiver) {
   setup();
 
-  while (!m_running.expired()) {
+  while (!m_running.expired() && receiver.connected()) {
     auto unit = receiver.receive();
     if (!unit) {
       // end of stream

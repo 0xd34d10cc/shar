@@ -7,6 +7,7 @@
 
 #include "time.hpp"
 #include "size.hpp"
+#include "codec/convert.hpp"
 
 
 extern "C" {
@@ -27,11 +28,13 @@ public:
 
   static Frame from_bgra(const char* data, Size size);
   static Frame alloc();
+  Slice to_bgra() const;
 
   std::uint8_t* data() noexcept;
   const std::uint8_t* data() const noexcept;
   std::size_t total_size() const noexcept;
 
+  Size sizes() const noexcept;
   std::size_t width() const noexcept;
   std::size_t height() const noexcept;
 

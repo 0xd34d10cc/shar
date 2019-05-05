@@ -1,9 +1,14 @@
 add_library(network
-    sender_factory.cpp
+    sender.hpp
     sender_factory.hpp
+    sender_factory.cpp
+
+    receiver.hpp
+    receiver_factory.hpp
+    receiver_factory.cpp
+
     url.hpp
     url.cpp
-    sender.hpp
 
     tcp/sender.hpp
     tcp/sender.cpp

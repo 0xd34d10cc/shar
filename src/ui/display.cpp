@@ -1,5 +1,7 @@
 #include "display.hpp"
 
+#include "codec/convert.hpp"
+
 
 namespace shar::ui {
 
@@ -10,31 +12,32 @@ Display::Display(Context context, Window& window)
     , m_texture(window.size()) {}
 
 
-void Display::setup() {
+void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
   m_texture.bind();
-}
 
-void Display::teardown() {
-  m_texture.unbind();
-}
+  while (!m_running.expired() && frames.connected()) {
+    auto frame = frames.receive();
+    if (!frame) {
+      // end of stream
+      break;
+    }
 
-void Display::stop() {
+    auto bgra = frame->to_bgra();
 
-}
+    m_fps.increment();
+    m_texture.update(Point::origin(),
+                     frame->sizes(),
+                     bgra.data.get());
+    m_window.draw_texture(m_texture);
+    m_window.swap_buffers();
+    m_window.poll_events();
 
-void Display::process(Frame frame) {
-  m_fps.increment();
-  m_texture.update(Point::origin(),
-                   frame.size(),
-                   frame.bytes());
-  m_window.draw_texture(m_texture);
-  m_window.swap_buffers();
-  m_window.poll_events();
-
-  if (m_window.should_close()) {
-    stop();
-    return;
+    if (m_window.should_close()) {
+      break;
+    }
   }
+
+  m_texture.unbind();
 }
 
 }

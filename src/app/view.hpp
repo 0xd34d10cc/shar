@@ -8,6 +8,8 @@
 
 #include "options.hpp"
 #include "network/receiver.hpp"
+#include "codec/decoder.hpp"
+#include "ui/window.hpp"
 #include "ui/display.hpp"
 
 
@@ -22,9 +24,12 @@ public:
   int run();
 
 private:
-  // Context m_context;
-  // ui::Display m_display;
-  // ReceiverPtr m_receiver;
+  Context m_context;
+
+  ReceiverPtr m_receiver;
+  codec::Decoder m_decoder;
+  ui::Window m_window;
+  ui::Display m_display;
 };
 
 }

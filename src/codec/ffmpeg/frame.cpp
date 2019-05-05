@@ -46,6 +46,23 @@ Frame Frame::from_bgra(const char* data, Size size) {
   return Frame(std::move(frame), std::move(image.data));
 }
 
+Slice Frame::to_bgra() const {
+  AVFrame* frame = m_frame.get();
+  if (!frame) {
+    return Slice{};
+  }
+
+  std::size_t height = static_cast<std::size_t>(frame->height);
+  std::size_t width = static_cast<std::size_t>(frame->width);
+  std::size_t y_pad = static_cast<std::size_t>(frame->linesize[0]) - width;
+  std::size_t uv_pad = static_cast<std::size_t>(frame->linesize[1]) - width / 2;
+  uint8_t* y = frame->data[0];
+  uint8_t* u = frame->data[1];
+  uint8_t* v = frame->data[2];
+
+  return yuv420_to_bgra(y, u, v, height, width, y_pad, uv_pad);
+}
+
 Frame Frame::alloc() {
   auto frame = FramePtr(av_frame_alloc());
   assert(frame);
@@ -67,6 +84,10 @@ std::size_t Frame::total_size() const noexcept {
   std::size_t pixels = w * h;
   // 12 bits per pixel
   return pixels + pixels / 2;
+}
+
+Size Frame::sizes() const noexcept {
+  return Size{height(), width()};
 }
 
 std::size_t Frame::width() const noexcept {

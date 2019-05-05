@@ -164,7 +164,7 @@ std::vector<Unit> Codec::encode(Frame image) {
 
 std::optional<Frame> Codec::decode(Unit unit) {
   int ret = avcodec_send_packet(m_context.get(), unit.raw());
-  assert(ret != 0);
+  assert(ret == 0);
 
   auto frame = Frame::alloc();
   ret = avcodec_receive_frame(m_context.get(), frame.raw());
@@ -175,7 +175,7 @@ std::optional<Frame> Codec::decode(Unit unit) {
   }
 
   // error
-  assert(ret != 0);
+  assert(ret == 0);
   assert(frame.raw()->format == AV_PIX_FMT_YUV420P);
   return frame;
 }
@@ -213,11 +213,29 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
                              Size frame_size,
                              std::size_t fps)
 {
+  const auto find_codec_by_name = [this](const char* name) {
+    if (m_config->connect) {
+      return avcodec_find_decoder_by_name(name);
+    }
+    else {
+      return avcodec_find_encoder_by_name(name);
+    }
+  };
+
+  const auto find_codec_by_id = [this](AVCodecID id) {
+    if (m_config->connect) {
+      return avcodec_find_decoder(id);
+    }
+    else {
+      return avcodec_find_encoder(id);
+    }
+  };
+
   const std::string codec_name = m_config->codec;
   const std::size_t kbits = m_config->bitrate;
 
   if (!codec_name.empty()) {
-    if (auto* codec = avcodec_find_encoder_by_name(codec_name.c_str())) {
+    if (auto* codec = find_codec_by_name(codec_name.c_str())) {
 
       m_logger.info("Using {} codec from config", codec_name);
       auto context = create_context(kbits, codec, frame_size, fps);
@@ -242,7 +260,7 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
   };
 
   for (const char* name : codecs) {
-    if (auto* codec = avcodec_find_encoder_by_name(name)) {
+    if (auto* codec = find_codec_by_name(name)) {
       auto context = create_context(kbits, codec, frame_size, fps);
 
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
@@ -253,8 +271,8 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
     }
   }
 
-  m_logger.warning("None of hardware accelerated codecs available. Using default h264 encoder");
-  auto* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+  m_logger.warning("None of hardware accelerated codecs available. Using default h264 codec");
+  auto* codec = find_codec_by_id(AV_CODEC_ID_H264);
   m_context = create_context(kbits, codec, frame_size, fps);
 
   if (avcodec_open2(m_context.get(), codec, &opts.get_ptr()) >= 0) {
