@@ -10,14 +10,14 @@
 
 #include "context.hpp"
 #include "network/sender.hpp"
-#include "encoder/ffmpeg/unit.hpp"
+#include "codec/ffmpeg/unit.hpp"
 #include "channel.hpp"
 #include "cancellation.hpp"
 
 
 namespace shar::tcp {
 
-using encoder::ffmpeg::Unit;
+using codec::ffmpeg::Unit;
 
 class PacketSender
   : public IPacketSender

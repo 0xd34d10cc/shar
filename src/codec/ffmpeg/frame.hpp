@@ -14,7 +14,7 @@ struct AVFrame;
 void av_frame_free(AVFrame** frame);
 }
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 class Frame {
 public:
@@ -26,6 +26,7 @@ public:
   ~Frame() = default;
 
   static Frame from_bgra(const char* data, Size size);
+  static Frame alloc();
 
   std::uint8_t* data() noexcept;
   const std::uint8_t* data() const noexcept;

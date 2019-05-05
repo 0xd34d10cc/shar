@@ -29,7 +29,7 @@ public:
   PacketReceiver(Context context, IpAddress server, Port port);
   PacketReceiver(PacketReceiver&&) = default;
 
-  void run(Sender<encoder::ffmpeg::Unit> units) override;
+  void run(Sender<codec::ffmpeg::Unit> units) override;
   void shutdown() override;
 
   void setup();
@@ -44,7 +44,7 @@ private:
   using Socket = asio::ip::tcp::socket;
   using ErrorCode = std::error_code;
 
-  Sender<encoder::ffmpeg::Unit>* m_sender{ nullptr };
+  Sender<codec::ffmpeg::Unit>* m_sender{ nullptr };
 
   Cancellation m_running;
   PacketParser m_reader;

@@ -15,7 +15,7 @@ PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port)
     , m_packets_received()
     , m_bytes_received() {}
 
-void PacketReceiver::run(Sender<encoder::ffmpeg::Unit> sender) {
+void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
   m_sender = &sender; // TODO: remove this hack
 
   setup();

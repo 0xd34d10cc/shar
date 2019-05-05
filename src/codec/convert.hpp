@@ -6,7 +6,7 @@
 #include "size.hpp"
 
 
-namespace shar::encoder {
+namespace shar::codec {
 
 using Bytes = std::unique_ptr<std::uint8_t[]>;
 

@@ -4,7 +4,7 @@
 namespace {
 
 using namespace shar;
-using Frame = encoder::ffmpeg::Frame;
+using Frame = codec::ffmpeg::Frame;
 
 Frame convert(const sc::Image& image) noexcept {
   const auto width  = static_cast<std::size_t>(Width(image));

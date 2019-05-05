@@ -1,6 +1,7 @@
 #include "encoder.hpp"
 
-namespace shar::encoder {
+
+namespace shar::codec {
 
 Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
   : Context(context)

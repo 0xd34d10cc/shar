@@ -52,10 +52,10 @@ static Capture create_capture(Context context, sc::Monitor monitor) {
   return Capture{ std::move(context), interval, std::move(monitor) };
 }
 
-static encoder::Encoder create_encoder(Context context, const sc::Monitor& monitor) {
+static codec::Encoder create_encoder(Context context, const sc::Monitor& monitor) {
   const auto fps = context.m_config->fps;
 
-  return encoder::Encoder{
+  return codec::Encoder{
     std::move(context),
     Size{
       static_cast<std::size_t>(monitor.Height),
@@ -94,8 +94,8 @@ Broadcast::Broadcast(Options options)
 }
 
 int Broadcast::run() {
-  auto[frames_tx, frames_rx] = channel<encoder::ffmpeg::Frame>(30);
-  auto[packets_tx, packets_rx] = channel<encoder::ffmpeg::Unit>(30);
+  auto[frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
+  auto[packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
 
   // NOTE: current capture implementation starts background thread.
   m_capture.run(std::move(frames_tx));

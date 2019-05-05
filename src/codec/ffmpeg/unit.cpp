@@ -9,7 +9,7 @@ extern "C" {
 #include "unit.hpp"
 
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 Unit::Unit(AVPacket* packet)
   : m_packet(packet)

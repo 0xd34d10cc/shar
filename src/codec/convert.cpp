@@ -1,7 +1,7 @@
 #include "convert.hpp"
 
 
-namespace shar::encoder {
+namespace shar::codec {
 
 static Slice alloc(std::size_t size) {
   return {std::make_unique<std::uint8_t[]>(size), size};

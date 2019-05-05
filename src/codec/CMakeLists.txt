@@ -1,8 +1,6 @@
-add_library(encoder
+add_library(codec
             ffmpeg/options.hpp
             ffmpeg/options.cpp
-            ffmpeg/avcontext.hpp
-            ffmpeg/avcontext.cpp
             ffmpeg/codec.hpp
             ffmpeg/codec.cpp
             ffmpeg/unit.hpp
@@ -13,18 +11,20 @@ add_library(encoder
             convert.hpp
             encoder.cpp
             encoder.hpp
+            decoder.hpp
+            decoder.cpp
             )
 
-target_include_directories(encoder
+target_include_directories(codec
     PUBLIC ..
     PUBLIC ../common
 )
 
-target_link_libraries(encoder
+target_link_libraries(codec
     common
     ${CONAN_LIBS_FFMPEG}
     ${CONAN_LIBS_LIBX264}
 )
 
-target_compile_definitions(encoder PRIVATE ${SHAR_COMPILE_DEFINITIONS})
-target_compile_options(encoder PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(codec PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(codec PRIVATE ${SHAR_COMPILE_OPTIONS})

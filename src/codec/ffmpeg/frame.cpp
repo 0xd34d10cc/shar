@@ -8,10 +8,10 @@ extern "C" {
 #include "disable_warnings_pop.hpp"
 
 #include "frame.hpp"
-#include "encoder/convert.hpp"
+#include "codec/convert.hpp"
 
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 Frame::Frame(FramePtr frame, std::unique_ptr<std::uint8_t[]> data)
   : m_frame(std::move(frame))
@@ -44,6 +44,12 @@ Frame Frame::from_bgra(const char* data, Size size) {
   frame->sample_aspect_ratio.den = static_cast<int>(size.height() / divisor);
 
   return Frame(std::move(frame), std::move(image.data));
+}
+
+Frame Frame::alloc() {
+  auto frame = FramePtr(av_frame_alloc());
+  assert(frame);
+  return Frame(std::move(frame), nullptr);
 }
 
 std::uint8_t* Frame::data() noexcept {

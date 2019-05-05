@@ -15,7 +15,7 @@ target_include_directories(shar
 
 target_link_libraries(shar
                       capture
-                      encoder
+                      codec
                       network
                       ui
                       common

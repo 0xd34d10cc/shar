@@ -9,7 +9,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "network/sender.hpp"
-#include "encoder/ffmpeg/unit.hpp"
+#include "codec/ffmpeg/unit.hpp"
 #include "metrics/gauge.hpp"
 #include "cancellation.hpp"
 #include "context.hpp"
@@ -18,9 +18,9 @@
 
 namespace shar::tcp {
 
-using encoder::ffmpeg::Unit;
+using codec::ffmpeg::Unit;
 
-class P2PSender 
+class P2PSender
   : public IPacketSender
   , protected Context
 {
@@ -40,7 +40,7 @@ private:
   void setup();
   void process(Unit packet);
   void teardown();
-  
+
   using Socket = asio::ip::tcp::socket;
   using IOContext = asio::io_context;
   using Acceptor = asio::ip::tcp::acceptor;

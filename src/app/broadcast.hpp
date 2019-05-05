@@ -9,7 +9,7 @@
 
 #include "common/context.hpp"
 #include "capture/capture.hpp"
-#include "encoder/encoder.hpp"
+#include "codec/encoder.hpp"
 #include "network/sender.hpp"
 
 
@@ -33,7 +33,7 @@ private:
   Context m_context;
   sc::Monitor m_monitor;
   Capture m_capture;
-  encoder::Encoder m_encoder;
+  codec::Encoder m_encoder;
   SenderPtr m_network;
 
   ExposerPtr m_exposer;

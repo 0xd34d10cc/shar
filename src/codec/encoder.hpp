@@ -11,9 +11,9 @@
 #include "ffmpeg/codec.hpp"
 
 
-namespace shar::encoder {
+namespace shar::codec {
 
-class Encoder : private Context {
+class Encoder: protected Context {
 public:
   Encoder(Context context, Size frame_size, std::size_t fps);
   Encoder(const Encoder&) = delete;

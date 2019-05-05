@@ -7,7 +7,7 @@ extern "C" {
 #include "disable_warnings_pop.hpp"
 
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 Options::~Options() {
   av_dict_free(&m_opts);

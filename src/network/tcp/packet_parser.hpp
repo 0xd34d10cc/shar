@@ -4,12 +4,12 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "encoder/ffmpeg/unit.hpp"
+#include "codec/ffmpeg/unit.hpp"
 
 
 namespace shar::tcp {
 
-using encoder::ffmpeg::Unit;
+using codec::ffmpeg::Unit;
 using Buffer = std::vector<std::uint8_t>;
 
 class PacketParser {

@@ -11,7 +11,7 @@ struct AVPacket;
 void av_packet_free(AVPacket **pkt);
 }
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 // h264 nal unit
 class Unit {

@@ -6,7 +6,7 @@
 
 struct AVDictionary;
 
-namespace shar::encoder::ffmpeg {
+namespace shar::codec::ffmpeg {
 
 class Options {
 public:
