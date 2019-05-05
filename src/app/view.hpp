@@ -17,7 +17,7 @@ using ReceiverPtr = std::unique_ptr<IPacketReceiver>;
 
 class View {
 public:
-  View(Options options);
+  explicit View(Options options);
 
   int run();
 

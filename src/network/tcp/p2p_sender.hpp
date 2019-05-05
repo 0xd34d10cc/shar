@@ -60,7 +60,7 @@ private:
       SendingContent
     };
 
-    Client(Socket socket);
+    explicit Client(Socket socket);
     Client(const Client&) = delete;
 
     bool is_running() const;

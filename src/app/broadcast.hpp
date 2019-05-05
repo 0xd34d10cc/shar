@@ -20,7 +20,7 @@ using ExposerPtr = std::unique_ptr<prometheus::Exposer>;
 
 class Broadcast {
 public:
-  Broadcast(Options options);
+  explicit Broadcast(Options options);
   Broadcast(const Broadcast&) = delete;
   Broadcast(Broadcast&&) = delete;
   Broadcast& operator=(const Broadcast&) = delete;

@@ -16,6 +16,11 @@ namespace shar::codec {
 class Decoder: protected Context {
 public:
   Decoder(Context context, Size size, std::size_t fps);
+  Decoder(const Decoder&) = delete;
+  Decoder(Decoder&&) = default;
+  Decoder& operator=(const Decoder&) = delete;
+  Decoder& operator=(Decoder&&) = default;
+  ~Decoder() = default;
 
   void run(Receiver<ffmpeg::Unit> input, Sender<ffmpeg::Frame> output);
   void shutdown();

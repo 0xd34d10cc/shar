@@ -10,7 +10,7 @@ namespace shar::ui {
 
 class Texture {
 public:
-  Texture(Size size) noexcept;
+  explicit Texture(Size size) noexcept;
   ~Texture() noexcept;
 
   // this method reallocates and resizes texture
