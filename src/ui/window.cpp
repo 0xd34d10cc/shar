@@ -40,7 +40,7 @@ Window::Window(Size size, Logger logger)
     , m_size(size)
     , m_logger(std::move(logger))
 {
-  lazy_init();
+  lazy_init(); // TODO: actually make it lazy
 }
 
 Window::Window(Window&& other) noexcept
@@ -77,12 +77,11 @@ void Window::lazy_init() noexcept {
 void Window::reset() noexcept {
   if (m_window) {
     glfwDestroyWindow(m_window);
-  }
+    --instances;
 
-  --instances;
-
-  if (instances == 0) {
-    glfwTerminate();
+    if (instances == 0) {
+      glfwTerminate();
+    }
   }
 }
 

@@ -38,7 +38,7 @@ public:
 
 private:
   void setup();
-  void process(Unit packet);
+  void schedule_send(Unit packet);
   void teardown();
 
   using Socket = asio::ip::tcp::socket;

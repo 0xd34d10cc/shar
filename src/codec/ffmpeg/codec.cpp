@@ -195,6 +195,7 @@ Codec::AVContextPtr Codec::create_context(std::size_t kbits, AVCodec* codec, sha
   context->bit_rate = static_cast<int>(kbits * 1024);
   context->time_base.num = 1;
   context->time_base.den = static_cast<int>(fps);
+  context->gop_size = static_cast<int>(fps);
   context->pix_fmt = AV_PIX_FMT_YUV420P;
   context->width = static_cast<int>(frame_size.width());
   context->height = static_cast<int>(frame_size.height());

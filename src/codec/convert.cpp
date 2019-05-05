@@ -78,10 +78,10 @@ YUVImage bgra_to_yuv420(const char* data, Size size) {
 }
 
 template<typename T>
-static const T& clamp(const T& v, const T& lo, const T& hi) {
+static T clamp(T v, T lo, T hi) {
   return v > hi ? hi :
-    v < lo ? lo :
-    v;
+         v < lo ? lo :
+                  v;
 }
 
 Slice yuv420_to_bgra(const std::uint8_t* ys,

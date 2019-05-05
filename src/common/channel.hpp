@@ -120,6 +120,17 @@ public:
     return std::move(value);
   }
 
+  std::optional<T> try_receive() {
+    std::unique_lock<std::mutex> lock(m_state->mutex);
+    if (m_state->buffer.empty()) {
+      return std::nullopt;
+    }
+
+    auto value = m_state->buffer.pop();
+    m_state->full.notify_one();
+    return std::move(value);
+  }
+
   bool connected() const {
     return !m_state->disconnected;
   }

@@ -1,9 +1,10 @@
 #include "p2p_sender.hpp"
 
+#include "time.hpp"
+
 
 namespace shar::tcp {
 
-static const std::uint16_t DEFAULT_PORT = 1337;
 static const std::size_t PACKETS_HIGH_WATERMARK = 120;
 static const std::size_t PACKETS_LOW_WATERMARK  = 80;
 
@@ -39,13 +40,14 @@ void P2PSender::run(Receiver<Unit> receiver) {
   setup();
 
   while (!m_running.expired() && receiver.connected()) {
-    auto unit = receiver.receive();
-    if (!unit) {
-      // end of stream
-      break;
+    auto unit = receiver.try_receive();
+    if (unit) {
+      schedule_send(std::move(*unit));
     }
 
-    process(std::move(*unit));
+    do {
+      m_context.run_for(Milliseconds(10));
+    } while (m_overflown_count != 0);
   }
 
   shutdown();
@@ -56,9 +58,7 @@ void P2PSender::shutdown() {
   m_running.cancel();
 }
 
-void P2PSender::process(Unit packet) {
-  using namespace std::chrono_literals;
-
+void P2PSender::schedule_send(Unit packet) {
   const auto shared_packet = std::make_shared<Unit>(std::move(packet));
   for (auto& client: m_clients) {
     client.second.m_packets.push(shared_packet);
@@ -73,10 +73,6 @@ void P2PSender::process(Unit packet) {
       run_client(client.first);
     }
   }
-
-  do {
-    m_context.run_for(10ms);
-  } while (m_overflown_count != 0);
 }
 
 void P2PSender::start_accepting() {
