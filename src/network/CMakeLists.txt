@@ -1,18 +1,31 @@
 add_library(network
-            network.cpp
-            network.hpp
-            packetizer.hpp
-            packetizer.cpp
-            fragment.hpp
-            fragment.cpp
-            url.hpp
-            url.cpp
-            module.hpp
-            tcp.hpp
-            tcp.cpp
-            rtp.hpp
-            rtp.cpp
-            )
+    sender.hpp
+    sender_factory.hpp
+    sender_factory.cpp
+
+    receiver.hpp
+    receiver_factory.hpp
+    receiver_factory.cpp
+
+    url.hpp
+    url.cpp
+
+    tcp/sender.hpp
+    tcp/sender.cpp
+    tcp/p2p_sender.hpp
+    tcp/p2p_sender.cpp
+    tcp/receiver.hpp
+    tcp/receiver.cpp
+    tcp/packet_parser.hpp
+    tcp/packet_parser.cpp
+
+    rtp/packetizer.hpp
+    rtp/packetizer.cpp
+    rtp/fragment.hpp
+    rtp/fragment.cpp
+    rtp/sender.hpp
+    rtp/sender.cpp
+)
 
 target_include_directories(network
     PUBLIC ..
@@ -31,4 +44,4 @@ target_compile_options(network PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 
 add_subdirectory(rtnet)
-add_subdirectory(tests)
+add_subdirectory(rtp/tests)

@@ -15,46 +15,35 @@
 
 namespace shar {
 
-namespace {
-
-  spdlog::level::level_enum get_spdlog_level(const LogLevel loglvl) {
-    switch (loglvl) {
-    case(LogLevel::trace): {
-      return spdlog::level::trace;
-    }
-    case(LogLevel::debug): {
-      return spdlog::level::debug;
-    }
-    case(LogLevel::info): {
-      return spdlog::level::info;
-    }
-    case(LogLevel::warning): {
-      return spdlog::level::warn;
-    }
-    case(LogLevel::error): {
-      return spdlog::level::critical;
-    }
-    case(LogLevel::quite): {
-      return spdlog::level::off;
-    }
-    case LogLevel::critical:
-      return spdlog::level::critical;
-    default: {
-      throw std::runtime_error("Uknown loglvl");
-    }
-    }
-  }
-
-}
-
 class Logger {
 public:
   explicit Logger(const std::string& file_path, LogLevel loglvl) {
+    const auto log_level_to_spd = [](LogLevel level) {
+      switch (level) {
+      case LogLevel::Trace:
+        return spdlog::level::trace;
+      case LogLevel::Debug:
+        return spdlog::level::debug;
+      case LogLevel::Info:
+        return spdlog::level::info;
+      case LogLevel::Warning:
+        return spdlog::level::warn;
+      case LogLevel::Error:
+        return spdlog::level::critical;
+      case LogLevel::Quiet:
+        return spdlog::level::off;
+      case LogLevel::Critical:
+        return spdlog::level::critical;
+      default:
+        throw std::runtime_error("Unknown log level");
+      }
+    };
+
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
     m_logger = std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
-    m_logger->set_level(get_spdlog_level(loglvl));
+    m_logger->set_level(log_level_to_spd(loglvl));
     m_logger->set_pattern("[%D %T] [%n] %v");
     spdlog::register_logger(m_logger);
     m_logger->info("Logger has been initialized");

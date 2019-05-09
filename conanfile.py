@@ -7,6 +7,7 @@ class Shar(ConanFile):
     requires        = ("asio/1.12.0@bincrafters/stable",              # network
                        "ScreenCaptureLite/16.1.0@0xd34d10cc/testing", # capture
                        "ffmpeg/4.0@0xd34d10cc/testing",               # encoder
+                       "glfw/3.2.1.20180327@bincrafters/stable",      # OpenGL provider
                        "spdlog/0.17.0@bincrafters/stable",            # logs
                        "gtest/1.8.1@bincrafters/stable",              # UTs
                        # TODO: move to 0xd34d10cc

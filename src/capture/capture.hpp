@@ -9,7 +9,7 @@
 #include "context.hpp"
 #include "channel.hpp"
 #include "time.hpp"
-#include "encoder/ffmpeg/frame.hpp"
+#include "codec/ffmpeg/frame.hpp"
 
 
 namespace sc = SL::Screen_Capture;
@@ -32,7 +32,7 @@ public:
   Capture& operator=(Capture&&) noexcept = default;
   ~Capture() = default;
 
-  void run(Sender<encoder::ffmpeg::Frame> output);
+  void run(Sender<codec::ffmpeg::Frame> output);
   void shutdown();
 
 private:

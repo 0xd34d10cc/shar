@@ -1,7 +1,9 @@
 add_executable(shar
                main.cpp
-               app.hpp
-               app.cpp
+               broadcast.hpp
+               broadcast.cpp
+               view.hpp
+               view.cpp
                signal_handler.cpp
                signal_handler.hpp
                )
@@ -13,8 +15,9 @@ target_include_directories(shar
 
 target_link_libraries(shar
                       capture
-                      encoder
+                      codec
                       network
+                      ui
                       common
                       )
 

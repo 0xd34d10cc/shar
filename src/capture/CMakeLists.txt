@@ -17,5 +17,5 @@ target_link_libraries(capture
     PUBLIC ${CONAN_LIBS_SCREENCAPTURELITE}
 )
 
-target_compile_definitions(encoder PRIVATE ${SHAR_COMPILE_DEFINITIONS})
-target_compile_options(encoder PRIVATE ${SHAR_COMPILE_OPTIONS})
+target_compile_definitions(capture PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(capture PRIVATE ${SHAR_COMPILE_OPTIONS})
