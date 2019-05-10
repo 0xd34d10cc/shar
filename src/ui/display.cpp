@@ -9,8 +9,6 @@
 
 #include "codec/convert.hpp"
 
-#define CHECK_GL_ERROR { GLenum e = glGetError(); if (e != GL_NO_ERROR) { std::cout << "Error at" << __LINE__ << ": " << e << std::endl; }}
-
 
 namespace
 {
