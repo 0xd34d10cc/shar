@@ -39,17 +39,10 @@ static codec::Decoder make_decoder(Context context) {
   };
 }
 
-static ui::Window make_window(Context context) {
-  return ui::Window{
-    Size{1080, 1920},
-    std::move(context.m_logger)
-  };
-}
-
-static ui::Display make_display(Context context, ui::Window& window) {
+static ui::Display make_display(Context context) {
   return ui::Display{
     std::move(context),
-    window
+    Size{1080, 1920}
   };
 }
 
@@ -57,8 +50,7 @@ View::View(Options options)
   : m_context(make_context(std::move(options)))
   , m_receiver(make_receiver(m_context))
   , m_decoder(make_decoder(m_context))
-  , m_window(make_window(m_context))
-  , m_display(make_display(m_context, m_window))
+  , m_display(make_display(m_context))
   {}
 
 int View::run() {

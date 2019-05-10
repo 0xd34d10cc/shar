@@ -1,8 +1,6 @@
 add_library(ui
     display.hpp
     display.cpp
-    window.hpp
-    window.cpp
     texture.hpp
     texture.cpp
     point.hpp
@@ -11,14 +9,14 @@ add_library(ui
 target_include_directories(ui
     PUBLIC ..
     PUBLIC ../common
-    PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_GLFW}
+    PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SDL2}
 )
 
 find_package(OpenGL REQUIRED)
 
 target_link_libraries(ui
     common
-    ${CONAN_LIBS_GLFW}
+    ${CONAN_LIBS_SDL2}
     ${OPENGL_gl_LIBRARY}
 )
 

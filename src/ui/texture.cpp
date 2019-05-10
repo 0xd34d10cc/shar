@@ -3,7 +3,7 @@
 #include "disable_warnings_push.hpp"
 #ifdef WIN32
 #define GL_BGRA 0x80E1
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <GL/gl.h>
@@ -26,10 +26,7 @@ Texture::Texture(Size size) noexcept
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   // allocate memory for texture
-  glTexImage2D(GL_TEXTURE_2D, 0 /* level */, GL_RGBA,
-               static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()),
-               0 /* border */, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
-
+  set(size, nullptr);
   unbind();
 }
 
