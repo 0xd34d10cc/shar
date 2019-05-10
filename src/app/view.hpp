@@ -9,7 +9,6 @@
 #include "options.hpp"
 #include "network/receiver.hpp"
 #include "codec/decoder.hpp"
-#include "ui/window.hpp"
 #include "ui/display.hpp"
 
 
@@ -28,7 +27,6 @@ private:
 
   ReceiverPtr m_receiver;
   codec::Decoder m_decoder;
-  ui::Window m_window;
   ui::Display m_display;
 };
 
