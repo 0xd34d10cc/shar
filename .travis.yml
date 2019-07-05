@@ -108,9 +108,10 @@ before_script:
   # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  - conan remote add --force conan-transit https://api.bintray.com/conan/conan/conan-transit
   # build dependencies
   - mkdir build && cd build
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$CONAN_STDLIB .. 
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$CONAN_STDLIB ..
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 script:

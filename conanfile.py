@@ -13,7 +13,8 @@ class Shar(ConanFile):
                        # TODO: move to 0xd34d10cc
                        "prometheus-cpp/0.6.0@d34dpkgs/testing",       # metrics
                        "jsonformoderncpp/3.5.0@vthiery/stable",       # config
-                       "CLI11/1.7.1@cliutils/stable")                 # command line options
+                       "CLI11/1.7.1@cliutils/stable",                 # command line options
+                       "nuklear/1.33.0@shearer12345/testing")         # ui
 
     generators      = "cmake"
 

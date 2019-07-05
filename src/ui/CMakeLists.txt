@@ -4,6 +4,8 @@ add_library(ui
     texture.hpp
     texture.cpp
     point.hpp
+    window.hpp
+    window.cpp
 )
 
 target_include_directories(ui
