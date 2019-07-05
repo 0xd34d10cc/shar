@@ -21,7 +21,7 @@ Unit Unit::allocate() noexcept {
 
 Unit Unit::from_data(std::uint8_t* data, std::size_t size) {
   auto unit = Unit::allocate();
-  AVBufferRef* buffer = av_buffer_alloc(size);
+  AVBufferRef* buffer = av_buffer_alloc(static_cast<int>(size));
   std::memcpy(buffer->data, data, size);
   assert(unit.raw()->buf == nullptr);
   unit.raw()->buf = buffer;

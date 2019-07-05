@@ -62,7 +62,7 @@ std::uint8_t* App::payload() noexcept {
 
 std::uint8_t App::payload_size() const noexcept {
   assert(valid());
-  return packet_size() - App::MIN_SIZE;
+  return static_cast<std::uint8_t>(packet_size() - App::MIN_SIZE);
 }
 
 }

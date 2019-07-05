@@ -235,14 +235,12 @@ void P2PSender::setup() {
 void P2PSender::teardown() {
   // disconnect all clients
   for (auto& client: m_clients) {
-    client.second.m_socket.cancel();
-
     ErrorCode ec;
     client.second.m_socket.shutdown(Socket::shutdown_both, ec);
     // ignore error
   }
-  m_clients.clear();
 
+  m_clients.clear();
   m_acceptor.cancel();
 }
 

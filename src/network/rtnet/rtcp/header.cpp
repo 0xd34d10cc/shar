@@ -88,12 +88,12 @@ void Header::set_length(std::uint16_t length) noexcept {
 
 std::size_t Header::packet_size() const noexcept {
   assert(valid());
-  return (length() + 1) * sizeof(std::uint32_t);
+  return (std::size_t{length()} + 1) * sizeof(std::uint32_t);
 }
 
 Header Header::next() noexcept {
   assert(valid());
-  std::uint16_t len = packet_size();
+  std::uint16_t len = static_cast<std::uint16_t>(packet_size());
   if (len + Header::MIN_SIZE > m_size) {
     return Header{};
   }
