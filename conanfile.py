@@ -14,6 +14,7 @@ class Shar(ConanFile):
                        "prometheus-cpp/0.6.0@d34dpkgs/testing",       # metrics
                        "jsonformoderncpp/3.5.0@vthiery/stable",       # config
                        "CLI11/1.7.1@cliutils/stable",                 # command line options
+                       # TODO: make separate package at d34dpkgs with version > 4.0
                        "nuklear/1.33.0@shearer12345/testing")         # ui
 
     generators      = "cmake"

@@ -6,6 +6,8 @@ add_library(ui
     point.hpp
     window.hpp
     window.cpp
+    sdl_backend.hpp
+    sdl_backend.cpp
 )
 
 target_include_directories(ui

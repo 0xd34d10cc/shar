@@ -20,6 +20,7 @@ void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
 
   using Endpoint = asio::ip::tcp::endpoint;
   Endpoint endpoint{ m_server_address, m_port };
+  // FIXME: throws exception
   m_receiver.connect(endpoint);
 
   start_read();

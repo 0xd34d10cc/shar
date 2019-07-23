@@ -143,7 +143,9 @@ void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
   m_logger.info("OpenGL {}", glGetString(GL_VERSION));
   Texture texture{ m_size };
 
-  glViewport(0, 0, static_cast<GLsizei>(m_size.width()), static_cast<GLsizei>(m_size.height()));
+  glViewport(0, 0,
+             static_cast<GLsizei>(m_size.width()),
+             static_cast<GLsizei>(m_size.height()));
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
   SDL_GL_SwapWindow(window.get());
