@@ -8,6 +8,8 @@ add_library(ui
     window.cpp
     sdl_backend.hpp
     sdl_backend.cpp
+    gl_vtable.hpp
+    gl_vtable.cpp
 )
 
 target_include_directories(ui

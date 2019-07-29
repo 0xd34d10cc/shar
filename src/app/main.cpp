@@ -2,12 +2,16 @@
 #include "broadcast.hpp"
 #include "view.hpp"
 
+#include "ui/window.hpp"
+
 
 int main(int argc, const char* argv[]) {
   try {
     auto options = shar::Options::read(argc, argv);
 
     if (options.connect) {
+      shar::ui::run();
+
       shar::View view{ std::move(options) };
       return view.run();
     }

@@ -1,39 +1,26 @@
-/*
- * Nuklear - 1.32.0 - public domain
- * no warrenty implied; use at your own risk.
- * authored from 2015-2016 by Micha Mettke
- */
- /*
-  * ==============================================================
-  *
-  *                              API
-  *
-  * ===============================================================
-  */
-#ifndef NK_SDL_GL3_H_
-#define NK_SDL_GL3_H_
+#pragma once
 
 struct nk_context;
 struct SDL_Window;
 union SDL_Event;
 struct nk_font_atlas;
 enum nk_anti_aliasing;
-struct OpenGLContext;
 
-OpenGLContext* opengl_load();
-void opengl_unload(OpenGLContext* gl);
+namespace shar::ui {
+struct SDLBackend;
+struct OpenGLVTable;
 
-struct nk_context* nk_sdl_init(SDL_Window* win, OpenGLContext* gl);
-void nk_sdl_font_stash_begin(struct nk_font_atlas** atlas);
-void nk_sdl_font_stash_end(void);
-int nk_sdl_handle_event(SDL_Event* evt);
-void nk_sdl_render(OpenGLContext* gl,
+struct SDLBackend* nk_sdl_init(SDL_Window* win, OpenGLVTable* gl);
+struct nk_context* nk_sdl_context(SDLBackend* sdl);
+void nk_sdl_font_stash_begin(SDLBackend* sdl, struct nk_font_atlas** atlas);
+void nk_sdl_font_stash_end(SDLBackend* sdl);
+int nk_sdl_handle_event(SDLBackend* sdl, SDL_Event* evt);
+void nk_sdl_render(SDLBackend* sdl,
+                   OpenGLVTable* gl,
                    enum nk_anti_aliasing,
                    int max_vertex_buffer,
                    int max_element_buffer);
 
-void nk_sdl_shutdown(OpenGLContext* gl);
-void nk_sdl_device_destroy(OpenGLContext* gl);
-void nk_sdl_device_create(OpenGLContext* gl);
+void nk_sdl_shutdown(SDLBackend* sdl, OpenGLVTable* gl);
 
-#endif
+} // namespace shar::ui

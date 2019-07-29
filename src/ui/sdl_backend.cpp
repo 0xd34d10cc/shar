@@ -17,45 +17,17 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
 #include <nuklear.h>
-#include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_clipboard.h>
 #include <SDL2/SDL_opengl_glext.h>
 #include "disable_warnings_pop.hpp"
 
+#include "gl_vtable.hpp"
 
-struct OpenGLContext {
-  PFNGLCREATEPROGRAMPROC glCreateProgram;
-  PFNGLCREATESHADERPROC glCreateShader;
-  PFNGLSHADERSOURCEPROC glShaderSource;
-  PFNGLCOMPILESHADERPROC glCompileShader;
-  PFNGLGETSHADERIVPROC glGetShaderiv;
-  PFNGLATTACHSHADERPROC glAttachShader;
-  PFNGLLINKPROGRAMPROC glLinkProgram;
-  PFNGLGETPROGRAMIVPROC glGetProgramiv;
-  PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
-  PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
-  PFNGLGENBUFFERSPROC glGenBuffers;
-  PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-  PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-  PFNGLBINDBUFFERPROC glBindBuffer;
-  PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-  PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-  PFNGLDETACHSHADERPROC glDetachShader;
-  PFNGLDELETESHADERPROC glDeleteShader;
-  PFNGLDELETEPROGRAMPROC glDeleteProgram;
-  PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-  PFNGLBLENDEQUATIONPROC glBlendEquation;
-  PFNGLACTIVETEXTUREPROC glActiveTexture;
-  PFNGLUSEPROGRAMPROC glUseProgram;
-  PFNGLUNIFORM1IPROC glUniform1i;
-  PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-  PFNGLBUFFERDATAPROC glBufferData;
-  PFNGLMAPBUFFERPROC glMapBuffer;
-  PFNGLUNMAPBUFFERPROC glUnmapBuffer;
-};
 
-struct nk_sdl_device {
+namespace shar::ui {
+
+struct SDLDevice {
   struct nk_buffer cmds;
   struct nk_draw_null_texture null;
   GLuint vbo, vao, ebo;
@@ -76,12 +48,12 @@ struct nk_sdl_vertex {
   nk_byte col[4];
 };
 
-static struct nk_sdl {
+struct SDLBackend {
   SDL_Window* win;
-  struct nk_sdl_device ogl;
+  struct SDLDevice ogl;
   struct nk_context ctx;
   struct nk_font_atlas atlas;
-} sdl;
+};
 
 #ifdef __APPLE__
 #define NK_SHADER_VERSION "#version 150\n"
@@ -89,56 +61,7 @@ static struct nk_sdl {
 #define NK_SHADER_VERSION "#version 300 es\n"
 #endif
 
-OpenGLContext* opengl_load() {
-  OpenGLContext* context = (OpenGLContext*)malloc(sizeof(OpenGLContext));
-
-#define TRY_LOAD(name) if (void* ptr = SDL_GL_GetProcAddress(#name)) {\
-                          using FnType = decltype(context->name);\
-                          context->name = (FnType)ptr;\
-                       }\
-                       else {\
-                          free(context);\
-                          return nullptr;\
-                       }
-
-  TRY_LOAD(glCreateProgram);
-  TRY_LOAD(glCreateShader);
-  TRY_LOAD(glShaderSource);
-  TRY_LOAD(glCompileShader);
-  TRY_LOAD(glGetShaderiv);
-  TRY_LOAD(glAttachShader);
-  TRY_LOAD(glLinkProgram);
-  TRY_LOAD(glGetProgramiv);
-  TRY_LOAD(glGetUniformLocation);
-  TRY_LOAD(glGetAttribLocation);
-  TRY_LOAD(glGenBuffers);
-  TRY_LOAD(glGenVertexArrays);
-  TRY_LOAD(glBindVertexArray);
-  TRY_LOAD(glBindBuffer);
-  TRY_LOAD(glEnableVertexAttribArray);
-  TRY_LOAD(glVertexAttribPointer);
-  TRY_LOAD(glDetachShader);
-  TRY_LOAD(glDeleteShader);
-  TRY_LOAD(glDeleteProgram);
-  TRY_LOAD(glDeleteBuffers);
-  TRY_LOAD(glBlendEquation);
-  TRY_LOAD(glActiveTexture);
-  TRY_LOAD(glUseProgram);
-  TRY_LOAD(glUniform1i);
-  TRY_LOAD(glUniformMatrix4fv);
-  TRY_LOAD(glBufferData);
-  TRY_LOAD(glMapBuffer);
-  TRY_LOAD(glUnmapBuffer);
-
-#undef TRY_LOAD
-  return context;
-}
-
-void opengl_unload(OpenGLContext* gl) {
-  free(gl);
-}
-
-NK_API void nk_sdl_device_create(OpenGLContext* gl) {
+static void nk_sdl_device_create(SDLBackend* sdl, OpenGLVTable* gl) {
   GLint status;
   static const GLchar* vertex_shader =
     NK_SHADER_VERSION
@@ -165,7 +88,7 @@ NK_API void nk_sdl_device_create(OpenGLContext* gl) {
     "   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
     "}\n";
 
-  struct nk_sdl_device* dev = &sdl.ogl;
+  struct SDLDevice* dev = &sdl->ogl;
   nk_buffer_init_default(&dev->cmds);
   // NOTE: these are extension functions, so we have to load them separately
   //       either manually or via library (e.g. glew)
@@ -223,9 +146,9 @@ NK_API void nk_sdl_device_create(OpenGLContext* gl) {
 }
 
 NK_INTERN void
-nk_sdl_device_upload_atlas(const void* image, int width, int height)
+nk_sdl_device_upload_atlas(SDLBackend* sdl, const void* image, int width, int height)
 {
-  struct nk_sdl_device* dev = &sdl.ogl;
+  struct SDLDevice* dev = &sdl->ogl;
   glGenTextures(1, &dev->font_tex);
   glBindTexture(GL_TEXTURE_2D, dev->font_tex);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -234,10 +157,9 @@ nk_sdl_device_upload_atlas(const void* image, int width, int height)
     GL_RGBA, GL_UNSIGNED_BYTE, image);
 }
 
-NK_API void
-nk_sdl_device_destroy(OpenGLContext* gl)
+static void nk_sdl_device_destroy(SDLBackend* sdl, OpenGLVTable* gl)
 {
-  struct nk_sdl_device* dev = &sdl.ogl;
+  struct SDLDevice* dev = &sdl->ogl;
   gl->glDetachShader(dev->prog, dev->vert_shdr);
   gl->glDetachShader(dev->prog, dev->frag_shdr);
   gl->glDeleteShader(dev->vert_shdr);
@@ -250,12 +172,13 @@ nk_sdl_device_destroy(OpenGLContext* gl)
 }
 
 NK_API void
-nk_sdl_render(OpenGLContext* gl,
+nk_sdl_render(SDLBackend* sdl,
+              OpenGLVTable* gl,
               enum nk_anti_aliasing AA,
               int max_vertex_buffer,
               int max_element_buffer)
 {
-  struct nk_sdl_device* dev = &sdl.ogl;
+  struct SDLDevice* dev = &sdl->ogl;
   int width, height;
   int display_width, display_height;
   struct nk_vec2 scale;
@@ -265,8 +188,8 @@ nk_sdl_render(OpenGLContext* gl,
       {0.0f, 0.0f,-1.0f, 0.0f},
       {-1.0f,1.0f, 0.0f, 1.0f},
   };
-  SDL_GetWindowSize(sdl.win, &width, &height);
-  SDL_GL_GetDrawableSize(sdl.win, &display_width, &display_height);
+  SDL_GetWindowSize(sdl->win, &width, &height);
+  SDL_GL_GetDrawableSize(sdl->win, &display_width, &display_height);
   ortho[0][0] /= (GLfloat)width;
   ortho[1][1] /= (GLfloat)height;
 
@@ -329,13 +252,13 @@ nk_sdl_render(OpenGLContext* gl,
       /* setup buffers to load vertices and elements */
       nk_buffer_init_fixed(&vbuf, vertices, (nk_size)max_vertex_buffer);
       nk_buffer_init_fixed(&ebuf, elements, (nk_size)max_element_buffer);
-      nk_convert(&sdl.ctx, &dev->cmds, &vbuf, &ebuf, &config);
+      nk_convert(&sdl->ctx, &dev->cmds, &vbuf, &ebuf, &config);
     }
     gl->glUnmapBuffer(GL_ARRAY_BUFFER);
     gl->glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
     /* iterate over and execute each draw command */
-    nk_draw_foreach(cmd, &sdl.ctx, &dev->cmds) {
+    nk_draw_foreach(cmd, &sdl->ctx, &dev->cmds) {
       if (!cmd->elem_count) continue;
       glBindTexture(GL_TEXTURE_2D, (GLuint)cmd->texture.id);
       glScissor((GLint)(cmd->clip_rect.x * scale.x),
@@ -345,7 +268,7 @@ nk_sdl_render(OpenGLContext* gl,
       glDrawElements(GL_TRIANGLES, (GLsizei)cmd->elem_count, GL_UNSIGNED_SHORT, offset);
       offset += cmd->elem_count;
     }
-    nk_clear(&sdl.ctx);
+    nk_clear(&sdl->ctx);
   }
 
   gl->glUseProgram(0);
@@ -378,42 +301,50 @@ nk_sdl_clipboard_copy(nk_handle usr, const char* text, int len)
   free(str);
 }
 
+
+NK_API struct SDLBackend*
+nk_sdl_init(SDL_Window* win, OpenGLVTable* gl)
+{
+  SDLBackend* sdl = (SDLBackend*)calloc(1, sizeof(SDLBackend));
+  sdl->win = win;
+  nk_init_default(&sdl->ctx, 0);
+  sdl->ctx.clip.copy = nk_sdl_clipboard_copy;
+  sdl->ctx.clip.paste = nk_sdl_clipboard_paste;
+  sdl->ctx.clip.userdata = nk_handle_ptr(0);
+  nk_sdl_device_create(sdl, gl);
+  return sdl;
+}
+
 NK_API struct nk_context*
-nk_sdl_init(SDL_Window* win, OpenGLContext* gl)
+nk_sdl_context(SDLBackend* sdl)
 {
-  sdl.win = win;
-  nk_init_default(&sdl.ctx, 0);
-  sdl.ctx.clip.copy = nk_sdl_clipboard_copy;
-  sdl.ctx.clip.paste = nk_sdl_clipboard_paste;
-  sdl.ctx.clip.userdata = nk_handle_ptr(0);
-  nk_sdl_device_create(gl);
-  return &sdl.ctx;
+  return &sdl->ctx;
 }
 
 NK_API void
-nk_sdl_font_stash_begin(struct nk_font_atlas** atlas)
+nk_sdl_font_stash_begin(SDLBackend* sdl, struct nk_font_atlas** atlas)
 {
-  nk_font_atlas_init_default(&sdl.atlas);
-  nk_font_atlas_begin(&sdl.atlas);
-  *atlas = &sdl.atlas;
+  nk_font_atlas_init_default(&sdl->atlas);
+  nk_font_atlas_begin(&sdl->atlas);
+  *atlas = &sdl->atlas;
 }
 
 NK_API void
-nk_sdl_font_stash_end(void)
+nk_sdl_font_stash_end(SDLBackend* sdl)
 {
-  const void* image; int w, h;
-  image = nk_font_atlas_bake(&sdl.atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
-  nk_sdl_device_upload_atlas(image, w, h);
-  nk_font_atlas_end(&sdl.atlas, nk_handle_id((int)sdl.ogl.font_tex), &sdl.ogl.null);
-  if (sdl.atlas.default_font)
-    nk_style_set_font(&sdl.ctx, &sdl.atlas.default_font->handle);
+  int w, h;
+  const void* image = nk_font_atlas_bake(&sdl->atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
+  nk_sdl_device_upload_atlas(sdl, image, w, h);
+  nk_font_atlas_end(&sdl->atlas, nk_handle_id((int)sdl->ogl.font_tex), &sdl->ogl.null);
+  if (sdl->atlas.default_font)
+    nk_style_set_font(&sdl->ctx, &sdl->atlas.default_font->handle);
 
 }
 
 NK_API int
-nk_sdl_handle_event(SDL_Event* evt)
+nk_sdl_handle_event(SDLBackend* sdl, SDL_Event* evt)
 {
-  struct nk_context* ctx = &sdl.ctx;
+  struct nk_context* ctx = &sdl->ctx;
   if (evt->type == SDL_KEYUP || evt->type == SDL_KEYDOWN) {
     /* key events */
     int down = evt->type == SDL_KEYDOWN;
@@ -515,10 +446,12 @@ nk_sdl_handle_event(SDL_Event* evt)
 }
 
 NK_API
-void nk_sdl_shutdown(OpenGLContext* gl)
+void nk_sdl_shutdown(SDLBackend* sdl, OpenGLVTable* gl)
 {
-  nk_font_atlas_clear(&sdl.atlas);
-  nk_free(&sdl.ctx);
-  nk_sdl_device_destroy(gl);
-  memset(&sdl, 0, sizeof(sdl));
+  nk_font_atlas_clear(&sdl->atlas);
+  nk_free(&sdl->ctx);
+  nk_sdl_device_destroy(sdl, gl);
+  free(sdl);
 }
+
+} // namespace shar::ui

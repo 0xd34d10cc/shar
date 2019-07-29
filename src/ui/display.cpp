@@ -10,8 +10,7 @@
 #include "codec/convert.hpp"
 
 
-namespace
-{
+namespace {
 
 void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
   GLenum type,
@@ -29,7 +28,8 @@ void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
 
 struct SDLHandle {
   SDLHandle() {
-    m_code = SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
+    m_code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
   }
 
   ~SDLHandle() {
@@ -59,7 +59,7 @@ SDLWindowPtr create_window(shar::Size size) {
     SDL_WINDOWPOS_CENTERED,
     static_cast<int>(size.width()),
     static_cast<int>(size.height()),
-    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
   );
 
   if (!window) {
