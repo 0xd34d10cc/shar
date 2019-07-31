@@ -4,10 +4,18 @@ add_library(ui
     texture.hpp
     texture.cpp
     point.hpp
-    sdl_backend.hpp
-    sdl_backend.cpp
     gl_vtable.hpp
     gl_vtable.cpp
+    app.hpp
+    app.cpp
+    startup_screen.hpp
+    startup_screen.cpp
+    state.hpp
+    state.cpp
+    renderer.hpp
+    renderer.cpp
+    window.hpp
+    window.cpp
 )
 
 target_include_directories(ui
