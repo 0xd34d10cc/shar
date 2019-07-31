@@ -154,7 +154,7 @@ Options Options::read(int argc, const char* argv[]) {
   app.set_config("-c,--config");
   app.add_flag("--connect", opts.connect, "Connect to session");
   app.add_flag("--p2p", opts.p2p, "Enable p2p mode, makes sense only for sender");
-  app.add_option("url,-u,--url", opts.url, "Url for stream or connect")->required(true);
+  app.add_option("url,-u,--url", opts.url, "Url for stream or connect");
   app.add_option("-m,--monitor", opts.monitor, "Which monitor to capture");
   app.add_option("-f,--fps", opts.fps, "Desired fps", true);
   app.add_option("--codec", opts.codec, "Which codec to use");

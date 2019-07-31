@@ -17,6 +17,8 @@ public:
   void shutdown();
 
 private:
+  bool m_gui_enabled{ true };
+
   Cancellation m_running;
   metrics::Gauge m_fps;
   Size m_size;

@@ -135,6 +135,9 @@ Display::Display(Context context, Size size)
     , m_size(size)
     {}
 
+void Display::shutdown() {
+  m_running.cancel();
+}
 
 void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
   SDL_SetMainReady();
@@ -207,12 +210,16 @@ void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
         m_running.cancel();
       }
 
+      if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_g) {
+        m_gui_enabled = !m_gui_enabled;
+      }
+
       nk_sdl_handle_event(backend, &event);
     }
     nk_input_end(ctx);
 
     // gui
-    if (nk_begin(ctx, "Demo", nk_rect(50, 50, 230, 250),
+    if (m_gui_enabled && nk_begin(ctx, "Demo", nk_rect(50, 50, 230, 250),
       NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
       NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE))
     {
@@ -241,7 +248,6 @@ void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
 
         nk_layout_row_dynamic(ctx, 25, 1);
 
-        // FIXME: assigns float to nk_byte
         bg.r = 255.0f * nk_propertyf(ctx, "#R:", 0, (float)bg.r / 255.0f, 1.0f, 0.01f, 0.005f);
         bg.g = 255.0f * nk_propertyf(ctx, "#G:", 0, (float)bg.g / 255.0f, 1.0f, 0.01f, 0.005f);
         bg.b = 255.0f * nk_propertyf(ctx, "#B:", 0, (float)bg.b / 255.0f, 1.0f, 0.01f, 0.005f);
@@ -249,7 +255,9 @@ void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
         nk_combo_end(ctx);
       }
     }
-    nk_end(ctx);
+
+    if (m_gui_enabled)
+      nk_end(ctx);
 
     // process frame
     if (auto frame = frames.try_receive()) {
@@ -275,13 +283,15 @@ void Display::run(Receiver<codec::ffmpeg::Frame> frames) {
       texture.unbind();
     }
 
-    /* IMPORTANT: `nk_sdl_render` modifies some global OpenGL state
-     * with blending, scissor, face culling, depth test and viewport and
-     * defaults everything back into a default state.
-     * Make sure to either a.) save and restore or b.) reset your own state after
-     * rendering the UI. */
-    nk_sdl_render(backend, &*gl_vtable, NK_ANTI_ALIASING_ON,
-                  MAX_VERTEX_MEMORY, MAX_ELEMENT_MEMORY);
+    if (m_gui_enabled) {
+     /* IMPORTANT: `nk_sdl_render` modifies some global OpenGL state
+      * with blending, scissor, face culling, depth test and viewport and
+      * defaults everything back into a default state.
+      * Make sure to either a.) save and restore or b.) reset your own state after
+      * rendering the UI. */
+      nk_sdl_render(backend, &*gl_vtable, NK_ANTI_ALIASING_ON,
+                    MAX_VERTEX_MEMORY, MAX_ELEMENT_MEMORY);
+    }
 
     SDL_GL_SwapWindow(window.get());
 
