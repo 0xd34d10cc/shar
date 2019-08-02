@@ -2,7 +2,6 @@
 #include "texture.hpp"
 
 #include "disable_warnings_push.hpp"
-#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "disable_warnings_pop.hpp"
@@ -83,8 +82,8 @@ void Display::process_gui() {
   bg.a = 0;
 
   if (nk_begin(m_state.context(), "Demo", nk_rect(50, 50, 230, 250),
-      NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
-      NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE))
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
+               NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE))
   {
     enum { EASY, HARD };
     static int op = EASY;
