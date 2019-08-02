@@ -116,7 +116,7 @@ namespace shar {
 
 static shar::LogLevel log_level_from_string(const std::string& str) {
   static std::map<std::string, shar::LogLevel> values = {
-    {"quite",    shar::LogLevel::Quiet},
+    {"quiet",    shar::LogLevel::Quiet},
     {"trace",    shar::LogLevel::Trace},
     {"debug",    shar::LogLevel::Debug},
     {"info",     shar::LogLevel::Info},
@@ -174,6 +174,9 @@ Options Options::read(int argc, const char* argv[]) {
   }
 
   if (!codec_options.empty()) {
+    // clear default values
+    opts.options.clear();
+
     for (const auto& option : codec_options) {
       auto it = std::find(option.begin(), option.end(), '=');
       if (it == option.end()) {
