@@ -16,6 +16,8 @@ add_library(ui
     renderer.cpp
     window.hpp
     window.cpp
+    nk.hpp
+    nk.cpp
 )
 
 target_include_directories(ui

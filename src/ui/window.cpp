@@ -16,6 +16,7 @@ struct SDLHandle {
   SDLHandle() {
     SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
     m_code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
+    SDL_SetMainReady();
   }
 
   ~SDLHandle() {
