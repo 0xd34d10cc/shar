@@ -23,7 +23,7 @@ struct Options {
                                                      // for url are irrelevant
 
   bool p2p{ true };                                  // enable p2p mode, used only for sender
-  std::string url;                                   // url to stream to
+  std::string url{ "tcp://127.0.0.1:1337" };         // url to stream to
   std::size_t monitor{ 0 };                          // which monitor to capture
   std::size_t fps{ 30 };                             // desired fps (for encoder)
   std::string codec;                                 // which codec to use
@@ -32,8 +32,11 @@ struct Options {
   LogLevel loglvl{ LogLevel::Info };                 // loglvl for shar logger
   std::string log_file{ "shar.log" };                // name of logfile
   LogLevel encoder_loglvl{ LogLevel::Critical };     // loglvl for encoder logger
-  using Option = std::pair<std::string, std::string>;
-  std::vector<Option> options;                       // options for codec
+  using Option = std::pair<std::string, std::string>;// name -> value
+  std::vector<Option> options{                       // options for codec
+    {"preset", "medium"},
+    {"tune", "zerolatency"}
+  };
 
   // reads options from command line arguments, config and environment variables
   static Options read(int argc, const char* argv[]);

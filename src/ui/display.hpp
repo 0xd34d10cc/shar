@@ -16,6 +16,9 @@ namespace shar::ui {
 class Display: protected Context {
 public:
   Display(Context context, Size size);
+  Display(Display&&) = default;
+  Display& operator=(Display&&) = default;
+  ~Display() = default;
 
   void run(Receiver<codec::ffmpeg::Frame> frames);
   void shutdown();

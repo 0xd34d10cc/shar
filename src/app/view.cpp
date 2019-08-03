@@ -39,18 +39,11 @@ static codec::Decoder make_decoder(Context context) {
   };
 }
 
-static ui::Display make_display(Context context) {
-  return ui::Display{
-    std::move(context),
-    Size{1080, 1920}
-  };
-}
-
 View::View(Options options)
   : m_context(make_context(std::move(options)))
   , m_receiver(make_receiver(m_context))
   , m_decoder(make_decoder(m_context))
-  , m_display(make_display(m_context))
+  , m_display(m_context, Size{1080, 1920})
   {}
 
 int View::run() {
