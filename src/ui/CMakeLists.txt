@@ -6,8 +6,6 @@ add_library(ui
     point.hpp
     gl_vtable.hpp
     gl_vtable.cpp
-    app.hpp
-    app.cpp
     startup_screen.hpp
     startup_screen.cpp
     state.hpp

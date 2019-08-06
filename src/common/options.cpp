@@ -133,7 +133,7 @@ static shar::LogLevel log_level_from_string(const std::string& str) {
   throw std::runtime_error(fmt::format("Unknown log level: {}", str));
 }
 
-Options Options::read(int argc, const char* argv[]) {
+Options Options::read(int argc, char* argv[]) {
   Options opts{}; // make default
   std::vector<std::string> codec_options;
   std::string loglvl;
