@@ -41,7 +41,7 @@ public:
 
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path));
-    sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
+    // TODO: add custom GUI-based sink
     m_logger = std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
     m_logger->set_level(log_level_to_spd(loglvl));
     m_logger->set_pattern("[%D %T] [%n] %v");

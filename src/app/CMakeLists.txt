@@ -1,5 +1,7 @@
-add_executable(shar
+add_executable(shar WIN32
                main.cpp
+               app.hpp
+               app.cpp
                broadcast.hpp
                broadcast.cpp
                view.hpp
