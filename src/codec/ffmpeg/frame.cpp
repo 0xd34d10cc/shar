@@ -19,6 +19,7 @@ Frame::Frame(FramePtr frame, std::unique_ptr<std::uint8_t[]> data)
   {}
 
 Frame Frame::from_bgra(const char* data, Size size) {
+  // TODO: use AVBuffer to allow sharing Frame
   auto image = bgra_to_yuv420(data, size);
   assert(image.size == image.y_size + image.u_size + image.v_size);
 
