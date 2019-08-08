@@ -19,12 +19,22 @@ Frame convert(const sc::Image& image) noexcept {
 }
 
 struct FrameHandler {
-  explicit FrameHandler(std::shared_ptr<Sender<Frame>> consumer)
-      : m_consumer(std::move(consumer)) {}
+  explicit FrameHandler(std::shared_ptr<Sender<Frame>> consumer,
+                        std::shared_ptr<Sender<Frame>> bgra_sender)
+      : m_consumer(std::move(consumer))
+      , m_second_consumer(std::move(bgra_sender))
+      {}
 
   void operator()(const sc::Image& buffer, const sc::Monitor& /* monitor */) {
     Frame frame = convert(buffer);
     frame.set_timestamp(Clock::now());
+
+    // TODO: remove
+    if (m_second_consumer) {
+      Frame frame = convert(buffer);
+      frame.set_timestamp(Clock::now());
+      m_second_consumer->send(std::move(frame));
+    }
 
     // ignore return value here,
     // if channel was disconnected ScreenCapture will stop
@@ -35,6 +45,7 @@ struct FrameHandler {
   // shared_ptr is used here because FrameHandler has to be copyable
   // onNewFrame accepts handler by const reference
   std::shared_ptr<Sender<Frame>> m_consumer;
+  std::shared_ptr<Sender<Frame>> m_second_consumer;
 };
 
 }
@@ -53,9 +64,16 @@ Capture::Capture(Context context,
 
 }
 
-void Capture::run(Sender<Frame> output) {
+void Capture::run(Sender<Frame> output,
+                  std::optional<Sender<Frame>> double_output) {
+  // handled has to be copyable...
   auto sender = std::make_shared<Sender<Frame>>(std::move(output));
-  m_capture_config->onNewFrame(FrameHandler{std::move(sender)});
+  auto double_sender = double_output
+    ? std::make_shared<Sender<Frame>>(std::move(*double_output))
+    : std::shared_ptr<Sender<Frame>>();
+
+  m_capture_config->onNewFrame(FrameHandler{std::move(sender),
+                                            std::move(double_sender)});
   m_capture = m_capture_config->start_capturing();
   m_capture->setFrameChangeInterval(m_interval);
 }

@@ -54,9 +54,7 @@ StartupScreen::Result StartupScreen::run() {
   while (!m_running.expired()) {
     process_input();
 
-    if (nk_begin(m_state.context(), "Startup", nk_rect(0, 0, 300, 300),
-                 NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
-                 NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE))
+    if (nk_begin(m_state.context(), "Startup", nk_rect(0, 0, 300, 300), NK_WINDOW_BORDER))
     {
       nk_layout_row_static(m_state.context(), 30, 120, 2);
       if (nk_button_label(m_state.context(), "connect")) {

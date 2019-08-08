@@ -11,6 +11,7 @@
 #include "capture/capture.hpp"
 #include "codec/encoder.hpp"
 #include "network/sender.hpp"
+#include "ui/display.hpp"
 
 
 namespace shar {
@@ -35,6 +36,7 @@ private:
   Capture m_capture;
   codec::Encoder m_encoder;
   SenderPtr m_network;
+  ui::Display m_display;
 
   ExposerPtr m_exposer;
 };

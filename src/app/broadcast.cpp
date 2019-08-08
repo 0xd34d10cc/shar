@@ -82,6 +82,8 @@ Broadcast::Broadcast(Options options)
   , m_capture(create_capture(m_context, m_monitor))
   , m_encoder(create_encoder(m_context, m_monitor))
   , m_network(create_network(m_context))
+  // TODO: unhardcode
+  , m_display(m_context, Size{ 1080, 1920 })
   // TODO: make optional
   , m_exposer(create_exposer(m_context))
 {
@@ -94,11 +96,12 @@ Broadcast::Broadcast(Options options)
 }
 
 int Broadcast::run() {
+  auto[display_frames_tx, display_frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto[frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto[packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
 
   // NOTE: current capture implementation starts background thread.
-  m_capture.run(std::move(frames_tx));
+  m_capture.run(std::move(frames_tx), std::move(display_frames_tx));
 
   std::thread encoder_thread{ [this,
                                rx{std::move(frames_rx)},
@@ -111,7 +114,7 @@ int Broadcast::run() {
     m_network->run(std::move(rx));
   } };
 
-  shar::SignalHandler::wait_for_sigint();
+  m_display.run(std::move(display_frames_rx));
 
   m_capture.shutdown();
   m_encoder.shutdown();

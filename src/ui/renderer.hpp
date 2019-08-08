@@ -22,6 +22,7 @@ public:
   ~Renderer();
 
   // render and clear state
+  // TODO: decouple command list from State
   void render(State& state, const Window& window);
   void render(Texture& texture);
 

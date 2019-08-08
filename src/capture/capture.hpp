@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "disable_warnings_push.hpp"
 #include <ScreenCapture.h>
@@ -32,7 +33,8 @@ public:
   Capture& operator=(Capture&&) noexcept = default;
   ~Capture() = default;
 
-  void run(Sender<codec::ffmpeg::Frame> output);
+  void run(Sender<codec::ffmpeg::Frame> output,
+           std::optional<Sender<codec::ffmpeg::Frame>> double_output);
   void shutdown();
 
 private:

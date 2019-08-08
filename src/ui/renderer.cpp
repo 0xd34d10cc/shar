@@ -268,6 +268,7 @@ void Renderer::render(State& state, const Window& window) {
   m_gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
   m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   m_gl.glBindVertexArray(0);
+
   glDisable(GL_BLEND);
   glDisable(GL_SCISSOR_TEST);
 }
