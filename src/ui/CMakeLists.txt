@@ -1,13 +1,9 @@
 add_library(ui
-    display.hpp
-    display.cpp
     texture.hpp
     texture.cpp
     point.hpp
     gl_vtable.hpp
     gl_vtable.cpp
-    startup_screen.hpp
-    startup_screen.cpp
     state.hpp
     state.cpp
     renderer.hpp
@@ -16,6 +12,8 @@ add_library(ui
     window.cpp
     nk.hpp
     nk.cpp
+    text_edit.hpp
+    text_edit.cpp
 )
 
 target_include_directories(ui

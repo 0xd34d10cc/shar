@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib> // memset
+#include <iostream>
 
 #include "nk.hpp"
 #include "gl_vtable.hpp"
@@ -19,6 +20,22 @@
 #define SHAR_SHADER_VERSION "#version 300 es\n"
 #endif
 
+
+static void GLAPIENTRY opengl_error_callback(
+  GLenum /*source*/,
+  GLenum type,
+  GLuint /*id */,
+  GLenum severity,
+  GLsizei /*length */,
+  const GLchar* message,
+  const void* /*userParam */
+) {
+  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
+    << "type = " << type
+    << ", severity = " << severity
+    << ", message = " << message
+    << std::endl;
+}
 
 namespace shar::ui {
 
@@ -56,6 +73,16 @@ Renderer::~Renderer() {
 }
 
 void Renderer::init() {
+  // opengl debug output
+  if (void* ptr = SDL_GL_GetProcAddress("glDebugMessageCallback")) {
+    glEnable(GL_DEBUG_OUTPUT);
+    auto debug_output = (PFNGLDEBUGMESSAGECALLBACKARBPROC)ptr;
+    debug_output(opengl_error_callback, nullptr);
+  }
+
+  // TODO: remove after migration to CORE OpenGL profile
+  glEnable(GL_TEXTURE_2D);
+
   GLint status;
   static const GLchar* vertex_shader =
     SHAR_SHADER_VERSION

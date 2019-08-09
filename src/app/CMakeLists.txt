@@ -1,13 +1,13 @@
 add_executable(shar WIN32
                main.cpp
+               runner.hpp
+               runner.cpp
                app.hpp
                app.cpp
                broadcast.hpp
                broadcast.cpp
                view.hpp
                view.cpp
-               signal_handler.cpp
-               signal_handler.hpp
                )
 
 target_include_directories(shar

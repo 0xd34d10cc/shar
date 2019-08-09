@@ -180,6 +180,18 @@ public:
     return std::nullopt;
   }
 
+  std::optional<T> try_send(T value) {
+    std::unique_lock<std::mutex> lock(m_state->mutex);
+    if (!connected() || m_state->buffer.full())
+      return std::move(value);
+
+    m_state->buffer.push(std::move(value));
+    // buffer is not empty anymore, if it was
+    m_state->empty.notify_one();
+
+    return std::nullopt;
+  }
+
   bool connected() const {
     return !m_state->disconnected;
   }
