@@ -134,7 +134,7 @@ static shar::LogLevel log_level_from_string(const std::string& str) {
 }
 
 Options Options::read(int argc, char* argv[]) {
-  Options opts{}; // make default
+  Options opts;
   std::vector<std::string> codec_options;
   std::string loglvl;
   std::string encoder_loglvl;

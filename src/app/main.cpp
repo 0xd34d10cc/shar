@@ -1,4 +1,4 @@
-#include "app.hpp"
+#include "runner.hpp"
 
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_main.h>
@@ -6,6 +6,6 @@
 
 
 int main(int argc, char* argv[]) {
-  shar::App app;
-  return app.run(argc, argv);
+  shar::Runner app_runner;
+  return app_runner.run(argc, argv);
 }

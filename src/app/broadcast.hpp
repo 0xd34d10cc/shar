@@ -1,44 +1,42 @@
 #pragma once
 
 #include <memory>
+#include <thread>
 
-// TODO: remove direct Exposer dependency from this file
-#include "disable_warnings_push.hpp"
-#include <prometheus/exposer.h>
-#include "disable_warnings_pop.hpp"
-
-#include "common/context.hpp"
+#include "context.hpp"
+#include "channel.hpp"
 #include "capture/capture.hpp"
-#include "codec/encoder.hpp"
 #include "network/sender.hpp"
-#include "ui/display.hpp"
+#include "codec/encoder.hpp"
+#include "codec/ffmpeg/frame.hpp"
 
 
 namespace shar {
 
 using SenderPtr = std::unique_ptr<IPacketSender>;
-using ExposerPtr = std::unique_ptr<prometheus::Exposer>;
 
 class Broadcast {
 public:
-  explicit Broadcast(Options options);
+  explicit Broadcast(Context context);
   Broadcast(const Broadcast&) = delete;
   Broadcast(Broadcast&&) = delete;
   Broadcast& operator=(const Broadcast&) = delete;
   Broadcast& operator=(Broadcast&&) = delete;
   ~Broadcast() = default;
 
-  int run();
+  Receiver<codec::ffmpeg::Frame> start();
+  void stop();
 
 private:
   Context m_context;
+
   sc::Monitor m_monitor;
   Capture m_capture;
   codec::Encoder m_encoder;
   SenderPtr m_network;
-  ui::Display m_display;
 
-  ExposerPtr m_exposer;
+  std::thread m_encoder_thread;
+  std::thread m_network_thread;
 };
 
 }

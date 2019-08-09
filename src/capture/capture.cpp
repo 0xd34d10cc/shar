@@ -33,13 +33,13 @@ struct FrameHandler {
     if (m_second_consumer) {
       Frame frame = convert(buffer);
       frame.set_timestamp(Clock::now());
-      m_second_consumer->send(std::move(frame));
+      m_second_consumer->try_send(std::move(frame));
     }
 
     // ignore return value here,
     // if channel was disconnected ScreenCapture will stop
     // processing new frames anyway
-    m_consumer->send(std::move(frame));
+    m_consumer->try_send(std::move(frame));
   }
 
   // shared_ptr is used here because FrameHandler has to be copyable

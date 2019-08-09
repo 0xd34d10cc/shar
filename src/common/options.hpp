@@ -22,7 +22,7 @@ struct Options {
                                                      // if true all other options except
                                                      // for url are irrelevant
 
-  bool p2p{ true };                                  // enable p2p mode, used only for sender
+  bool p2p{ false };                                 // enable p2p mode, used only for sender
   std::string url{ "tcp://127.0.0.1:1337" };         // url to stream to
   std::size_t monitor{ 0 };                          // which monitor to capture
   std::size_t fps{ 30 };                             // desired fps (for encoder)

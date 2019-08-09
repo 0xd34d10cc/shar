@@ -7,22 +7,6 @@
 
 namespace shar {
 
-static Context make_context(Options options) {
-  auto config = std::make_shared<Options>(std::move(options));
-  auto shar_loglvl = config->loglvl;
-  if (shar_loglvl > config->encoder_loglvl) {
-    throw std::runtime_error("Encoder loglvl mustn't be less than general loglvl");
-  }
-  auto logger = Logger(config->log_file, shar_loglvl);
-  auto registry = std::make_shared<metrics::Registry>();
-
-  return Context{
-    std::move(config),
-    std::move(logger),
-    std::move(registry)
-  };
-}
-
 static ReceiverPtr make_receiver(Context context) {
   const auto url_str = context.m_config->url;
   const auto url = Url::from_string(url_str);
@@ -39,37 +23,36 @@ static codec::Decoder make_decoder(Context context) {
   };
 }
 
-View::View(Options options)
-  : m_context(make_context(std::move(options)))
+View::View(Context context)
+  : m_context(context)
   , m_receiver(make_receiver(m_context))
   , m_decoder(make_decoder(m_context))
-  , m_display(m_context, Size{1080, 1920})
   {}
 
-int View::run() {
+Receiver<codec::ffmpeg::Frame> View::start() {
   auto [frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto [packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
 
-  std::thread receiver_thread{[this,
-                               tx{std::move(packets_tx)}] () mutable {
+  m_network_thread = std::thread{[this,
+                                  tx{std::move(packets_tx)}] () mutable {
     m_receiver->run(std::move(tx));
   }};
 
-  std::thread decoder_thread{[this,
-                              rx{std::move(packets_rx)},
-                              tx{std::move(frames_tx)}] () mutable {
+  m_decoder_thread = std::thread{[this,
+                                  rx{std::move(packets_rx)},
+                                  tx{std::move(frames_tx)}] () mutable {
     m_decoder.run(std::move(rx), std::move(tx));
   }};
 
-  m_display.run(std::move(frames_rx));
+  return std::move(frames_rx);
+}
 
+void View::stop() {
   m_receiver->shutdown();
   m_decoder.shutdown();
 
-  receiver_thread.join();
-  decoder_thread.join();
-
-  return EXIT_SUCCESS;
+  m_network_thread.join();
+  m_decoder_thread.join();
 }
 
-}
+} // namespace shar
