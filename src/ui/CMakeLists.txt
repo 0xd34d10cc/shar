@@ -10,6 +10,8 @@ add_library(ui
     renderer.cpp
     window.hpp
     window.cpp
+    message_box.hpp
+    message_box.cpp
     nk.hpp
     nk.cpp
     text_edit.hpp

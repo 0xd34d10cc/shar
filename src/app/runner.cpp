@@ -1,7 +1,12 @@
 #include "runner.hpp"
 
+#include "disable_warnings_push.hpp"
+#include <fmt/format.h>
+#include "disable_warnings_pop.hpp"
+
 #include "options.hpp"
 #include "app.hpp"
+#include "ui/message_box.hpp"
 
 
 namespace shar {
@@ -16,7 +21,12 @@ int Runner::run(int argc, char* argv[]) {
     return app.run();
   }
   catch (const std::exception& e) {
-    std::cerr << "An error occurred: " << e.what() << std::endl;
+    ui::MessageBox error{
+      ui::MessageBox::Type::Error,
+      "Fatal error",
+      fmt::format("Unhandled exception: {}", e.what())
+    };
+    error.show();
     return EXIT_FAILURE;
   }
 }

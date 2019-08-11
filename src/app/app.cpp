@@ -43,7 +43,9 @@ App::App(Options options)
 }
 
 App::~App() {
-  std::visit([](auto& state) { state.stop(); }, m_state);
+  if (!m_state.valueless_by_exception()) {
+    std::visit([](auto& state) { state.stop(); }, m_state);
+  }
 }
 
 void App::process_input() {
