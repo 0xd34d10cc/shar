@@ -31,6 +31,7 @@ public:
 
 private:
   void process_input();
+  void process_title_bar();
   void process_gui();
   void render();
 

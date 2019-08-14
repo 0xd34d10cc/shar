@@ -2,6 +2,7 @@ add_library(ui
     texture.hpp
     texture.cpp
     point.hpp
+    rect.hpp
     gl_vtable.hpp
     gl_vtable.cpp
     state.hpp

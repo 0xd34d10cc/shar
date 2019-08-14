@@ -33,13 +33,23 @@ static Context make_context(Options options) {
 
 App::App(Options options)
   : m_context(make_context(options))
-  , m_window("shar", Size{ 1080, 1920 })
+  // NOTE: should not be equal to screen size, otherwise some
+  //       magical SDL kludge makes window fullscreen
+  , m_window("shar", Size{ 1080 + 30, 1920 })
   , m_renderer(ui::OpenGLVTable::load().value())
   , m_ui()
   , m_background(m_window.size())
   , m_state()
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
+  Rect area{
+    Point::origin(),
+    Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
+  };
+
+  m_window.set_header_area(area);
+  m_window.set_border(false);
+  m_window.show();
 }
 
 App::~App() {
@@ -58,7 +68,7 @@ void App::process_input() {
 
     // change gui visibility on shift+f
     if (event.type == SDL_KEYDOWN &&
-        event.key.keysym.sym == SDLK_f) {
+        event.key.keysym.sym == SDLK_g) {
       const Uint8* state = SDL_GetKeyboardState(0);
 
       if (state[SDL_SCANCODE_LSHIFT]) {
@@ -69,6 +79,29 @@ void App::process_input() {
     m_ui.handle(&event);
   }
   nk_input_end(m_ui.context());
+}
+
+void App::process_title_bar() {
+  Size size = m_window.display_size();
+
+  // title bar
+  if (!nk_begin(m_ui.context(), "shar", nk_rect(0, 0, size.width(), 30),
+    NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+
+    // not sure why it's there...
+    nk_flags& flags = m_ui.context()->current->layout->flags;
+
+    if (flags & NK_WINDOW_CLOSED) {
+      m_running.cancel();
+    }
+
+    if (flags & NK_WINDOW_MINIMIZED) {
+      // cancel "minimized" state
+      flags &= ~NK_WINDOW_MINIMIZED;
+      m_window.minimize();
+    }
+  }
+  nk_end(m_ui.context());
 }
 
 void App::process_gui() {
@@ -82,8 +115,8 @@ void App::process_gui() {
     std::visit([this](auto& state) { m_frames = state.start(); }, m_state);
   };
 
-  if (nk_begin(m_ui.context(), "Config",
-               nk_rect(0, 0, 300, size.height()),
+  if (nk_begin(m_ui.context(), "config",
+               nk_rect(0, 30, 300, size.height() - 30),
                NK_WINDOW_BORDER)) {
 
     nk_layout_row_static(m_ui.context(), 30, 80, 3);
@@ -156,17 +189,14 @@ void App::render() {
   // render current background (or current frame)
   m_renderer.render(m_background);
 
-  // render gui
-  if (m_gui_enabled) {
-    /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
-     * with blending, scissor, face culling, depth test and viewport and
-     * defaults everything back into a default state.
-     * Make sure to either a.) save and restore or b.) reset your own state after
-     * rendering the UI. */
-    m_renderer.render(m_ui, m_window);
-  }
+  /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
+   * with blending, scissor, face culling, depth test and viewport and
+   * defaults everything back into a default state.
+   * Make sure to either a.) save and restore or b.) reset your own state after
+   * rendering the UI. */
+  m_renderer.render(m_ui, m_window);
 
-  // finish
+  // swap buffers
   m_window.swap();
 }
 
@@ -185,6 +215,7 @@ int App::run() {
     }
 
     process_input();
+    process_title_bar();
 
     if (m_gui_enabled) {
       process_gui();
