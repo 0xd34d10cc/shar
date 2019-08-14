@@ -8,6 +8,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "size.hpp"
+#include "rect.hpp"
 
 
 namespace shar::ui {
@@ -18,13 +19,18 @@ public:
   Window(const char* name, Size size);
   Window(Window&&) = default;
   Window& operator=(Window&&) = default;
-  ~Window() = default;
+  ~Window();
 
   Size size() const;
   Size display_size() const;
 
-  void swap();
+  void set_border(bool active);
+  void set_header_area(Rect area);
 
+  void show();
+  void minimize();
+
+  void swap();
 
   struct SDLWindowDeleter {
     void operator()(SDL_Window* window) {
@@ -45,6 +51,7 @@ public:
 private:
   SDLWindowPtr m_window;
   GLContextPtr m_context;
+  std::unique_ptr<Rect> m_header;
 };
 
 }
