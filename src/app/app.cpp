@@ -39,7 +39,10 @@ App::App(Options options)
   , m_renderer(ui::OpenGLVTable::load().value())
   , m_ui()
   , m_background(m_window.size())
-  , m_state()
+  , m_stop_button("stop")
+  , m_stream_button("stream")
+  , m_view_button("view")
+  , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
   Rect area{
@@ -53,9 +56,7 @@ App::App(Options options)
 }
 
 App::~App() {
-  if (!m_state.valueless_by_exception()) {
-    std::visit([](auto& state) { state.stop(); }, m_state);
-  }
+  stop_stream();
 }
 
 void App::process_input() {
@@ -104,76 +105,57 @@ void App::process_title_bar() {
   nk_end(m_ui.context());
 }
 
-void App::process_gui() {
+std::optional<StreamState> App::process_gui() {
   Size size = m_window.display_size();
-
-  const auto stop = [this] {
-    std::visit([](auto& state) { state.stop(); }, m_state);
-  };
-
-  const auto start = [this] {
-    std::visit([this](auto& state) { m_frames = state.start(); }, m_state);
-  };
+  std::optional<StreamState> new_state;
 
   if (nk_begin(m_ui.context(), "config",
                nk_rect(0, 30, 300, size.height() - 30),
                NK_WINDOW_BORDER)) {
 
     nk_layout_row_static(m_ui.context(), 30, 80, 3);
-    if (nk_button_label(m_ui.context(), "stream")) {
-      stop();
-
-      auto context = m_context;
-      context.m_config->connect = false;
-      context.m_config->p2p = true;
-      context.m_config->url = m_url.text();
-      m_state.emplace<Broadcast>(std::move(context));
-
-      start();
+    if (m_stop_button.process(m_ui)) {
+      new_state = StreamState::None;
     }
 
-    if (nk_button_label(m_ui.context(), "view")) {
-      stop();
-
-      auto context = m_context;
-      context.m_config->connect = true;
-      context.m_config->url = m_url.text();
-      m_state.emplace<View>(std::move(context));
-
-      start();
+    if (m_stream_button.process(m_ui)) {
+      new_state = StreamState::Broadcast;
     }
 
-    if (nk_button_label(m_ui.context(), "stop")) {
-      stop();
-      m_state.emplace<Empty>();
-      start();
+    if (m_view_button.process(m_ui)) {
+      new_state = StreamState::View;
     }
 
     nk_layout_row_static(m_ui.context(), 20, 250, 1);
     m_url.process(m_ui);
 
-    nk_layout_row_static(m_ui.context(), 20, 250, 1);
-    const char* state = std::visit([this](auto& state) {
-      using T = std::decay_t<decltype(state)>;
+    const char* state = [this] {
+      switch (this->state()) {
+        case StreamState::None:
+          return "none";
+        case StreamState::Broadcast:
+          return "broadcast";
+        case StreamState::View:
+          return "view";
+        default:
+          assert(false);
+          return "none";
+      }
+    }();
 
-      if constexpr (std::is_same_v<T, Empty>) {
-        return "none";
-      }
-      else if constexpr (std::is_same_v<T, Broadcast>) {
-        return "stream";
-      }
-      else if constexpr (std::is_same_v<T, View>) {
-        return "view";
-      }
-      else {
-        static_assert(false, "types...");
-      }
-
-    }, m_state);
-
+    nk_layout_row_static(m_ui.context(), 20, 70, 2);
+    nk_label(m_ui.context(), "state: ", NK_TEXT_LEFT);
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
+
+    if (!m_last_error.empty()) {
+      nk_layout_row_dynamic(m_ui.context(), 20, 2);
+      nk_label(m_ui.context(), "error: ", NK_TEXT_LEFT);
+      nk_label(m_ui.context(), m_last_error.c_str(), NK_TEXT_LEFT);
+    }
   }
   nk_end(m_ui.context());
+
+  return new_state;
 }
 
 void App::render() {
@@ -200,16 +182,51 @@ void App::render() {
   m_window.swap();
 }
 
+void App::switch_to(StreamState new_state) {
+  stop_stream();
+
+  switch (new_state) {
+    case StreamState::None:
+      m_stream.emplace<Empty>();
+      break;
+
+    case StreamState::Broadcast:
+      m_context.m_config->connect = false;
+      m_context.m_config->p2p = true;
+      m_context.m_config->url = m_url.text();
+      m_stream.emplace<Broadcast>(m_context);
+      break;
+
+    case StreamState::View:
+      m_context.m_config->connect = true;
+      m_context.m_config->url = m_url.text();
+      m_stream.emplace<View>(m_context);
+      break;
+  }
+
+  start_stream();
+}
+
+void App::stop_stream() {
+  if (!m_stream.valueless_by_exception()) {
+    std::visit([](auto& stream) { stream.stop(); }, m_stream);
+  }
+}
+
+void App::start_stream() {
+  std::visit([this](auto& stream) { m_frames = stream.start(); }, m_stream);
+}
+
 int App::run() {
   while (!m_running.expired()) {
 
     if (m_frames) {
       if (auto frame = m_frames->try_receive()) {
-        m_background.bind();
         auto bgra = frame->to_bgra();
+        m_background.bind();
         m_background.update(Point::origin(),
-          frame->sizes(),
-          bgra.data.get());
+                            frame->sizes(),
+                            bgra.data.get());
         m_background.unbind();
       }
     }
@@ -218,7 +235,19 @@ int App::run() {
     process_title_bar();
 
     if (m_gui_enabled) {
-      process_gui();
+      if (auto new_state = process_gui()) {
+        try {
+          switch_to(*new_state);
+          m_last_error.clear();
+        }
+        catch (const std::exception& e) {
+          m_last_error = e.what();
+
+          if (m_stream.valueless_by_exception()) {
+            m_stream.emplace<Empty>();
+          }
+        }
+      }
     }
 
     render();
@@ -226,6 +255,26 @@ int App::run() {
   }
 
   return EXIT_SUCCESS;
+}
+
+StreamState App::state() const {
+  return std::visit([this](auto& stream) {
+    using T = std::decay_t<decltype(stream)>;
+
+    if constexpr (std::is_same_v<T, Empty>) {
+      return StreamState::None;
+    }
+    else if constexpr (std::is_same_v<T, Broadcast>) {
+      return StreamState::Broadcast;
+    }
+    else if constexpr (std::is_same_v<T, View>) {
+      return StreamState::View;
+    }
+    else {
+      static_assert(false, "types...");
+    }
+
+    }, m_stream);
 }
 
 }
