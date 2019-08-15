@@ -13,6 +13,7 @@
 #include "ui/state.hpp"
 #include "ui/texture.hpp"
 #include "ui/text_edit.hpp"
+#include "ui/button.hpp"
 
 #include "codec/ffmpeg/frame.hpp"
 
@@ -22,18 +23,29 @@
 
 namespace shar {
 
+enum class StreamState {
+  None,
+  Broadcast,
+  View
+};
+
 class App {
 public:
   App(Options options);
   ~App();
 
   int run();
+  StreamState state() const;
 
 private:
   void process_input();
   void process_title_bar();
-  void process_gui();
+  std::optional<StreamState> process_gui();
   void render();
+
+  void switch_to(StreamState new_state);
+  void stop_stream();
+  void start_stream();
 
   Context m_context;
   Cancellation m_running;
@@ -44,7 +56,12 @@ private:
   ui::Renderer m_renderer;
   ui::State m_ui;
   ui::Texture m_background;
+
+  ui::Button m_stop_button;
+  ui::Button m_stream_button;
+  ui::Button m_view_button;
   ui::TextEdit m_url;
+  std::string m_last_error;
 
   struct Empty {
     void stop() {}
@@ -54,8 +71,8 @@ private:
     }
   };
 
-  using State = std::variant<Empty, Broadcast, View>;
-  State m_state;
+  using Stream = std::variant<Empty, Broadcast, View>;
+  Stream m_stream;
 
   std::optional<Receiver<codec::ffmpeg::Frame>> m_frames;
 };

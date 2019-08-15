@@ -8,8 +8,8 @@
 namespace shar {
 
 static ReceiverPtr make_receiver(Context context) {
-  const auto url_str = context.m_config->url;
-  const auto url = Url::from_string(url_str);
+  auto url_str = context.m_config->url;
+  auto url = Url::from_string(url_str);
   return create_receiver(std::move(context), std::move(url));
 }
 
@@ -18,6 +18,7 @@ static codec::Decoder make_decoder(Context context) {
 
   return codec::Decoder{
     std::move(context),
+    // FIXME: unhardcode
     Size{1080, 1920},
     fps
   };
