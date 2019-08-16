@@ -7,8 +7,15 @@
 
 namespace shar {
 
+#ifdef SHAR_DEBUG_BUILD
+#define DEFAULT_LOG_LEVEL LogLevel::Debug
+#else
+#define DEFAULT_LOG_LEVEL LogLevel::None
+#endif
+
+
 enum class LogLevel {
-  Quiet,
+  None,
   Trace,
   Debug,
   Info,
@@ -29,9 +36,10 @@ struct Options {
   std::string codec;                                 // which codec to use
   std::size_t bitrate{ 5000 };                       // target bitrate (in kbits)
   std::string metrics{ "127.0.0.1:3228" };           // where to expose metrics
-  LogLevel loglvl{ LogLevel::Info };                 // loglvl for shar logger
-  std::string log_file{ "shar.log" };                // name of logfile
-  LogLevel encoder_loglvl{ LogLevel::Critical };     // loglvl for encoder logger
+  LogLevel log_level{ DEFAULT_LOG_LEVEL };           // common log level
+  std::string logs_location{ "" };                   // logs location, set to ~/.shar/logs
+                                                     // by default
+  LogLevel encoder_log_level{ DEFAULT_LOG_LEVEL };   // log level for encoder
   using Option = std::pair<std::string, std::string>;// name -> value
   std::vector<Option> options{                       // options for codec
     {"preset", "medium"},

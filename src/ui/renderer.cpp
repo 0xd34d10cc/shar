@@ -20,7 +20,7 @@
 #define SHAR_SHADER_VERSION "#version 300 es\n"
 #endif
 
-
+#ifdef SHAR_DEBUG_BUILD
 static void GLAPIENTRY opengl_error_callback(
   GLenum /*source*/,
   GLenum type,
@@ -36,6 +36,7 @@ static void GLAPIENTRY opengl_error_callback(
     << ", message = " << message
     << std::endl;
 }
+#endif
 
 namespace shar::ui {
 
@@ -73,12 +74,15 @@ Renderer::~Renderer() {
 }
 
 void Renderer::init() {
+
+#ifdef SHAR_DEBUG_BUILD
   // opengl debug output
   if (void* ptr = SDL_GL_GetProcAddress("glDebugMessageCallback")) {
     glEnable(GL_DEBUG_OUTPUT);
     auto debug_output = (PFNGLDEBUGMESSAGECALLBACKARBPROC)ptr;
     debug_output(opengl_error_callback, nullptr);
   }
+#endif
 
   // TODO: remove after migration to CORE OpenGL profile
   glEnable(GL_TEXTURE_2D);

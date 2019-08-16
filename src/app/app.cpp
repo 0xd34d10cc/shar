@@ -1,12 +1,13 @@
 #include "app.hpp"
 
 #include <thread>
-#include <chrono>
+#include <filesystem>
 
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_events.h>
 #include "disable_warnings_pop.hpp"
 
+#include "time.hpp"
 #include "size.hpp"
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
@@ -14,14 +15,28 @@
 
 namespace shar {
 
+namespace fs = std::filesystem;
+
 static Context make_context(Options options) {
   auto config = std::make_shared<Options>(std::move(options));
-  auto shar_loglvl = config->loglvl;
-  if (shar_loglvl > config->encoder_loglvl) {
+  auto shar_loglvl = config->log_level;
+  if (shar_loglvl > config->encoder_log_level) {
     throw std::runtime_error("Encoder log level be less than general log level");
   }
 
-  auto logger = Logger(config->log_file, shar_loglvl);
+  if (config->log_level != LogLevel::None) {
+    auto status = fs::status(config->logs_location);
+    if (!fs::exists(status)) {
+      if (!fs::create_directories(config->logs_location)) {
+        throw std::runtime_error("Failed to create logs directory");
+      }
+    }
+    else if (!fs::is_directory(status)) {
+      throw std::runtime_error("logs_location parameter should point to a directory");
+    }
+  }
+
+  auto logger = Logger(config->logs_location, shar_loglvl);
   auto registry = std::make_shared<metrics::Registry>();
 
   return Context{
@@ -251,7 +266,7 @@ int App::run() {
     }
 
     render();
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(Milliseconds(5));
   }
 
   return EXIT_SUCCESS;

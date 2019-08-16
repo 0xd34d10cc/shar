@@ -57,7 +57,7 @@ static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) 
 
   const auto log_level_to_ffmpeg = [](LogLevel level) {
     switch (level) {
-      case LogLevel::Quiet:
+      case LogLevel::None:
         return AV_LOG_QUIET;
       case LogLevel::Trace:
         return AV_LOG_TRACE;
@@ -76,7 +76,7 @@ static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) 
     }
   };
 
-  av_log_set_level(log_level_to_ffmpeg(config->encoder_loglvl));
+  av_log_set_level(log_level_to_ffmpeg(config->encoder_log_level));
   av_log_set_callback(avlog_callback);
 }
 
