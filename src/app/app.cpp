@@ -36,7 +36,6 @@ static Context make_context(Options options) {
     }
   }
 
-  // TODO: check that logs location exists
   auto logger = Logger(config->logs_location, shar_loglvl);
   auto registry = std::make_shared<metrics::Registry>();
 
