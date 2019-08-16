@@ -1,3 +1,6 @@
+#include <cstdlib> // std::getenv
+#include <filesystem>
+
 #include "disable_warnings_push.hpp"
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
@@ -116,7 +119,7 @@ namespace shar {
 
 static shar::LogLevel log_level_from_string(const std::string& str) {
   static std::map<std::string, shar::LogLevel> values = {
-    {"quiet",    shar::LogLevel::Quiet},
+    {"none",     shar::LogLevel::None},
     {"trace",    shar::LogLevel::Trace},
     {"debug",    shar::LogLevel::Debug},
     {"info",     shar::LogLevel::Info},
@@ -140,6 +143,7 @@ Options Options::read(int argc, char* argv[]) {
   std::string encoder_loglvl;
 
   std::set<std::string> loglvl_options{
+    "none",
     "trace",
     "debug",
     "info",
@@ -160,9 +164,9 @@ Options Options::read(int argc, char* argv[]) {
   app.add_option("--codec", opts.codec, "Which codec to use");
   app.add_option("-b,--bitrate", opts.bitrate, "Target bitrate (kbit)", true);
   app.add_option("--metrics", opts.metrics, "Where to expose metrics", true);
-  app.add_option("--logfile", opts.log_file, "Name of logfile", true);
-  app.add_set("--loglvl", loglvl, loglvl_options, "loglvl for shar logger", true);
-  app.add_set("--encoder_loglvl", encoder_loglvl, loglvl_options, "loglvl for encoder logger", true);
+  app.add_option("--logs", opts.logs_location, "Log files location", true);
+  app.add_set("--log_level", loglvl, loglvl_options, "common log level", true);
+  app.add_set("--encoder_loglevel", encoder_loglvl, loglvl_options, "log level for encoder", true);
   app.add_option("-o,--options", codec_options, "Codec options, in key=value format");
 
   try {
@@ -192,11 +196,27 @@ Options Options::read(int argc, char* argv[]) {
   }
 
   if (!loglvl.empty()) {
-    opts.loglvl = log_level_from_string(loglvl);
+    opts.log_level = log_level_from_string(loglvl);
   }
 
   if (!encoder_loglvl.empty()) {
-    opts.encoder_loglvl = log_level_from_string(encoder_loglvl);
+    opts.encoder_log_level = log_level_from_string(encoder_loglvl);
+  }
+
+  if (opts.logs_location.empty()) {
+    std::filesystem::path path;
+
+    if (const char* home = std::getenv("HOME")) {
+      path = std::filesystem::path(home) / ".shar" / "logs";
+    }
+    else if (const char* userprofile = std::getenv("userprofile")) {
+      path = std::filesystem::path(userprofile) / ".shar" / "logs";
+    }
+    else {
+      path = std::filesystem::current_path();
+    }
+
+    opts.logs_location = path.string();
   }
 
   return opts;

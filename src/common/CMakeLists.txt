@@ -5,6 +5,8 @@ add_library(common
             context.hpp
             channel.hpp
             size.hpp
+            time.hpp
+            time.cpp
             disable_warnings_push.hpp
             disable_warnings_pop.hpp
             cancellation.hpp
