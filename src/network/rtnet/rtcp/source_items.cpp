@@ -45,7 +45,6 @@ SourceItems::Item SourceItems::set(std::uint8_t type, std::uint8_t size) noexcep
   assert(valid());
   m_data[m_position] = type;
   m_data[m_position + 1] = size;
-  std::uint8_t* data = &m_data[m_position + 2];
   return Item{m_data + m_position, std::size_t{size} + 2};
 }
 

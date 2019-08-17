@@ -101,8 +101,8 @@ void App::process_title_bar() {
   Size size = m_window.display_size();
 
   // title bar
-  if (!nk_begin(m_ui.context(), "shar", nk_rect(0, 0, size.width(), 30),
-    NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+  if (!nk_begin(m_ui.context(), "shar", nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
+                NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
 
     // not sure why it's there...
     nk_flags& flags = m_ui.context()->current->layout->flags;
@@ -125,7 +125,7 @@ std::optional<StreamState> App::process_gui() {
   std::optional<StreamState> new_state;
 
   if (nk_begin(m_ui.context(), "config",
-               nk_rect(0, 30, 300, size.height() - 30),
+               nk_rect(0.0f, 30.0f, 300.0f, (float)size.height() - 30.0f),
                NK_WINDOW_BORDER)) {
 
     nk_layout_row_static(m_ui.context(), 30, 80, 3);

@@ -80,7 +80,7 @@ static Window::GLContextPtr init_gl(SDL_Window* window) {
   return Window::GLContextPtr(context);
 }
 
-static SDL_HitTestResult hittest_callback(SDL_Window* win, const SDL_Point* area, void* data) {
+static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* area, void* data) {
   auto* header = reinterpret_cast<Rect*>(data);
 
   if (header->contains(Point{ area->x, area->y })) {

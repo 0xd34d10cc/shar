@@ -12,7 +12,7 @@ std::optional<std::uint8_t> parse_version(const char* begin, std::size_t size) {
   }
   int i = std::memcmp(begin, "RTSP/1.0", size);
   if ((size == 8) && i == 0) {
-    return 1;
+    return std::uint8_t{ 1 };
   }
   if (i == 0 && size != 8) {
     return std::nullopt;

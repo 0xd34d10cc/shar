@@ -13,8 +13,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 enable_testing()
 
 include(warnings)
+include(platform)
 
-set(SHAR_COMPILE_OPTIONS ${ENABLED_WARNINGS})
+set(SHAR_COMPILE_OPTIONS ${ENABLED_WARNINGS} ${PLATFORM_OPTIONS})
 
 if(NOT CMAKE_BUILD_TYPE)
     message("-- CMAKE_BUILD_TYPE was not set")

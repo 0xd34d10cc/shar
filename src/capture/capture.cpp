@@ -31,9 +31,9 @@ struct FrameHandler {
 
     // TODO: remove
     if (m_second_consumer) {
-      Frame frame = convert(buffer);
-      frame.set_timestamp(Clock::now());
-      m_second_consumer->try_send(std::move(frame));
+      Frame second_frame = convert(buffer);
+      second_frame.set_timestamp(Clock::now());
+      m_second_consumer->try_send(std::move(second_frame));
     }
 
     // ignore return value here,
