@@ -5,14 +5,14 @@
 
 #include "context.hpp"
 #include "channel.hpp"
-#include "network/receiver.hpp"
+#include "net/receiver.hpp"
 #include "codec/decoder.hpp"
 #include "codec/ffmpeg/frame.hpp"
 
 
 namespace shar {
 
-using ReceiverPtr = std::unique_ptr<IPacketReceiver>;
+using ReceiverPtr = std::unique_ptr<net::IPacketReceiver>;
 
 class View {
 public:

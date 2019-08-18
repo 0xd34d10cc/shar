@@ -2,7 +2,7 @@
 
 #include "broadcast.hpp"
 #include "metrics/registry.hpp"
-#include "network/sender_factory.hpp"
+#include "net/sender_factory.hpp"
 
 
 namespace shar {
@@ -49,8 +49,8 @@ static codec::Encoder create_encoder(Context context, const sc::Monitor& monitor
 }
 
 static SenderPtr create_network(Context context) {
-  const auto url_str = context.m_config->url;
-  const auto url = Url::from_string(url_str);
+  auto url_str = context.m_config->url;
+  auto url = net::Url::from_string(url_str);
   return create_sender(std::move(context), std::move(url));
 }
 

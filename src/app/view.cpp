@@ -2,14 +2,14 @@
 
 #include <cstdlib>
 
-#include "network/receiver_factory.hpp"
+#include "net/receiver_factory.hpp"
 
 
 namespace shar {
 
 static ReceiverPtr make_receiver(Context context) {
   auto url_str = context.m_config->url;
-  auto url = Url::from_string(url_str);
+  auto url = net::Url::from_string(url_str);
   return create_receiver(std::move(context), std::move(url));
 }
 
