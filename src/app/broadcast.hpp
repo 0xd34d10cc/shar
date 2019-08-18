@@ -6,14 +6,14 @@
 #include "context.hpp"
 #include "channel.hpp"
 #include "capture/capture.hpp"
-#include "network/sender.hpp"
+#include "net/sender.hpp"
 #include "codec/encoder.hpp"
 #include "codec/ffmpeg/frame.hpp"
 
 
 namespace shar {
 
-using SenderPtr = std::unique_ptr<IPacketSender>;
+using SenderPtr = std::unique_ptr<net::IPacketSender>;
 
 class Broadcast {
 public:
