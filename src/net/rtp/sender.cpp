@@ -19,6 +19,9 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port)
 void PacketSender::run(Receiver<Unit> packets) {
     m_socket.open(asio::ip::udp::v4());
 
+    // TODO: bind to some known port
+    // m_socket.bind(...)
+
     while (auto packet = packets.receive()) {
       if (m_running.expired()) {
         break;

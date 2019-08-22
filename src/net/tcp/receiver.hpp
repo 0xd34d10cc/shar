@@ -32,10 +32,6 @@ public:
   void run(Sender<codec::ffmpeg::Unit> units) override;
   void shutdown() override;
 
-  void setup();
-  void process();
-  void teardown();
-
 private:
   void start_read();
 

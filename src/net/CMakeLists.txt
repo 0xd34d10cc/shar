@@ -27,6 +27,10 @@ add_library(net
     rtp/fragment.cpp
     rtp/sender.hpp
     rtp/sender.cpp
+    rtp/depacketizer.hpp
+    rtp/depacketizer.cpp
+    rtp/receiver.hpp
+    rtp/receiver.cpp
 
     rtcp/header.hpp
     rtcp/header.cpp
