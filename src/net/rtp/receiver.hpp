@@ -13,6 +13,7 @@
 #include "cancellation.hpp"
 #include "channel.hpp"
 #include "net/receiver.hpp"
+#include "net/rtp/packet.hpp"
 #include "net/rtp/depacketizer.hpp"
 
 
@@ -41,7 +42,9 @@ public:
 
 private:
   std::optional<Unit> receive();
+  std::optional<Unit> accept(const Packet& packet, const Fragment& fragment);
 
+  bool m_drop{ true }; // true if drop occured
   Cancellation m_running;
 
   IOContext m_context;

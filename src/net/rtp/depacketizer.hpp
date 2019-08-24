@@ -14,7 +14,10 @@ public:
 
   Depacketizer() = default;
 
-  std::optional<Buffer> push(const Fragment& fragment);
+  // returns true if nal unit was completely reconstructed
+  bool push(const Fragment& fragment);
+
+  const Buffer& buffer() const;
   void reset();
 
 private:

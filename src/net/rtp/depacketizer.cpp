@@ -7,12 +7,11 @@ namespace shar::net::rtp {
 
 using Buffer = Depacketizer::Buffer;
 
-std::optional<Buffer> Depacketizer::push(const Fragment& fragment) {
+bool Depacketizer::push(const Fragment& fragment) {
   assert(fragment.valid());
-  assert(fragment.packet_type() == 28); // FU-A
+  assert(fragment.is_first() || !m_buffer.empty());
 
   if (fragment.is_first()) {
-    // TODO: how to handle case buffer.size() > 0?
     reset();
 
     // setup nal unit prefix
@@ -31,14 +30,14 @@ std::optional<Buffer> Depacketizer::push(const Fragment& fragment) {
   auto end = begin + fragment.payload_size();
   m_buffer.insert(m_buffer.end(), begin, end);
 
-  if (fragment.is_last()) {
-    // from RFC6184: Start bit and End bit MUST NOT both be set
-     //              to one in the same FU header
-    assert(!fragment.is_first());
-    return std::move(m_buffer);
-  }
+  // from RFC 6184: Start bit and End bit MUST NOT both be set
+  //                to one in the same FU header
+  assert(!fragment.is_first() || !fragment.is_last());
+  return fragment.is_last();
+}
 
-  return std::nullopt;
+const Buffer& Depacketizer::buffer() const {
+  return m_buffer;
 }
 
 void Depacketizer::reset() {
