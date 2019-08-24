@@ -12,9 +12,9 @@ extern "C" {
 #include "codec.hpp"
 
 
-static const int    buf_size = 250;
-static const int    prefix_length = 9;
-static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
+static const int buf_size = 250;
+static const int prefix_length = 9;
+static const char log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
 static std::optional<shar::Logger> cb_logger;
 
 static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_list args) {
@@ -25,7 +25,11 @@ static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_lis
   if (cb_logger) {
     char buf[buf_size];
     std::memcpy(buf, log_prefix, prefix_length);
-    vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+    int n = vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+    if (buf[prefix_length + n - 1] == '\n') {
+      buf[prefix_length + n - 1] = '\0';
+    }
+
     switch (level) {
     case AV_LOG_TRACE:
       cb_logger->trace(buf);
