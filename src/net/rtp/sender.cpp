@@ -14,19 +14,43 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port)
     , m_packetizer(MTU)
     , m_sequence(0)
     , m_bytes_sent(0)
+    , m_fragments_sent(0)
     {}
 
 void PacketSender::run(Receiver<Unit> packets) {
     m_socket.open(asio::ip::udp::v4());
+
+    // TODO: use port range instead of constant
+    auto ipv4 = asio::ip::address_v4(0x00000000);
+    auto ip = asio::ip::address::address(ipv4);
+    auto endpoint = asio::ip::udp::endpoint(ip, Port{44444});
+    m_socket.bind(endpoint);
+
+    std::size_t sent = 0;
+    std::size_t total_sent = 0;
+    auto last_report_time = Clock::now();
 
     while (auto packet = packets.receive()) {
       if (m_running.expired()) {
         break;
       }
 
+      sent += packet->size();
       set_packet(std::move(*packet));
       send();
+
+      const auto now = Clock::now();
+      if (last_report_time + Seconds(1) < now) {
+        m_logger.info("RTP sender rate: {}kb/s", sent / 1024);
+
+        total_sent += sent;
+        sent = 0;
+
+        last_report_time = now;
+      }
     }
+
+    m_logger.info("RTP sender total sent {}kb", total_sent/1024);
 
     shutdown();
     m_socket.close();
@@ -49,6 +73,13 @@ void PacketSender::send() {
   std::array<std::uint8_t, MTU + HEADER_SIZE> buffer;
 
   while (auto fragment = m_packetizer.next()) {
+    // sleep for 1ms every 128 fragments
+    if ((++m_fragments_sent & (128 - 1)) == 0) {
+      std::this_thread::sleep_for(Milliseconds(1));
+    }
+
+    assert(buffer.size() >= fragment.size() + HEADER_SIZE);
+
     // setup packet
     std::memset(buffer.data(), 0, HEADER_SIZE);
     std::memcpy(buffer.data() + HEADER_SIZE, fragment.data(), fragment.size());
@@ -64,8 +95,6 @@ void PacketSender::send() {
     packet.set_timestamp(m_current_packet.timestamp());
     packet.set_stream_id(0);
 
-    assert(buffer.size() >= fragment.size() + HEADER_SIZE);
-
     ErrorCode ec;
     m_socket.send_to(asio::buffer(packet.data(), packet.size()),
                      m_endpoint, 0, ec);
@@ -75,7 +104,6 @@ void PacketSender::send() {
     }
 
   }
-
 }
 
 }

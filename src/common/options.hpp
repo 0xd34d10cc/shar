@@ -15,13 +15,13 @@ namespace shar {
 
 
 enum class LogLevel {
-  None,
   Trace,
   Debug,
   Info,
   Warning,
   Error,
-  Critical
+  Critical,
+  None
 };
 
 struct Options {

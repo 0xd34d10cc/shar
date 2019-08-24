@@ -32,7 +32,7 @@ public:
   static Unit allocate() noexcept;
 
   // create unit from data (NOTE: memcopy)
-  static Unit from_data(std::uint8_t* data, std::size_t size);
+  static Unit from_data(const std::uint8_t* data, std::size_t size);
 
   bool empty() const noexcept;
   const std::uint8_t* data() const noexcept;

@@ -21,7 +21,7 @@ static Context make_context(Options options) {
   auto config = std::make_shared<Options>(std::move(options));
   auto shar_loglvl = config->log_level;
   if (shar_loglvl > config->encoder_log_level) {
-    throw std::runtime_error("Encoder log level be less than general log level");
+    throw std::runtime_error("Encoder log level should not be less than general log level");
   }
 
   if (config->log_level != LogLevel::None) {
@@ -223,6 +223,8 @@ void App::switch_to(StreamState new_state) {
 }
 
 void App::stop_stream() {
+  m_frames.reset();
+
   if (!m_stream.valueless_by_exception()) {
     std::visit([](auto& stream) { stream.stop(); }, m_stream);
   }

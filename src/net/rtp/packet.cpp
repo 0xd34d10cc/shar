@@ -142,7 +142,6 @@ void Packet::set_sequence(std::uint16_t seq) noexcept {
   std::memcpy(&m_data[2], bytes.data(), bytes.size());
 }
 
-// FIXME: assumes little-endian host
 std::uint32_t Packet::timestamp() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[4]);

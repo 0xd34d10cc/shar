@@ -12,16 +12,24 @@ extern "C" {
 #include "codec.hpp"
 
 
-static const int    buf_size = 250;
-static const int    prefix_length = 9;
-static const char   log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
+static const int buf_size = 250;
+static const int prefix_length = 9;
+static const char log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
 static std::optional<shar::Logger> cb_logger;
 
 static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_list args) {
+  if (level > av_log_get_level()) {
+    return;
+  }
+
   if (cb_logger) {
     char buf[buf_size];
     std::memcpy(buf, log_prefix, prefix_length);
-    vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+    int n = vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+    if (buf[prefix_length + n - 1] == '\n') {
+      buf[prefix_length + n - 1] = '\0';
+    }
+
     switch (level) {
     case AV_LOG_TRACE:
       cb_logger->trace(buf);
@@ -57,8 +65,6 @@ static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) 
 
   const auto log_level_to_ffmpeg = [](LogLevel level) {
     switch (level) {
-      case LogLevel::None:
-        return AV_LOG_QUIET;
       case LogLevel::Trace:
         return AV_LOG_TRACE;
       case LogLevel::Debug:
@@ -71,6 +77,8 @@ static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) 
         return AV_LOG_FATAL;
       case LogLevel::Error:
         return AV_LOG_ERROR;
+      case LogLevel::None:
+        return AV_LOG_QUIET;
       default:
         throw std::runtime_error("Unknown log level");
     }
@@ -164,6 +172,10 @@ std::vector<Unit> Codec::encode(Frame image) {
 
 std::optional<Frame> Codec::decode(Unit unit) {
   int ret = avcodec_send_packet(m_context.get(), unit.raw());
+  if (ret != 0) {
+    return std::nullopt;
+  }
+
   assert(ret == 0);
 
   auto frame = Frame::alloc();

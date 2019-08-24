@@ -19,7 +19,7 @@ Unit Unit::allocate() noexcept {
   return Unit(av_packet_alloc());
 }
 
-Unit Unit::from_data(std::uint8_t* data, std::size_t size) {
+Unit Unit::from_data(const std::uint8_t* data, std::size_t size) {
   auto unit = Unit::allocate();
   AVBufferRef* buffer = av_buffer_alloc(static_cast<int>(size));
   std::memcpy(buffer->data, data, size);
