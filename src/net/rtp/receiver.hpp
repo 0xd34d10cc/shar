@@ -9,6 +9,7 @@
 #include <asio/ip/udp.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "time.hpp"
 #include "context.hpp"
 #include "cancellation.hpp"
 #include "channel.hpp"
@@ -44,15 +45,20 @@ private:
   std::optional<Unit> receive();
   std::optional<Unit> accept(const Packet& packet, const Fragment& fragment);
 
-  bool m_drop{ true }; // true if drop occured
+  // metrics
+  std::size_t m_received{ 0 };
+  std::size_t m_dropped{ 0 };
+
   Cancellation m_running;
 
   IOContext m_context;
   Socket m_socket;
   Endpoint m_endpoint;
 
+  // rtp session state
   std::optional<Endpoint> m_sender;
   std::uint16_t m_sequence{ 0 };
+  bool m_drop{ true }; // true if drop occured
   Depacketizer m_depacketizer;
 };
 

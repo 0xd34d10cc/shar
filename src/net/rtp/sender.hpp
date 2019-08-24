@@ -59,6 +59,7 @@ private:
 
     std::uint16_t  m_sequence;
     std::size_t    m_bytes_sent;
+    std::size_t    m_fragments_sent;
 };
 
 }
