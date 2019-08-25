@@ -79,12 +79,14 @@ static void receive_response(Socket& socket, const Endpoint& server, const ID& i
     if (attribute.type == 0x0020) { // XOR_MAPPED_ADDRESS_TYPE
       std::uint8_t reserved = attribute.data[0];
       std::uint8_t family = attribute.data[1];
-      std::uint16_t port = shar::read_u16_big_endian(attribute.data + 2);
+      std::uint16_t port = shar::read_u16_big_endian(attribute.data + 2)
+      ^ static_cast<std::uint16_t>(stun::Message::MAGIC >> 16);
+      std::uint32_t ipn = shar::read_u32_big_endian(attribute.data + 4) ^ stun::Message::MAGIC;
       std::array<std::uint8_t, 4> ip = {
-        attribute.data[4],
-        attribute.data[5],
-        attribute.data[6],
-        attribute.data[7]
+        static_cast<std::uint8_t>(ipn >> 24),
+        static_cast<std::uint8_t>(ipn >> 16),
+        static_cast<std::uint8_t>(ipn >>  8),
+        static_cast<std::uint8_t>(ipn >>  0)
       };
 
       std::cout << "Response:" << std::endl;
