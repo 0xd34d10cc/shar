@@ -9,9 +9,9 @@
 
 namespace shar::net {
 
-Url::Url(Protocol proto, IpAddress ip, Port port) noexcept
+Url::Url(Protocol proto, std::string host, Port port) noexcept
   : m_protocol(proto)
-  , m_host(std::move(ip))
+  , m_host(std::move(host))
   , m_port(port)
 {}
 
@@ -19,7 +19,7 @@ Protocol Url::protocol() const noexcept {
   return m_protocol;
 }
 
-IpAddress Url::host() const noexcept {
+const std::string& Url::host() const noexcept {
   return m_host;
 }
 
@@ -70,7 +70,7 @@ Url Url::from_string(const std::string& str) {
 
   const std::size_t offset = static_cast<std::size_t>(proto_end+3 - begin);
   const char* host_end = find(":", offset); // could be |end|
-  const auto host = IpAddress::from_string(std::string(proto_end+3, host_end));
+  const auto host = std::string(proto_end+3, host_end);
   const auto port = [&] {
     if (host_end == end) {
       // select "default" port
@@ -97,7 +97,7 @@ Url Url::from_string(const std::string& str) {
     return Port(port_number);
   }();
 
-  return Url(protocol, host, port);
+  return Url(protocol, std::move(host), port);
 }
 
 static const char* to_str(Protocol protocol) {
@@ -115,7 +115,7 @@ static const char* to_str(Protocol protocol) {
 }
 
 std::string Url::to_string() const noexcept {
-  return fmt::format("{}://{}:{}", to_str(protocol()), host().to_string(), port());
+  return fmt::format("{}://{}:{}", to_str(protocol()), host(), port());
 }
 
 }
