@@ -59,6 +59,11 @@ add_library(net
     rtsp/header.cpp
     rtsp/serializer.hpp
     rtsp/serializer.cpp
+
+    stun/message.hpp
+    stun/message.cpp
+    stun/attributes.hpp
+    stun/attributes.cpp
 )
 
 target_include_directories(net
@@ -107,3 +112,22 @@ target_compile_definitions(nettest PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(nettest PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 add_test(NAME nettest COMMAND nettest)
+
+# test STUN client
+# TODO: integrate STUN into shar
+add_executable(stunc stun/client.cpp)
+
+target_include_directories(stunc
+    PRIVATE ..
+    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
+    PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
+)
+
+target_link_libraries(stunc common net)
+
+if (WIN32)
+  target_link_libraries(stunc ws2_32 iphlpapi)
+endif()
+
+target_compile_definitions(stunc PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+target_compile_options(stunc PRIVATE ${SHAR_COMPILE_OPTIONS})
