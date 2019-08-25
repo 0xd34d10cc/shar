@@ -58,6 +58,7 @@ private:
   // rtp session state
   std::optional<Endpoint> m_sender;
   std::uint16_t m_sequence{ 0 };
+  std::uint32_t m_timestamp{ 0 }; // current timestamp
   bool m_drop{ true }; // true if drop occured
   Depacketizer m_depacketizer;
 };
