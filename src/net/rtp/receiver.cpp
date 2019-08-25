@@ -63,9 +63,10 @@ void Receiver::shutdown() {
 using Unit = Receiver::Unit;
 
 std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragment) {
+  std::optional<Unit> result;
   if (!packet.valid() || !fragment.valid()) {
     assert(false);
-    return std::nullopt;
+    return result;
   }
 
   assert(!packet.has_padding());
@@ -78,10 +79,21 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
     m_logger.warning("Dropped a packet. NAL type: {}", fragment.nal_type());
   }
 
+  bool flush = m_timestamp != packet.timestamp();
+  if (flush) {
+    if (m_depacketizer.completed()) {
+      const auto& buffer = m_depacketizer.buffer();
+      result = Unit::from_data(buffer.data(), buffer.size());
+    }
+
+    m_timestamp = packet.timestamp();
+    m_depacketizer.reset();
+  }
+
   bool process = m_drop ? fragment.is_first() : in_sequence;
   if (!process) {
     m_dropped += packet.size();
-    return std::nullopt;
+    return result;
   }
 
   if (m_drop) {
@@ -91,14 +103,8 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
 
   m_drop = false;
   m_sequence = packet.sequence();
-  if (m_depacketizer.push(fragment)) {
-    const auto& buffer = m_depacketizer.buffer();
-    auto unit = Unit::from_data(buffer.data(), buffer.size());
-    m_depacketizer.reset();
-    return std::move(unit);
-  }
-
-  return std::nullopt;
+  m_depacketizer.push(fragment);
+  return result;
 }
 
 std::optional<Unit> Receiver::receive() {

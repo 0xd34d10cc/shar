@@ -12,9 +12,10 @@ bool Depacketizer::push(const Fragment& fragment) {
   assert(fragment.is_first() || !m_buffer.empty());
 
   if (fragment.is_first()) {
-    reset();
-
     // setup nal unit prefix
+    if (m_buffer.empty()) {
+      m_buffer.push_back(0x00);
+    }
     m_buffer.push_back(0x00);
     m_buffer.push_back(0x00);
     m_buffer.push_back(0x01);
@@ -33,7 +34,12 @@ bool Depacketizer::push(const Fragment& fragment) {
   // from RFC 6184: Start bit and End bit MUST NOT both be set
   //                to one in the same FU header
   assert(!fragment.is_first() || !fragment.is_last());
-  return fragment.is_last();
+  m_completed = fragment.is_last();
+  return m_completed;
+}
+
+bool Depacketizer::completed() const {
+  return m_completed;
 }
 
 const Buffer& Depacketizer::buffer() const {
@@ -41,6 +47,7 @@ const Buffer& Depacketizer::buffer() const {
 }
 
 void Depacketizer::reset() {
+  m_completed = false;
   m_buffer.clear();
 }
 
