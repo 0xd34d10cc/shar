@@ -85,6 +85,7 @@ target_compile_options(net PRIVATE ${SHAR_COMPILE_OPTIONS})
 add_executable(nettest
     rtp/tests/packet.cpp
     rtp/tests/packetizer.cpp
+    rtp/tests/depacketizer.cpp
 
     rtsp/tests/request.cpp
     rtsp/tests/response.cpp
