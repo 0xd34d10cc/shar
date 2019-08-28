@@ -2,9 +2,12 @@
 
 #include <memory>
 #include <thread>
+#include <atomic>
+#include <mutex>
 
 #include "context.hpp"
 #include "channel.hpp"
+#include "atomic_string.hpp"
 #include "capture/capture.hpp"
 #include "net/sender.hpp"
 #include "codec/encoder.hpp"
@@ -27,6 +30,9 @@ public:
   Receiver<codec::ffmpeg::Frame> start();
   void stop();
 
+  bool failed() const;
+  std::string error() const;
+
 private:
   Context m_context;
 
@@ -37,6 +43,8 @@ private:
 
   std::thread m_encoder_thread;
   std::thread m_network_thread;
+
+  AtomicString m_error;
 };
 
 }

@@ -36,13 +36,23 @@ Receiver<codec::ffmpeg::Frame> View::start() {
 
   m_network_thread = std::thread{[this,
                                   tx{std::move(packets_tx)}] () mutable {
-    m_receiver->run(std::move(tx));
+    try {
+      m_receiver->run(std::move(tx));
+    }
+    catch (const std::exception& e) {
+      m_error.set(e.what());
+    }
   }};
 
   m_decoder_thread = std::thread{[this,
                                   rx{std::move(packets_rx)},
                                   tx{std::move(frames_tx)}] () mutable {
-    m_decoder.run(std::move(rx), std::move(tx));
+    try {
+      m_decoder.run(std::move(rx), std::move(tx));
+    }
+    catch (const std::exception& e) {
+      m_error.set(e.what());
+    }
   }};
 
   return std::move(frames_rx);
@@ -54,6 +64,14 @@ void View::stop() {
 
   m_network_thread.join();
   m_decoder_thread.join();
+}
+
+bool View::failed() const {
+  return m_error.initialized();
+}
+
+std::string View::error() const {
+  return m_error.get();
 }
 
 } // namespace shar

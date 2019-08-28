@@ -251,27 +251,39 @@ int App::run() {
     process_input();
     process_title_bar();
 
-    if (m_gui_enabled) {
-      if (auto new_state = process_gui()) {
-        try {
+    try {
+      check_stream_state();
+
+      if (m_gui_enabled) {
+        if (auto new_state = process_gui()) {
           switch_to(*new_state);
           m_last_error.clear();
         }
-        catch (const std::exception& e) {
-          m_last_error = e.what();
-
-          if (m_stream.valueless_by_exception()) {
-            m_stream.emplace<Empty>();
-          }
-        }
       }
     }
+    catch (const std::exception& e) {
+      m_last_error = e.what();
+
+      if (m_stream.valueless_by_exception()) {
+        m_stream.emplace<Empty>();
+      }
+    }
+
 
     render();
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
   return EXIT_SUCCESS;
+}
+
+void App::check_stream_state() {
+  const bool failed = std::visit([this](auto& stream) { return stream.failed(); }, m_stream);
+
+  if (failed) {
+    m_last_error = std::visit([this](auto& stream) { return stream.error(); }, m_stream);
+    switch_to(StreamState::None);
+  }
 }
 
 StreamState App::state() const {
