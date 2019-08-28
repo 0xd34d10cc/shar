@@ -60,6 +60,9 @@ App::App(Options options)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
+
+  m_url.set_text(m_context.m_config->url);
+
   Rect area{
     Point::origin(),
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
@@ -273,6 +276,8 @@ int App::run() {
     render();
     std::this_thread::sleep_for(Milliseconds(5));
   }
+
+  m_context.m_config->dump_options();
 
   return EXIT_SUCCESS;
 }

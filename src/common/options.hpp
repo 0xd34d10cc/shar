@@ -48,6 +48,7 @@ struct Options {
 
   // reads options from command line arguments, config and environment variables
   static Options read(int argc, char* argv[]);
+  void dump_options();
 };
 
 }
