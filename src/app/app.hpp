@@ -46,6 +46,7 @@ private:
   void switch_to(StreamState new_state);
   void stop_stream();
   void start_stream();
+  void check_stream_state();
 
   Context m_context;
   Cancellation m_running;
@@ -65,9 +66,18 @@ private:
 
   struct Empty {
     void stop() {}
+
     std::optional<Receiver<codec::ffmpeg::Frame>> start() {
       // TODO: replace by once<Frame>(Frame::black())
       return std::nullopt;
+    }
+
+    bool failed() const {
+      return false;
+    }
+
+    std::string error() const {
+      return "";
     }
   };
 

@@ -15,6 +15,8 @@ add_library(common
             slice.cpp
             byteorder.hpp
             byteorder.cpp
+            atomic_string.hpp
+            atomic_string.cpp
 
             # metrics
             metrics/gauge.cpp
