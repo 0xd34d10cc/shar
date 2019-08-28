@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <cstdlib>
+#include <cstdlib> // std::size_t
 
 
 namespace shar {
@@ -24,7 +24,7 @@ enum class LogLevel {
   None
 };
 
-struct Options {
+struct Config {
   bool connect{ false };                             // true for receiver, false for sender
                                                      // if true all other options except
                                                      // for url are irrelevant
@@ -46,9 +46,12 @@ struct Options {
     {"tune", "zerolatency"}
   };
 
-  // reads options from command line arguments, config and environment variables
-  static Options read(int argc, char* argv[]);
-  void dump_options();
+  // reads config from command line arguments and config file (--config option, if provided)
+  // WARNING: calls std::exit on error
+  static Config from_args(int argc, char* argv[]);
+
+  // convert config to json string
+  std::string to_string() const;
 };
 
 }

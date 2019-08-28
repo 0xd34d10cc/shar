@@ -1,5 +1,4 @@
 #include <cstdlib> // std::getenv
-#include <filesystem>
 
 #include "disable_warnings_push.hpp"
 #include <CLI/CLI.hpp>
@@ -7,13 +6,12 @@
 #include <fmt/format.h>
 #include "disable_warnings_pop.hpp"
 
-#include "options.hpp"
-#include "logger.hpp"
+#include "config.hpp"
+#include "env.hpp"
 
 
 namespace {
 
-static constexpr char config_name[]  = "config.json";
 using nlohmann::json;
 
 class ConfigJSON : public CLI::Config {
@@ -115,57 +113,32 @@ public:
   }
 };
 
-std::string log_level_to_string(shar::LogLevel loglevel) {
+using shar::LogLevel;
 
-  switch(loglevel) {
-    case(shar::LogLevel::None): return "none";
-    case(shar::LogLevel::Trace): return "trace";
-    case(shar::LogLevel::Debug): return "debug";
-    case(shar::LogLevel::Info): return "info";
-    case(shar::LogLevel::Warning): return "warning";
-    case(shar::LogLevel::Error): return "error";
-    case(shar::LogLevel::Critical): return "critical";
-    default: assert(!"invalid loglevel, update log_level_to_string"); 
-             throw std::runtime_error("invalid loglevel, update log_level_to_string");
-  }}
-
-
-std::string opts_to_string(const shar::Options& opts) {
-  json j;
-  std::vector<std::string> string_options;
-  for (const auto& option : opts.options) { 
-    string_options.push_back(fmt::format("{}={}", option.first, option.second));
-  }
-
-  j["bitrate"] = opts.bitrate;
-  j["codec"] = opts.codec;
-  j["connect"] = opts.connect;
-  j["encoder_loglevel"] = log_level_to_string(opts.encoder_log_level);
-  j["fps"] = opts.fps;
-  j["logs"] = opts.logs_location;
-  j["log_level"] = log_level_to_string(opts.log_level);
-  j["metrics"] = opts.metrics;
-  j["monitor"] = opts.monitor;
-  j["options"] = string_options;
-  j["p2p"] = opts.p2p;
-  j["url"] = opts.url;
-
-  return j.dump(4);
-}
-
-std::filesystem::path get_shar_path() {
-  if (const char* home = std::getenv("HOME")) {
-    return std::filesystem::path(home) / ".shar";
-  }
-  else if (const char* userprofile = std::getenv("userprofile")) {
-    return std::filesystem::path(userprofile) / ".shar";
-  }
-  else {
-    return std::filesystem::current_path();
+std::string log_level_to_string(LogLevel level) {
+  switch (level) {
+    case LogLevel::None:
+      return "none";
+    case LogLevel::Trace:
+      return "trace";
+    case LogLevel::Debug:
+      return "debug";
+    case LogLevel::Info:
+      return "info";
+    case LogLevel::Warning:
+      return "warning";
+    case LogLevel::Error:
+      return "error";
+    case LogLevel::Critical:
+      return "critical";
+    default:
+      assert(!"invalid loglevel, update log_level_to_string");
+      throw std::runtime_error("invalid loglevel, update log_level_to_string");
   }
 }
 
-}
+
+} // anonymous namespace
 
 
 namespace shar {
@@ -189,13 +162,11 @@ static shar::LogLevel log_level_from_string(const std::string& str) {
   throw std::runtime_error(fmt::format("Unknown log level: {}", str));
 }
 
-Options Options::read(int argc, char* argv[]) {
-  Options opts;
+Config Config::from_args(int argc, char* argv[]) {
+  Config config;
   std::vector<std::string> codec_options;
   std::string loglvl;
   std::string encoder_loglvl;
-
-  auto shar_dir = get_shar_path();
 
   std::set<std::string> loglvl_options{
     "none",
@@ -209,23 +180,17 @@ Options Options::read(int argc, char* argv[]) {
 
   CLI::App app{"shar - yet another tool for video streaming"};
   app.config_formatter(std::make_shared<ConfigJSON>());
+  app.set_config("-c,--config", env::config_path().string());
 
-  if (std::filesystem::exists(shar_dir / config_name) && 
-      std::filesystem::is_regular_file(shar_dir / config_name)) {
-    app.set_config("-c,--config", (shar_dir / config_name).string());
-  }
-  else {
-    app.set_config("-c,--config");
-  }
-  app.add_flag("--connect", opts.connect, "Connect to session");
-  app.add_flag("--p2p", opts.p2p, "Enable p2p mode, makes sense only for sender");
-  app.add_option("url,-u,--url", opts.url, "Url for stream or connect");
-  app.add_option("-m,--monitor", opts.monitor, "Which monitor to capture");
-  app.add_option("-f,--fps", opts.fps, "Desired fps", true);
-  app.add_option("--codec", opts.codec, "Which codec to use");
-  app.add_option("-b,--bitrate", opts.bitrate, "Target bitrate (kbit)", true);
-  app.add_option("--metrics", opts.metrics, "Where to expose metrics", true);
-  app.add_option("--logs", opts.logs_location, "Log files location", true);
+  app.add_flag("--connect", config.connect, "Connect to session");
+  app.add_flag("--p2p", config.p2p, "Enable p2p mode, makes sense only for sender");
+  app.add_option("url,-u,--url", config.url, "Url for stream or connect");
+  app.add_option("-m,--monitor", config.monitor, "Which monitor to capture");
+  app.add_option("-f,--fps", config.fps, "Desired fps", true);
+  app.add_option("--codec", config.codec, "Which codec to use");
+  app.add_option("-b,--bitrate", config.bitrate, "Target bitrate (kbit)", true);
+  app.add_option("--metrics", config.metrics, "Where to expose metrics", true);
+  app.add_option("--logs", config.logs_location, "Log files location", true);
   app.add_set("--log_level", loglvl, loglvl_options, "common log level", true);
   app.add_set("--encoder_loglevel", encoder_loglvl, loglvl_options, "log level for encoder", true);
   app.add_option("-o,--options", codec_options, "Codec options, in key=value format");
@@ -240,7 +205,7 @@ Options Options::read(int argc, char* argv[]) {
 
   if (!codec_options.empty()) {
     // clear default values
-    opts.options.clear();
+    config.options.clear();
 
     for (const auto& option : codec_options) {
       auto it = std::find(option.begin(), option.end(), '=');
@@ -251,30 +216,47 @@ Options Options::read(int argc, char* argv[]) {
 
       std::string key{ option.begin(), it };
       std::string value{ it+1, option.end() };
-      opts.options.emplace_back(std::move(key), std::move(value));
+      config.options.emplace_back(std::move(key), std::move(value));
     }
 
   }
 
   if (!loglvl.empty()) {
-    opts.log_level = log_level_from_string(loglvl);
+    config.log_level = log_level_from_string(loglvl);
   }
 
   if (!encoder_loglvl.empty()) {
-    opts.encoder_log_level = log_level_from_string(encoder_loglvl);
+    config.encoder_log_level = log_level_from_string(encoder_loglvl);
   }
 
-  if (opts.logs_location.empty()) {
-    opts.logs_location = (shar_dir / "logs").string();
+  if (config.logs_location.empty()) {
+    config.logs_location = env::logs_dir().string();
   }
 
-  return opts;
+  return config;
 }
 
-void Options::dump_options() {
-  std::string json = opts_to_string(*this);
-  std::ofstream config_stream(get_shar_path() / config_name);
-  config_stream << json;
+std::string Config::to_string() const {
+  json config;
+  std::vector<std::string> string_options;
+  for (const auto& option : options) {
+    string_options.push_back(fmt::format("{}={}", option.first, option.second));
+  }
+
+  config["bitrate"] = bitrate;
+  config["codec"] = codec;
+  config["connect"] = connect;
+  config["encoder_loglevel"] = log_level_to_string(encoder_log_level);
+  config["fps"] = fps;
+  config["logs"] = logs_location;
+  config["log_level"] = log_level_to_string(log_level);
+  config["metrics"] = metrics;
+  config["monitor"] = monitor;
+  config["options"] = string_options;
+  config["p2p"] = p2p;
+  config["url"] = url;
+
+  return config.dump(4 /* spaces */);
 }
 
 }

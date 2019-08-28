@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "channel.hpp"
-#include "options.hpp"
+#include "config.hpp"
 #include "context.hpp"
 #include "cancellation.hpp"
 
@@ -31,7 +31,7 @@ enum class StreamState {
 
 class App {
 public:
-  App(Options options);
+  App(Config config);
   ~App();
 
   int run();
@@ -47,6 +47,8 @@ private:
   void stop_stream();
   void start_stream();
   void check_stream_state();
+
+  void save_config();
 
   Context m_context;
   Cancellation m_running;

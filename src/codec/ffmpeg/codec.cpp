@@ -58,7 +58,7 @@ static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_lis
   }
 }
 
-static void setup_logging(const shar::OptionsPtr& config, shar::Logger& logger) {
+static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
   using shar::LogLevel;
 
   cb_logger = logger;
