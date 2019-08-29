@@ -14,7 +14,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "time.hpp"
-#include "options.hpp"
+#include "config.hpp"
 
 
 namespace shar {

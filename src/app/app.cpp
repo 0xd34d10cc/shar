@@ -1,12 +1,13 @@
-#include "app.hpp"
-
 #include <thread>
 #include <filesystem>
+#include <fstream>
 
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_events.h>
 #include "disable_warnings_pop.hpp"
 
+#include "app.hpp"
+#include "env.hpp"
 #include "time.hpp"
 #include "size.hpp"
 #include "ui/gl_vtable.hpp"
@@ -17,8 +18,8 @@ namespace shar {
 
 namespace fs = std::filesystem;
 
-static Context make_context(Options options) {
-  auto config = std::make_shared<Options>(std::move(options));
+static Context make_context(Config c) {
+  auto config = std::make_shared<Config>(std::move(c));
   auto shar_loglvl = config->log_level;
   if (shar_loglvl > config->encoder_log_level) {
     throw std::runtime_error("Encoder log level should not be less than general log level");
@@ -46,8 +47,8 @@ static Context make_context(Options options) {
   };
 }
 
-App::App(Options options)
-  : m_context(make_context(options))
+App::App(Config config)
+  : m_context(make_context(std::move(config)))
   // NOTE: should not be equal to screen size, otherwise some
   //       magical SDL kludge makes window fullscreen
   , m_window("shar", Size{ 1080 + 30, 1920 })
@@ -60,6 +61,9 @@ App::App(Options options)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
+
+  m_url.set_text(m_context.m_config->url);
+
   Rect area{
     Point::origin(),
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
@@ -274,6 +278,7 @@ int App::run() {
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
+  save_config();
   return EXIT_SUCCESS;
 }
 
@@ -304,6 +309,22 @@ StreamState App::state() const {
     }
 
     }, m_stream);
+}
+
+void App::save_config() {
+  // write only if config file or .shar dir already exist
+  bool save = std::filesystem::exists(env::config_path());
+  if (!save) {
+    if (const auto dir = env::shar_dir()) {
+      save = std::filesystem::exists(*dir) && std::filesystem::is_directory(*dir);
+    }
+  }
+
+  if (save) {
+    const auto config = m_context.m_config->to_string();
+    std::ofstream out(env::config_path(), std::ios_base::binary);
+    out.write(config.data(), config.size());
+  }
 }
 
 }
