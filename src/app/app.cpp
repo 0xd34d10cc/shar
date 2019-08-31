@@ -71,6 +71,7 @@ App::App(Config config)
 
   m_window.set_header_area(area);
   m_window.set_border(false);
+  m_window.on_move([this] { tick(); });
   m_window.show();
 }
 
@@ -238,43 +239,45 @@ void App::start_stream() {
   std::visit([this](auto& stream) { m_frames = stream.start(); }, m_stream);
 }
 
+void App::tick() {
+  if (m_frames) {
+    if (auto frame = m_frames->try_receive()) {
+      auto bgra = frame->to_bgra();
+      m_background.bind();
+      m_background.update(Point::origin(),
+        frame->sizes(),
+        bgra.data.get());
+      m_background.unbind();
+    }
+  }
+
+  process_title_bar();
+
+  try {
+    check_stream_state();
+
+    if (m_gui_enabled) {
+      if (auto new_state = process_gui()) {
+        switch_to(*new_state);
+        m_last_error.clear();
+      }
+    }
+  }
+  catch (const std::exception & e) {
+    m_last_error = e.what();
+
+    if (m_stream.valueless_by_exception()) {
+      m_stream.emplace<Empty>();
+    }
+  }
+
+  render();
+}
+
 int App::run() {
   while (!m_running.expired()) {
-
-    if (m_frames) {
-      if (auto frame = m_frames->try_receive()) {
-        auto bgra = frame->to_bgra();
-        m_background.bind();
-        m_background.update(Point::origin(),
-                            frame->sizes(),
-                            bgra.data.get());
-        m_background.unbind();
-      }
-    }
-
     process_input();
-    process_title_bar();
-
-    try {
-      check_stream_state();
-
-      if (m_gui_enabled) {
-        if (auto new_state = process_gui()) {
-          switch_to(*new_state);
-          m_last_error.clear();
-        }
-      }
-    }
-    catch (const std::exception& e) {
-      m_last_error = e.what();
-
-      if (m_stream.valueless_by_exception()) {
-        m_stream.emplace<Empty>();
-      }
-    }
-
-
-    render();
+    tick();
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
