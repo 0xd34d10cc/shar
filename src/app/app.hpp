@@ -38,6 +38,7 @@ public:
   StreamState state() const;
 
 private:
+  void tick();
   void process_input();
   void process_title_bar();
   std::optional<StreamState> process_gui();
