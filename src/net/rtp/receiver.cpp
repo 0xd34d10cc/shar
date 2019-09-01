@@ -14,7 +14,7 @@ Receiver::Receiver(Context context, IpAddress ip, Port port)
   , m_socket(m_context)
   , m_endpoint(ip, port)
 {
-  m_socket.open(asio::ip::udp::v4());
+  m_socket.open(udp::v4());
 }
 
 void Receiver::run(Output units) {
@@ -111,10 +111,10 @@ std::optional<Unit> Receiver::receive() {
   static const std::size_t HEADER_SIZE = rtp::Packet::MIN_SIZE;
   std::array<std::uint8_t, MAX_MTU + HEADER_SIZE> buffer;
 
-  Endpoint endpoint;
+  udp::Endpoint endpoint;
   ErrorCode ec;
   std::size_t n = m_socket.receive_from(
-    asio::buffer(buffer.data(), buffer.size()),
+    span(buffer.data(), buffer.size()),
     endpoint,
     0 /* flags */, ec
   );
@@ -125,7 +125,7 @@ std::optional<Unit> Receiver::receive() {
   }
 
   if (endpoint != m_sender) {
-    const auto str = [](Endpoint e) {
+    const auto str = [](udp::Endpoint e) {
       return e.address().to_string() + ":" + std::to_string(e.port());
     };
 

@@ -1,21 +1,12 @@
 #include <iostream>
 
-#include "disable_warnings_push.hpp"
-#include <asio/ip/udp.hpp>
-#include "disable_warnings_pop.hpp"
-
+#include "net/types.hpp"
 #include "byteorder.hpp"
 #include "message.hpp"
 #include "attributes.hpp"
 
 
-using IOContext = asio::io_context;
-using Socket = asio::ip::udp::socket;
-using IpAddress = asio::ip::address;
-using Endpoint = asio::ip::udp::endpoint;
-using Resolver = asio::ip::udp::resolver;
-
-namespace stun = shar::net::stun;
+using namespace shar::net;
 using ID = stun::Message::Transaction;
 
 static int usage() {
@@ -29,7 +20,7 @@ static ID gen_id() {
              0xd3, 0x4d, 0x10, 0xcc };
 }
 
-static ID send_request(Socket& socket, const Endpoint& server) {
+static ID send_request(udp::Socket& socket, const udp::Endpoint& server) {
   const auto id = gen_id();
 
   std::array<std::uint8_t, 1024> buffer;
@@ -39,19 +30,27 @@ static ID send_request(Socket& socket, const Endpoint& server) {
   request.set_cookie(stun::Message::MAGIC);
   request.set_transaction(id);
 
-  socket.send_to(asio::buffer(buffer.data(), stun::Message::MIN_SIZE), server);
+  socket.send_to(span(buffer.data(), stun::Message::MIN_SIZE), server);
   return id;
 }
 
-static void receive_response(Socket& socket, const Endpoint& server, const ID& id) {
+// google public STUN servers
+// stun.l.google.com:19302
+// stun1.l.google.com:19302
+// stun2.l.google.com:19302
+// stun3.l.google.com:19302
+// stun4.l.google.com:19302
+
+static void receive_response(udp::Socket& socket, const udp::Endpoint& server, const ID& id) {
   std::array<std::uint8_t, 2048> buffer;
 
-  Endpoint responder;
+  udp::Endpoint responder;
 
   // FIXME: no timeout
-  std::size_t n = socket.receive_from(asio::buffer(buffer.data(), buffer.size()), responder);
-  stun::Message response{ buffer.data(), n };
+  std::size_t n = socket.receive_from(span(buffer.data(), buffer.size()), responder);
+  assert(stun::is_message(buffer.data(), n));
 
+  stun::Message response{ buffer.data(), n };
   if (responder != server) {
     std::cout << "Received response from unexpected host: "
               << responder.address().to_string() << std::endl;
@@ -113,9 +112,9 @@ int main(int argc, char* argv[]) {
 
   try {
     IOContext context;
-    Resolver resolver{ context };
-    Endpoint server;
-    for (auto entry : resolver.resolve(asio::ip::udp::v4(), hostname, port)) {
+    udp::Resolver resolver{ context };
+    udp::Endpoint server;
+    for (auto entry : resolver.resolve(udp::v4(), hostname, port)) {
       if (entry.endpoint().address().is_v4()) {
         server = entry;
         std::cout << "Resolved " << hostname << ':' << port << " to "
@@ -125,9 +124,9 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    Socket socket{ context };
-    socket.open(asio::ip::udp::v4());
-    socket.bind(Endpoint(IpAddress::from_string("0.0.0.0"), 44444));
+    udp::Socket socket{ context };
+    socket.open(udp::v4());
+    socket.bind(udp::Endpoint(IpAddress::from_string("0.0.0.0"), 44444));
 
     const auto id = send_request(socket, server);
     receive_response(socket, server, id);

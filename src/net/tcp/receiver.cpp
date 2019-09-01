@@ -18,7 +18,6 @@ PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port)
 void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
   m_sender = &sender; // TODO: remove this hack
 
-  using Endpoint = asio::ip::tcp::endpoint;
   Endpoint endpoint{ m_server_address, m_port };
   // FIXME: throws exception
   m_receiver.connect(endpoint);
@@ -44,7 +43,7 @@ void PacketReceiver::shutdown() {
 
 void PacketReceiver::start_read() {
   m_receiver.async_read_some(
-      asio::buffer(m_buffer.data(), m_buffer.size()),
+      span(m_buffer.data(), m_buffer.size()),
       [this](const ErrorCode& ec, std::size_t received) {
         if (ec) {
           m_logger.error("Receiver failed: {}", ec.message());

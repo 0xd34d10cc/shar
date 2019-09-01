@@ -129,8 +129,8 @@ void P2PSender::run_client(ClientId id) {
           static_cast<std::uint8_t>((size >> 24) & 0xff)
       };
 
-      auto buffer = asio::buffer(client.m_length.data() + client.m_bytes_sent,
-                                 client.m_length.size() - client.m_bytes_sent);
+      auto buffer = span(client.m_length.data() + client.m_bytes_sent,
+                         client.m_length.size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
           m_logger.error("Client {}: failed to send packet length ({})", id, ec.message());
@@ -145,8 +145,8 @@ void P2PSender::run_client(ClientId id) {
       break;
 
     case Client::State::SendingContent: {
-      auto buffer = asio::buffer(packet->data() + client.m_bytes_sent,
-                                 packet->size() - client.m_bytes_sent);
+      auto buffer = span(packet->data() + client.m_bytes_sent,
+                         packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
         if (ec) {
           m_logger.error("Client {}: failed to send packet ({})", id, ec.message());
@@ -222,11 +222,9 @@ void P2PSender::reset_overflown_state(ClientId id) {
 }
 
 void P2PSender::setup() {
-  namespace ip = asio::ip;
-
-  ip::tcp::endpoint endpoint {m_ip, m_port};
+  Endpoint endpoint {m_ip, m_port};
   m_acceptor.open(endpoint.protocol());
-  m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
+  m_acceptor.set_option(Acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
   m_acceptor.listen(10);
   start_accepting();
