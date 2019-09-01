@@ -9,7 +9,12 @@
 #include <system_error>
 
 #include "disable_warnings_push.hpp"
-#include <asio.hpp>
+#include <asio/io_context.hpp>
+#include <asio/ip/address.hpp>
+#include <asio/steady_timer.hpp>
+#include <asio/buffer.hpp>
+#include <asio/ip/udp.hpp>
+#include <asio/ip/tcp.hpp>
 #include "disable_warnings_pop.hpp"
 
 
