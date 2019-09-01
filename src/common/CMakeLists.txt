@@ -1,7 +1,9 @@
 add_library(common
             logger.hpp
-            options.hpp
-            options.cpp
+            env.hpp
+            env.cpp
+            config.hpp
+            config.cpp
             context.hpp
             channel.hpp
             size.hpp
@@ -15,6 +17,8 @@ add_library(common
             slice.cpp
             byteorder.hpp
             byteorder.cpp
+            atomic_string.hpp
+            atomic_string.cpp
 
             # metrics
             metrics/gauge.cpp

@@ -32,7 +32,7 @@ void PacketSender::run(Receiver<Unit> packets) {
 
   shutdown();
   if (m_state != State::Disconnected) {
-    m_socket.shutdown(asio::socket_base::shutdown_both);
+    m_socket.shutdown(Socket::shutdown_both);
     m_socket.close();
   }
 }
@@ -117,10 +117,8 @@ void PacketSender::on_connection_close(const ErrorCode& ec) {
 void PacketSender::send_length() {
   assert(m_state == State::SendingLength);
 
-  auto buffer = asio::buffer(
-    m_length.data() + m_bytes_sent,
-    m_length.size() - m_bytes_sent
-  );
+  auto buffer = span(m_length.data() + m_bytes_sent,
+                     m_length.size() - m_bytes_sent);
 
   m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
     if (ec || bytes_sent == 0) {
@@ -143,10 +141,8 @@ void PacketSender::send_length() {
 void PacketSender::send_content() {
   assert(m_state == State::SendingContent);
 
-  auto buffer = asio::buffer(
-    m_current_packet.data() + m_bytes_sent,
-    m_current_packet.size() - m_bytes_sent
-  );
+  auto buffer = span(m_current_packet.data() + m_bytes_sent,
+                     m_current_packet.size() - m_bytes_sent);
 
   m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
     if (ec || bytes_sent == 0) {

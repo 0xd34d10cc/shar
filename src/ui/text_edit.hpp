@@ -18,6 +18,8 @@ public:
 
   void process(State& state);
 
+  void set_text(const std::string& text);
+
 private:
   nk_text_edit m_inner;
 };

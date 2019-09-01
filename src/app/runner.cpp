@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include "disable_warnings_pop.hpp"
 
-#include "options.hpp"
+#include "config.hpp"
 #include "app.hpp"
 #include "ui/message_box.hpp"
 
@@ -16,8 +16,8 @@ Runner::~Runner() {}
 
 int Runner::run(int argc, char* argv[]) {
   try {
-    auto options = Options::read(argc, argv);
-    App app{ std::move(options) };
+    auto config = Config::from_args(argc, argv);
+    App app{ std::move(config) };
     return app.run();
   }
   catch (const std::exception& e) {

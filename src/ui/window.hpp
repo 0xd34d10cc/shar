@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_video.h>
@@ -12,6 +13,8 @@
 
 
 namespace shar::ui {
+
+struct OnMoveData;
 
 // Handle to SDL window and OpenGL context
 class Window {
@@ -29,6 +32,7 @@ public:
 
   void show();
   void minimize();
+  void on_move(std::function<void()> callback);
 
   void swap();
 
@@ -42,16 +46,18 @@ public:
 
   struct GLContextDeleter {
     void operator()(SDL_GLContext context) {
-      SDL_GL_DeleteContext(context);;
+      SDL_GL_DeleteContext(context);
     }
   };
 
   using GLContextPtr = std::unique_ptr<void, GLContextDeleter>;
 
 private:
+
   SDLWindowPtr m_window;
   GLContextPtr m_context;
   std::unique_ptr<Rect> m_header;
+  std::unique_ptr<OnMoveData> m_callbacks;
 };
 
 }

@@ -1,12 +1,13 @@
-#include "app.hpp"
-
 #include <thread>
 #include <filesystem>
+#include <fstream>
 
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_events.h>
 #include "disable_warnings_pop.hpp"
 
+#include "app.hpp"
+#include "env.hpp"
 #include "time.hpp"
 #include "size.hpp"
 #include "ui/gl_vtable.hpp"
@@ -17,8 +18,8 @@ namespace shar {
 
 namespace fs = std::filesystem;
 
-static Context make_context(Options options) {
-  auto config = std::make_shared<Options>(std::move(options));
+static Context make_context(Config c) {
+  auto config = std::make_shared<Config>(std::move(c));
   auto shar_loglvl = config->log_level;
   if (shar_loglvl > config->encoder_log_level) {
     throw std::runtime_error("Encoder log level should not be less than general log level");
@@ -46,8 +47,8 @@ static Context make_context(Options options) {
   };
 }
 
-App::App(Options options)
-  : m_context(make_context(options))
+App::App(Config config)
+  : m_context(make_context(std::move(config)))
   // NOTE: should not be equal to screen size, otherwise some
   //       magical SDL kludge makes window fullscreen
   , m_window("shar", Size{ 1080 + 30, 1920 })
@@ -60,6 +61,9 @@ App::App(Options options)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
+
+  m_url.set_text(m_context.m_config->url);
+
   Rect area{
     Point::origin(),
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
@@ -67,6 +71,7 @@ App::App(Options options)
 
   m_window.set_header_area(area);
   m_window.set_border(false);
+  m_window.on_move([this] { tick(); });
   m_window.show();
 }
 
@@ -234,44 +239,59 @@ void App::start_stream() {
   std::visit([this](auto& stream) { m_frames = stream.start(); }, m_stream);
 }
 
-int App::run() {
-  while (!m_running.expired()) {
-
-    if (m_frames) {
-      if (auto frame = m_frames->try_receive()) {
-        auto bgra = frame->to_bgra();
-        m_background.bind();
-        m_background.update(Point::origin(),
-                            frame->sizes(),
-                            bgra.data.get());
-        m_background.unbind();
-      }
+void App::tick() {
+  if (m_frames) {
+    if (auto frame = m_frames->try_receive()) {
+      auto bgra = frame->to_bgra();
+      m_background.bind();
+      m_background.update(Point::origin(),
+        frame->sizes(),
+        bgra.data.get());
+      m_background.unbind();
     }
+  }
 
-    process_input();
-    process_title_bar();
+  process_title_bar();
+
+  try {
+    check_stream_state();
 
     if (m_gui_enabled) {
       if (auto new_state = process_gui()) {
-        try {
-          switch_to(*new_state);
-          m_last_error.clear();
-        }
-        catch (const std::exception& e) {
-          m_last_error = e.what();
-
-          if (m_stream.valueless_by_exception()) {
-            m_stream.emplace<Empty>();
-          }
-        }
+        switch_to(*new_state);
+        m_last_error.clear();
       }
     }
+  }
+  catch (const std::exception & e) {
+    m_last_error = e.what();
 
-    render();
+    if (m_stream.valueless_by_exception()) {
+      m_stream.emplace<Empty>();
+    }
+  }
+
+  render();
+}
+
+int App::run() {
+  while (!m_running.expired()) {
+    process_input();
+    tick();
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
+  save_config();
   return EXIT_SUCCESS;
+}
+
+void App::check_stream_state() {
+  const bool failed = std::visit([this](auto& stream) { return stream.failed(); }, m_stream);
+
+  if (failed) {
+    m_last_error = std::visit([this](auto& stream) { return stream.error(); }, m_stream);
+    switch_to(StreamState::None);
+  }
 }
 
 StreamState App::state() const {
@@ -292,6 +312,22 @@ StreamState App::state() const {
     }
 
     }, m_stream);
+}
+
+void App::save_config() {
+  // write only if config file or .shar dir already exist
+  bool save = std::filesystem::exists(env::config_path());
+  if (!save) {
+    if (const auto dir = env::shar_dir()) {
+      save = std::filesystem::exists(*dir) && std::filesystem::is_directory(*dir);
+    }
+  }
+
+  if (save) {
+    const auto config = m_context.m_config->to_string();
+    std::ofstream out(env::config_path(), std::ios_base::binary);
+    out.write(config.data(), config.size());
+  }
 }
 
 }

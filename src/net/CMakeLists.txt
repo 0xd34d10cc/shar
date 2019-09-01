@@ -1,4 +1,9 @@
 add_library(net
+    types.hpp
+
+    url.hpp
+    url.cpp
+
     sender.hpp
     sender_factory.hpp
     sender_factory.cpp
@@ -6,9 +11,6 @@ add_library(net
     receiver.hpp
     receiver_factory.hpp
     receiver_factory.cpp
-
-    url.hpp
-    url.cpp
 
     tcp/sender.hpp
     tcp/sender.cpp
@@ -115,8 +117,7 @@ target_compile_options(nettest PRIVATE ${SHAR_COMPILE_OPTIONS})
 add_test(NAME nettest COMMAND nettest)
 
 # test STUN client
-# TODO: integrate STUN into shar
-add_executable(stunc stun/client.cpp)
+add_executable(stunc stun/stunc.cpp)
 
 target_include_directories(stunc
     PRIVATE ..

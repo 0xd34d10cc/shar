@@ -1,9 +1,6 @@
 #include "sender_factory.hpp"
 
-#include "disable_warnings_push.hpp"
-#include <asio/ip/udp.hpp>
-#include "disable_warnings_pop.hpp"
-
+#include "net/types.hpp"
 #include "tcp/sender.hpp"
 #include "tcp/p2p_sender.hpp"
 #include "rtp/sender.hpp"
@@ -11,16 +8,12 @@
 
 namespace shar::net {
 
-using Resolver = asio::ip::udp::resolver;
-using Endpoint = asio::ip::udp::endpoint;
-using IOContext = asio::io_context;
-
 std::unique_ptr<IPacketSender> create_sender(Context context, Url url) {
-  Endpoint endpoint;
+  udp::Endpoint endpoint;
   IOContext ioc;
-  Resolver resolver{ ioc };
+  udp::Resolver resolver{ ioc };
   const auto port = std::to_string(url.port());
-  for (auto entry : resolver.resolve(asio::ip::udp::v4(), url.host(), port)) {
+  for (auto entry : resolver.resolve(udp::v4(), url.host(), port)) {
     if (entry.endpoint().address().is_v4()) {
       endpoint = entry;
       break;

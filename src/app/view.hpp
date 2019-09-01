@@ -5,6 +5,7 @@
 
 #include "context.hpp"
 #include "channel.hpp"
+#include "atomic_string.hpp"
 #include "net/receiver.hpp"
 #include "codec/decoder.hpp"
 #include "codec/ffmpeg/frame.hpp"
@@ -21,6 +22,9 @@ public:
   Receiver<codec::ffmpeg::Frame> start();
   void stop();
 
+  bool failed() const;
+  std::string error() const;
+
 private:
   Context m_context;
 
@@ -29,6 +33,8 @@ private:
 
   std::thread m_network_thread;
   std::thread m_decoder_thread;
+
+  AtomicString m_error;
 };
 
 }

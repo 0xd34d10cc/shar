@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "channel.hpp"
-#include "options.hpp"
+#include "config.hpp"
 #include "context.hpp"
 #include "cancellation.hpp"
 
@@ -31,13 +31,14 @@ enum class StreamState {
 
 class App {
 public:
-  App(Options options);
+  App(Config config);
   ~App();
 
   int run();
   StreamState state() const;
 
 private:
+  void tick();
   void process_input();
   void process_title_bar();
   std::optional<StreamState> process_gui();
@@ -46,6 +47,9 @@ private:
   void switch_to(StreamState new_state);
   void stop_stream();
   void start_stream();
+  void check_stream_state();
+
+  void save_config();
 
   Context m_context;
   Cancellation m_running;
@@ -65,9 +69,18 @@ private:
 
   struct Empty {
     void stop() {}
+
     std::optional<Receiver<codec::ffmpeg::Frame>> start() {
       // TODO: replace by once<Frame>(Frame::black())
       return std::nullopt;
+    }
+
+    bool failed() const {
+      return false;
+    }
+
+    std::string error() const {
+      return "";
     }
   };
 

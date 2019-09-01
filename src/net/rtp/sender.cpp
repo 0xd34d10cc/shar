@@ -18,12 +18,11 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port)
     {}
 
 void PacketSender::run(Receiver<Unit> packets) {
-    m_socket.open(asio::ip::udp::v4());
+    m_socket.open(udp::v4());
 
     // TODO: use port range instead of constant
-    auto ipv4 = asio::ip::address_v4(0x00000000);
-    auto ip = asio::ip::address::address(ipv4);
-    auto endpoint = asio::ip::udp::endpoint(ip, Port{44444});
+    auto ip = IpAddress(IPv4({ 0, 0, 0, 0 }));
+    auto endpoint = udp::Endpoint(ip, Port{44444});
     m_socket.bind(endpoint);
 
     std::size_t sent = 0;
@@ -96,7 +95,7 @@ void PacketSender::send() {
     packet.set_stream_id(0);
 
     ErrorCode ec;
-    m_socket.send_to(asio::buffer(packet.data(), packet.size()),
+    m_socket.send_to(span(packet.data(), packet.size()),
                      m_endpoint, 0, ec);
 
     if (ec) {

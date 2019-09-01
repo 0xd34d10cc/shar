@@ -73,12 +73,22 @@ Receiver<codec::ffmpeg::Frame> Broadcast::start() {
   m_encoder_thread = std::thread{ [this,
                                    rx{std::move(frames_rx)},
                                    tx{std::move(packets_tx)}] () mutable {
-    m_encoder.run(std::move(rx), std::move(tx));
+    try {
+      m_encoder.run(std::move(rx), std::move(tx));
+    }
+    catch (const std::exception& e) {
+      m_error.set(e.what());
+    }
   } };
 
   m_network_thread = std::thread{ [this,
                                    rx{std::move(packets_rx)}]() mutable {
-    m_network->run(std::move(rx));
+    try {
+      m_network->run(std::move(rx));
+    }
+    catch (const std::exception& e) {
+      m_error.set(e.what());
+    }
   } };
 
   return std::move(display_frames_rx);
@@ -91,6 +101,14 @@ void Broadcast::stop() {
 
   m_encoder_thread.join();
   m_network_thread.join();
+}
+
+bool Broadcast::failed() const {
+  return m_error.initialized();
+}
+
+std::string Broadcast::error() const {
+  return m_error.get();
 }
 
 }

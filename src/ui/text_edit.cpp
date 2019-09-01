@@ -28,4 +28,9 @@ void TextEdit::process(State& state) {
                  &m_inner, nk_filter_default);
 }
 
+void TextEdit::set_text(const std::string& text) {
+  nk_str_clear(&m_inner.string);
+  nk_str_append_str_char(&m_inner.string, text.c_str());
+}
+
 }
