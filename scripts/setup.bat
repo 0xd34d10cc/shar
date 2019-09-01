@@ -8,6 +8,7 @@ if not exist .git (
 
 conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
 conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+conan remote add --force conan-transit https://api.bintray.com/conan/conan/conan-transit
 
 if not exist build (
   mkdir build
