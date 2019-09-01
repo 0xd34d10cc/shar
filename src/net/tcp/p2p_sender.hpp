@@ -2,18 +2,14 @@
 
 #include <queue>
 #include <unordered_map>
-#include <system_error> // std::error_code
 
-#include "disable_warnings_push.hpp"
-#include <asio/ip/tcp.hpp>
-#include "disable_warnings_pop.hpp"
-
+#include "context.hpp"
+#include "cancellation.hpp"
+#include "channel.hpp"
+#include "metrics/gauge.hpp"
+#include "net/types.hpp"
 #include "net/sender.hpp"
 #include "codec/ffmpeg/unit.hpp"
-#include "metrics/gauge.hpp"
-#include "cancellation.hpp"
-#include "context.hpp"
-#include "channel.hpp"
 
 
 namespace shar::net::tcp {
@@ -25,9 +21,6 @@ class P2PSender
   , protected Context
 {
 public:
-  using IpAddress = asio::ip::address;
-  using Port      = const std::uint16_t;
-
   P2PSender(Context context, IpAddress ip, Port port);
   P2PSender(const P2PSender&) = delete;
   P2PSender(P2PSender&&) = default;
@@ -41,10 +34,6 @@ private:
   void schedule_send(Unit packet);
   void teardown();
 
-  using Socket = asio::ip::tcp::socket;
-  using IOContext = asio::io_context;
-  using Acceptor = asio::ip::tcp::acceptor;
-  using ErrorCode = std::error_code;
   using SharedPacket = std::shared_ptr<Unit>;
   using ClientId = std::size_t;
 

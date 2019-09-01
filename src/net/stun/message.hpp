@@ -8,6 +8,7 @@
 
 namespace shar::net::stun {
 
+// returns false if provided |data| is definitely not a valid STUN message
 bool is_message(const std::uint8_t* data, std::size_t size) noexcept;
 
 // STUN message header has the following format:

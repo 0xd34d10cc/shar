@@ -1,25 +1,15 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <system_error> // std::error_code
-
-#include "disable_warnings_push.hpp"
-#include <asio/ip/tcp.hpp>
-#include "disable_warnings_pop.hpp"
-
-#include "metrics/gauge.hpp"
-#include "net/receiver.hpp"
-#include "cancellation.hpp"
 #include "context.hpp"
+#include "cancellation.hpp"
 #include "channel.hpp"
 #include "packet_parser.hpp"
+#include "metrics/gauge.hpp"
+#include "net/receiver.hpp"
+#include "net/types.hpp"
 
 
 namespace shar::net::tcp {
-
-using IpAddress = asio::ip::address;
-using Port      = const std::uint16_t;
 
 class PacketReceiver
   : public IPacketReceiver
@@ -36,10 +26,8 @@ private:
   void start_read();
 
   using Buffer = std::vector<std::uint8_t>;
-  using IOContext = asio::io_context;
-  using Socket = asio::ip::tcp::socket;
-  using ErrorCode = std::error_code;
 
+  // NOTE: only valid inside run() call
   Sender<codec::ffmpeg::Unit>* m_sender{ nullptr };
 
   Cancellation m_running;
