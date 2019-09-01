@@ -160,8 +160,8 @@ Window::Window(const char* name, Size size)
 
 Window::~Window() {
   if (m_window) {
-    // not sure if it is required
     SDL_SetWindowHitTest(m_window.get(), nullptr, nullptr);
+    SDL_DelEventWatch(handle_event, m_callbacks.get());
   }
 }
 
