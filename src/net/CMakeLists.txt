@@ -100,6 +100,8 @@ add_executable(nettest
     rtcp/tests/source_description.cpp
     rtcp/tests/bye.cpp
     rtcp/tests/app.cpp
+
+    stun/tests/message.cpp
 )
 
 target_include_directories(nettest
