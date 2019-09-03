@@ -17,9 +17,9 @@ namespace shar::net::stun {
 //
 // RFC 5389 Section 15
 struct Attribute {
-  std::uint16_t type;
-  std::uint16_t length;
-  std::uint8_t* data;
+  std::uint16_t type{ 0 };
+  std::uint16_t length{ 0 };
+  std::uint8_t* data{ nullptr };
 };
 
 class Attributes: public Slice {
