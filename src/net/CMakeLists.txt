@@ -66,6 +66,9 @@ add_library(net
     stun/message.cpp
     stun/attributes.hpp
     stun/attributes.cpp
+    stun/error.hpp
+    stun/request.hpp
+    stun/request.cpp
 )
 
 target_include_directories(net
