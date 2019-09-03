@@ -23,7 +23,7 @@ stun::Message::Transaction Request::generate_id() {
   return id;
 }
 
-void Request::send(udp::Socket& socket, udp::Endpoint server_address, ErrorCode& ec) {
+ErrorCode Request::send(udp::Socket& socket, udp::Endpoint server_address) {
   assert(!m_id.has_value());
   auto id = generate_id();
 
@@ -34,29 +34,28 @@ void Request::send(udp::Socket& socket, udp::Endpoint server_address, ErrorCode&
   request.set_cookie(stun::Message::MAGIC);
   request.set_transaction(id);
 
+  ErrorCode ec;
   socket.send_to(span(buffer.data(), buffer.size()), server_address, 0, ec);
   if (ec) {
-    return;
+    return ec;
   }
 
   m_id = id;
+  return ErrorCode();
 }
 
-std::optional<udp::Endpoint> Request::process_response(stun::Message& response, ErrorCode& ec) {
+ErrorOr<udp::Endpoint> Request::process_response(stun::Message& response) {
   assert(m_id.has_value());
   if (!response.valid()) {
-    ec = make_error_code(stun::Error::InvalidMessage);
-    return std::nullopt;
+    FAIL(stun::Error::InvalidMessage);
   }
 
   if (response.transaction() != m_id) {
-    ec = make_error_code(stun::Error::UnknownRequestId);
-    return std::nullopt;
+    FAIL(stun::Error::UnknownRequestId);
   }
 
   if (response.type() != 0b10) {
-    ec = make_error_code(stun::Error::RequestFailed);
-    return std::nullopt;
+    FAIL(stun::Error::RequestFailed);
   }
 
   const auto to_endpoint = [](std::uint32_t ip, std::uint16_t port) {
@@ -103,11 +102,10 @@ std::optional<udp::Endpoint> Request::process_response(stun::Message& response, 
   }
 
   if (!endpoint) {
-    ec = make_error_code(stun::Error::NoAddress);
-    return std::nullopt;
+    FAIL(stun::Error::NoAddress);
   }
 
-  return endpoint;
+  return *endpoint;
 }
 
 void Request::reset() {

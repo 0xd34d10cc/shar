@@ -6,7 +6,6 @@
 #else
 
 #include <cstdint>
-#include <system_error>
 
 #include "disable_warnings_push.hpp"
 #include <asio/io_context.hpp>
@@ -17,6 +16,8 @@
 #include <asio/ip/tcp.hpp>
 #include "disable_warnings_pop.hpp"
 
+#include "error_or.hpp"
+
 
 namespace shar::net {
 
@@ -25,7 +26,6 @@ using IPv4 = asio::ip::address_v4;
 using Port = std::uint16_t;
 
 using IOContext = asio::io_context;
-using ErrorCode = std::error_code;
 using Timer = asio::steady_timer;
 
 inline auto span(const void* data, std::size_t size) { return asio::buffer(data, size); }
