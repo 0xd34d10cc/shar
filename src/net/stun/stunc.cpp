@@ -42,10 +42,7 @@ int main(int argc, char* argv[]) {
     socket.bind(udp::Endpoint(IpAddress::from_string("0.0.0.0"), 44444));
 
     stun::Request request;
-    std::error_code ec;
-
-    request.send(socket, server, ec);
-    if (ec) {
+    if (auto ec = request.send(socket, server)) {
       std::cerr << "Failed to send request: " << ec.message() << std::endl;
       return EXIT_FAILURE;
     }
@@ -65,14 +62,12 @@ int main(int argc, char* argv[]) {
       return EXIT_FAILURE;
     }
 
-    auto endpoint = request.process_response(response, ec);
-
-    if (ec) {
+    auto endpoint = request.process_response(response);
+    if (auto ec = endpoint.err()) {
       std::cerr << "Failed to process response: " << ec.message() << std::endl;
       return EXIT_FAILURE;
     }
 
-    assert(endpoint.has_value());
     std::cout << endpoint->address().to_string() << ':' << endpoint->port() << std::endl;
   }
   catch (const std::exception & e) {
