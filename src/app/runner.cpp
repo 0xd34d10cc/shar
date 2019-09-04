@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 #include "app.hpp"
+#include "metric_collector.hpp"
 #include "ui/message_box.hpp"
 
 
@@ -17,7 +18,8 @@ Runner::~Runner() {}
 int Runner::run(int argc, char* argv[]) {
   try {
     auto config = Config::from_args(argc, argv);
-    App app{ std::move(config) };
+    MetricCollector metric_collector;
+    App app{ std::move(config), std::make_shared<MetricCollector>(metric_collector) };
     return app.run();
   }
   catch (const std::exception& e) {

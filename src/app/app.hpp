@@ -7,6 +7,7 @@
 #include "config.hpp"
 #include "context.hpp"
 #include "cancellation.hpp"
+#include "metric_collector.hpp"
 
 #include "ui/window.hpp"
 #include "ui/renderer.hpp"
@@ -31,7 +32,7 @@ enum class StreamState {
 
 class App {
 public:
-  App(Config config);
+  App(Config config, std::shared_ptr<MetricCollector> metric_collector);
   ~App();
 
   int run();
@@ -55,6 +56,7 @@ private:
   Cancellation m_running;
 
   bool m_gui_enabled{ true };
+  bool m_metrics_drawer_enabled{ false };
 
   ui::Window m_window;
   ui::Renderer m_renderer;
@@ -65,6 +67,8 @@ private:
   ui::Button m_stream_button;
   ui::Button m_view_button;
   ui::TextEdit m_url;
+
+  std::shared_ptr<MetricCollector> m_metric_collector;
   std::string m_last_error;
 
   struct Empty {

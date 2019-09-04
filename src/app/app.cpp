@@ -47,7 +47,7 @@ static Context make_context(Config c) {
   };
 }
 
-App::App(Config config)
+App::App(Config config, std::shared_ptr<MetricCollector> metric_collector)
   : m_context(make_context(std::move(config)))
   // NOTE: should not be equal to screen size, otherwise some
   //       magical SDL kludge makes window fullscreen
@@ -59,11 +59,21 @@ App::App(Config config)
   , m_stream_button("stream")
   , m_view_button("view")
   , m_stream(Empty{})
+  , m_metric_collector(metric_collector)
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
 
   m_url.set_text(m_context.m_config->url);
+  m_metric_collector->add_metric("bytes_in");
+  m_metric_collector->add_metric("bytes_out");
+  m_metric_collector->add_metric("fps");
+  m_metric_collector->add_metric("hows_that");
 
+  m_metric_collector->update_metric("bytes_in", 1030);
+  m_metric_collector->update_metric("bytes_out", 300);
+  m_metric_collector->update_metric("fps", 40);
+  m_metric_collector->update_metric("hows_that", 50);
+  
   Rect area{
     Point::origin(),
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
@@ -87,13 +97,23 @@ void App::process_input() {
       m_running.cancel();
     }
 
-    // change gui visibility on shift+f
+    // change gui visibility on shift+g
     if (event.type == SDL_KEYDOWN &&
         event.key.keysym.sym == SDLK_g) {
       const Uint8* state = SDL_GetKeyboardState(0);
 
       if (state[SDL_SCANCODE_LSHIFT]) {
         m_gui_enabled = !m_gui_enabled;
+      }
+    }
+
+    // change metric drawer visibility on shift+m
+    if (event.type == SDL_KEYDOWN &&
+      event.key.keysym.sym == SDLK_m) {
+      const Uint8* state = SDL_GetKeyboardState(0);
+
+      if (state[SDL_SCANCODE_LSHIFT]) {
+        m_metrics_drawer_enabled = !m_metrics_drawer_enabled;
       }
     }
 
@@ -174,6 +194,29 @@ std::optional<StreamState> App::process_gui() {
     }
   }
   nk_end(m_ui.context());
+
+  // draw metrics
+  if (m_metrics_drawer_enabled){
+
+    auto old_bg = m_ui.context()->style.window.fixed_background;
+    m_ui.context()->style.window.fixed_background = nk_style_item_hide();
+    if (nk_begin(m_ui.context(), "metric_drawer",
+      nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
+      NK_WINDOW_NO_SCROLLBAR)) {
+
+      auto metrics = m_metric_collector->get_metrics();
+      
+      for (const auto& metric : metrics) {
+
+        nk_layout_row_dynamic(m_ui.context(), 10, 1);
+        nk_label(m_ui.context(), fmt::format("{} : {}", metric.first, metric.second).c_str(), NK_TEXT_ALIGN_LEFT);
+      }
+      
+    }
+    m_ui.context()->style.window.fixed_background = old_bg;
+    nk_end(m_ui.context());
+
+  }
 
   return new_state;
 }
