@@ -8,7 +8,7 @@
 namespace shar::ui {
 
 static int get_flags(bool read_only, bool multiline) {
-  int flags = NK_EDIT_DEFAULT;
+  nk_flags flags = NK_EDIT_DEFAULT;
   if (read_only) {
     flags |= NK_EDIT_READ_ONLY | NK_EDIT_NO_CURSOR;
   }

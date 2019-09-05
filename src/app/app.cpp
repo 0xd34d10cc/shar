@@ -168,9 +168,9 @@ std::optional<StreamState> App::process_gui() {
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
 
     if (!m_last_error.empty()) {
-      nk_layout_row_dynamic(m_ui.context(), 20, 2);
-      nk_label(m_ui.context(), "error: ", NK_TEXT_LEFT);
-      nk_label(m_ui.context(), m_last_error.c_str(), NK_TEXT_LEFT);
+      nk_layout_row_dynamic(m_ui.context(), 40, 1);
+      nk_text_wrap(m_ui.context(), m_last_error.c_str(),
+                   static_cast<int>(m_last_error.size()));
     }
   }
   nk_end(m_ui.context());
