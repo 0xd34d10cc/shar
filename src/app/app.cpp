@@ -58,6 +58,7 @@ App::App(Config config)
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
+  , m_url(false, false)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
@@ -106,34 +107,31 @@ void App::process_title_bar() {
   Size size = m_window.display_size();
 
   // title bar
-  if (!nk_begin(m_ui.context(), "shar", nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
-                NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+  bool active = nk_begin(m_ui.context(), "shar", nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
+                         NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
+  nk_end(m_ui.context());
 
-    // not sure why it's there...
-    nk_flags& flags = m_ui.context()->current->layout->flags;
-
-    if (flags & NK_WINDOW_CLOSED) {
+  if (!active) {
+    if (nk_window_is_closed(m_ui.context(), "shar")) {
       m_running.cancel();
     }
 
-    if (flags & NK_WINDOW_MINIMIZED) {
-      // cancel "minimized" state
-      flags &= ~NK_WINDOW_MINIMIZED;
+    if (nk_window_is_collapsed(m_ui.context(), "shar")) {
+      nk_window_collapse(m_ui.context(), "shar", NK_MAXIMIZED);
       m_window.minimize();
     }
   }
-  nk_end(m_ui.context());
 }
 
 std::optional<StreamState> App::process_gui() {
-  Size size = m_window.display_size();
   std::optional<StreamState> new_state;
 
+  bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(), "config",
-               nk_rect(0.0f, 30.0f, 300.0f, (float)size.height() - 30.0f),
-               NK_WINDOW_BORDER)) {
+               nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
+               NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
-    nk_layout_row_static(m_ui.context(), 30, 80, 3);
+    nk_layout_row_dynamic(m_ui.context(), 30, 3);
     if (m_stop_button.process(m_ui)) {
       new_state = StreamState::None;
     }
@@ -146,7 +144,7 @@ std::optional<StreamState> App::process_gui() {
       new_state = StreamState::View;
     }
 
-    nk_layout_row_static(m_ui.context(), 20, 250, 1);
+    nk_layout_row_dynamic(m_ui.context(), 20, 1);
     m_url.process(m_ui);
 
     const char* state = [this] {
@@ -167,10 +165,10 @@ std::optional<StreamState> App::process_gui() {
     nk_label(m_ui.context(), "state: ", NK_TEXT_LEFT);
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
 
-    if (!m_last_error.empty()) {
-      nk_layout_row_dynamic(m_ui.context(), 20, 2);
-      nk_label(m_ui.context(), "error: ", NK_TEXT_LEFT);
-      nk_label(m_ui.context(), m_last_error.c_str(), NK_TEXT_LEFT);
+    if (display_error) {
+      nk_layout_row_dynamic(m_ui.context(), 40, 1);
+      nk_text_wrap(m_ui.context(), m_last_error.c_str(),
+                   static_cast<int>(m_last_error.size()));
     }
   }
   nk_end(m_ui.context());
