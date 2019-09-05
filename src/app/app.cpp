@@ -38,12 +38,12 @@ static Context make_context(Config c) {
   }
 
   auto logger = Logger(config->logs_location, shar_loglvl);
-  auto registry = std::make_shared<metrics::Registry>();
+  auto metrics = std::make_shared<Metrics>(20, logger);
 
   return Context{
     std::move(config),
     std::move(logger),
-    std::move(registry)
+    std::move(metrics)
   };
 }
 

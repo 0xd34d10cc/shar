@@ -6,7 +6,6 @@
 
 #include "config.hpp"
 #include "app.hpp"
-#include "metric_collector.hpp"
 #include "ui/message_box.hpp"
 
 

@@ -10,7 +10,7 @@
 #include "net/types.hpp"
 #include "net/sender.hpp"
 #include "codec/ffmpeg/unit.hpp"
-
+#include "metrics.hpp"
 
 namespace shar::net::tcp {
 
@@ -86,8 +86,8 @@ private:
 
   std::size_t m_overflown_count;
 
-  metrics::Gauge m_packets_sent;
-  metrics::Gauge m_bytes_sent;
+  MetricId m_packets_sent;
+  MetricId m_bytes_sent;
 };
 
 } // namespace shar::tcp

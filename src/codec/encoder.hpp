@@ -5,10 +5,12 @@
 #include "channel.hpp"
 #include "cancellation.hpp"
 #include "metrics/gauge.hpp"
+#include "metrics.hpp"
 
 #include "ffmpeg/codec.hpp"
 #include "ffmpeg/unit.hpp"
 #include "ffmpeg/frame.hpp"
+
 
 
 namespace shar::codec {
@@ -29,8 +31,8 @@ private:
   Cancellation m_running;
   ffmpeg::Codec m_codec;
 
-  metrics::Gauge m_bytes_in;
-  metrics::Gauge m_bytes_out;
+  MetricId m_bytes_in;
+  MetricId m_bytes_out;
 };
 
 }

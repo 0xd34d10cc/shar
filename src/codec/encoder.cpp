@@ -6,20 +6,21 @@ namespace shar::codec {
 Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
   : Context(context)
   , m_codec(std::move(context), frame_size, fps) {
-  m_bytes_in = metrics::Gauge({ "Encoder_in", "Encoder bytes in", "bytes" }, m_registry);
-  m_bytes_out = metrics::Gauge({ "Encoder_out", "Encoder bytes out", "bytes" }, m_registry);
 }
 
 void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
+  m_bytes_in = m_metrics->add("Encoder\tin", Metrics::Format::Bytes);
+  m_bytes_out = m_metrics->add("Encoder\tout", Metrics::Format::Bytes);
+
   while (auto frame = input.receive()) {
     if (m_running.expired() || !output.connected()) {
       break;
     }
 
-    m_bytes_in.increment(static_cast<double>(frame->total_size()));
+    m_metrics->increase(m_bytes_in, frame->total_size());
     auto units = m_codec.encode(std::move(*frame));
     for (auto& unit: units) {
-      m_bytes_out.increment(static_cast<double>(unit.size()));
+      m_metrics->increase(m_bytes_out, static_cast<double>(unit.size()));
       output.send(std::move(unit));
     }
 

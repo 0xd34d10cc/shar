@@ -53,7 +53,7 @@ private:
 
   AVContextPtr       m_context;
   AVCodec*           m_codec; // static lifetime
-  metrics::Histogram m_full_delay;
+  //metrics::Histogram m_full_delay;
   std::uint32_t      m_frame_counter;
 
 };
