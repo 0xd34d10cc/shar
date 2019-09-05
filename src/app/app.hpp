@@ -70,8 +70,8 @@ private:
   struct Empty {
     void stop() {}
 
-    std::optional<Receiver<codec::ffmpeg::Frame>> start() {
-      // TODO: replace by once<Frame>(Frame::black())
+    std::optional<Receiver<BGRAFrame>> start() {
+      // TODO: replace with once<Frame>(Frame::black())
       return std::nullopt;
     }
 
@@ -87,7 +87,7 @@ private:
   using Stream = std::variant<Empty, Broadcast, View>;
   Stream m_stream;
 
-  std::optional<Receiver<codec::ffmpeg::Frame>> m_frames;
+  std::optional<Receiver<BGRAFrame>> m_frames;
 };
 
 }
