@@ -58,6 +58,7 @@ App::App(Config config)
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
+  , m_url(false, false)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());

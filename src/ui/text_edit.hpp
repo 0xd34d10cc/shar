@@ -11,7 +11,7 @@ class State;
 
 class TextEdit {
 public:
-  TextEdit();
+  TextEdit(bool read_only, bool multiline);
   ~TextEdit();
 
   std::string text() const;
@@ -22,6 +22,7 @@ public:
 
 private:
   nk_text_edit m_inner;
+  int m_flags;
 };
 
 }
