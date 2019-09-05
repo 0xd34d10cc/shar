@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "net/types.hpp"
+#include "net/dns.hpp"
 #include "message.hpp"
 #include "request.hpp"
 
@@ -21,22 +22,18 @@ int main(int argc, char* argv[]) {
   }
 
   const char* hostname = argv[1];
-  const char* port = argc > 2 ? argv[2] : "3478";
+  const char* port_str = argc > 2 ? argv[2] : "3478";
+  Port port = static_cast<Port>(std::stoi(port_str));
 
   try {
-    IOContext context;
-    udp::Resolver resolver{ context };
-    udp::Endpoint server;
-    for (auto entry : resolver.resolve(udp::v4(), hostname, port)) {
-      if (entry.endpoint().address().is_v4()) {
-        server = entry;
-        std::cout << "Resolved " << hostname << ':' << port << " to "
-                  << entry.endpoint().address().to_string()
-                  << ':' << entry.endpoint().port() << std::endl;
-        break;
-      }
+    auto address = dns::resolve(hostname, port);
+    if (auto e = address.err()) {
+      std::cerr << "Failed to resolve " << hostname << ':' << e.message() << std::endl;
+      return EXIT_FAILURE;
     }
 
+    IOContext context;
+    udp::Endpoint server{ *address, port };
     udp::Socket socket{ context };
     socket.open(udp::v4());
     socket.bind(udp::Endpoint(IpAddress::from_string("0.0.0.0"), 44444));
@@ -57,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     stun::Message response{ buffer.data(), n };
     if (responder != server) {
-      std::cout << "Received response from unexpected host: "
+      std::cerr << "Received response from unexpected host: "
                 << responder.address().to_string() << std::endl;
       return EXIT_FAILURE;
     }

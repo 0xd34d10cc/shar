@@ -4,6 +4,9 @@ add_library(net
     url.hpp
     url.cpp
 
+    dns.hpp
+    dns.cpp
+
     sender.hpp
     sender_factory.hpp
     sender_factory.cpp
