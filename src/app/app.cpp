@@ -242,11 +242,10 @@ void App::start_stream() {
 void App::tick() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
-      auto bgra = frame->to_bgra();
       m_background.bind();
       m_background.update(Point::origin(),
-        frame->sizes(),
-        bgra.data.get());
+                          frame->size,
+                          frame->data.get());
       m_background.unbind();
     }
   }

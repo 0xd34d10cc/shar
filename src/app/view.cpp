@@ -30,9 +30,10 @@ View::View(Context context)
   , m_decoder(make_decoder(m_context))
   {}
 
-Receiver<codec::ffmpeg::Frame> View::start() {
+Receiver<BGRAFrame> View::start() {
   auto [frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto [packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
+  auto [bgra_tx, bgra_rx] = channel<BGRAFrame>(30);
 
   m_network_thread = std::thread{[this,
                                   tx{std::move(packets_tx)}] () mutable {
@@ -55,15 +56,37 @@ Receiver<codec::ffmpeg::Frame> View::start() {
     }
   }};
 
-  return std::move(frames_rx);
+  m_converter_thread = std::thread{[this,
+                                   rx{std::move(frames_rx)},
+                                   tx{std::move(bgra_tx)}] () mutable {
+    try {
+      while (!m_converter.m_running.expired() && tx.connected() && rx.connected()) {
+        if (auto frame = rx.receive()) {
+
+          auto bgra = frame->to_bgra();
+          tx.send({std::move(bgra.data), frame->sizes()});
+        }
+        else {
+          break;
+        }
+      }
+    }
+    catch (const std::exception& e) {
+      m_error.set(e.what());
+    }
+  }};
+
+  return std::move(bgra_rx);
 }
 
 void View::stop() {
   m_receiver->shutdown();
   m_decoder.shutdown();
+  m_converter.shutdown();
 
   m_network_thread.join();
   m_decoder_thread.join();
+  m_converter_thread.join();
 }
 
 bool View::failed() const {

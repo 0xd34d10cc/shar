@@ -18,11 +18,26 @@ Frame convert(const sc::Image& image) noexcept {
   return Frame::from_bgra(data, size);
 }
 
+BGRAFrame to_bgra(const sc::Image& image) noexcept {
+  BGRAFrame frame;
+
+  const auto width = static_cast<std::size_t>(Width(image));
+  const auto height = static_cast<std::size_t>(Height(image));
+  std::size_t n = width * height * 4;
+
+  frame.data = std::make_unique<std::uint8_t[]>(n);
+  frame.size = Size{ height, width };
+
+  assert(sc::isDataContiguous(image));
+  std::memcpy(frame.data.get(), sc::StartSrc(image), n);
+  return std::move(frame);
+}
+
 struct FrameHandler {
   explicit FrameHandler(std::shared_ptr<Sender<Frame>> consumer,
-                        std::shared_ptr<Sender<Frame>> bgra_sender)
+                        std::shared_ptr<Sender<BGRAFrame>> bgra_sender)
       : m_consumer(std::move(consumer))
-      , m_second_consumer(std::move(bgra_sender))
+      , m_bgra_consumer(std::move(bgra_sender))
       {}
 
   void operator()(const sc::Image& buffer, const sc::Monitor& /* monitor */) {
@@ -30,10 +45,8 @@ struct FrameHandler {
     frame.set_timestamp(Clock::now());
 
     // TODO: remove
-    if (m_second_consumer) {
-      Frame second_frame = convert(buffer);
-      second_frame.set_timestamp(Clock::now());
-      m_second_consumer->try_send(std::move(second_frame));
+    if (m_bgra_consumer) {
+      m_bgra_consumer->try_send(to_bgra(buffer));
     }
 
     // ignore return value here,
@@ -45,7 +58,7 @@ struct FrameHandler {
   // shared_ptr is used here because FrameHandler has to be copyable
   // onNewFrame accepts handler by const reference
   std::shared_ptr<Sender<Frame>> m_consumer;
-  std::shared_ptr<Sender<Frame>> m_second_consumer;
+  std::shared_ptr<Sender<BGRAFrame>> m_bgra_consumer;
 };
 
 }
@@ -65,15 +78,15 @@ Capture::Capture(Context context,
 }
 
 void Capture::run(Sender<Frame> output,
-                  std::optional<Sender<Frame>> double_output) {
+                  std::optional<Sender<BGRAFrame>> bgra_output) {
   // handled has to be copyable...
   auto sender = std::make_shared<Sender<Frame>>(std::move(output));
-  auto double_sender = double_output
-    ? std::make_shared<Sender<Frame>>(std::move(*double_output))
-    : std::shared_ptr<Sender<Frame>>();
+  auto bgra_sender = bgra_output
+    ? std::make_shared<Sender<BGRAFrame>>(std::move(*bgra_output))
+    : std::shared_ptr<Sender<BGRAFrame>>();
 
   m_capture_config->onNewFrame(FrameHandler{std::move(sender),
-                                            std::move(double_sender)});
+                                            std::move(bgra_sender)});
   m_capture = m_capture_config->start_capturing();
   m_capture->setFrameChangeInterval(m_interval);
 }

@@ -62,8 +62,8 @@ Broadcast::Broadcast(Context context)
   , m_network(create_network(m_context))
 {}
 
-Receiver<codec::ffmpeg::Frame> Broadcast::start() {
-  auto[display_frames_tx, display_frames_rx] = channel<codec::ffmpeg::Frame>(30);
+Receiver<BGRAFrame> Broadcast::start() {
+  auto[display_frames_tx, display_frames_rx] = channel<BGRAFrame>(30);
   auto[frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto[packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
 
