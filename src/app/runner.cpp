@@ -18,8 +18,7 @@ Runner::~Runner() {}
 int Runner::run(int argc, char* argv[]) {
   try {
     auto config = Config::from_args(argc, argv);
-    MetricCollector metric_collector;
-    App app{ std::move(config), std::make_shared<MetricCollector>(metric_collector) };
+    App app{ std::move(config) };
     return app.run();
   }
   catch (const std::exception& e) {

@@ -47,7 +47,7 @@ static Context make_context(Config c) {
   };
 }
 
-App::App(Config config, std::shared_ptr<MetricCollector> metric_collector)
+App::App(Config config)
   : m_context(make_context(std::move(config)))
   // NOTE: should not be equal to screen size, otherwise some
   //       magical SDL kludge makes window fullscreen
@@ -59,21 +59,11 @@ App::App(Config config, std::shared_ptr<MetricCollector> metric_collector)
   , m_stream_button("stream")
   , m_view_button("view")
   , m_stream(Empty{})
-  , m_metric_collector(metric_collector)
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
 
   m_url.set_text(m_context.m_config->url);
-  m_metric_collector->add_metric("bytes_in");
-  m_metric_collector->add_metric("bytes_out");
-  m_metric_collector->add_metric("fps");
-  m_metric_collector->add_metric("hows_that");
 
-  m_metric_collector->update_metric("bytes_in", 1030);
-  m_metric_collector->update_metric("bytes_out", 300);
-  m_metric_collector->update_metric("fps", 40);
-  m_metric_collector->update_metric("hows_that", 50);
-  
   Rect area{
     Point::origin(),
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
@@ -188,7 +178,7 @@ std::optional<StreamState> App::process_gui() {
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
 
     if (!m_last_error.empty()) {
-      nk_layout_row_dynamic(m_ui.context(), 20, 2);
+      nk_layout_row_dynamic(m_ui.context(), 20, 2);  
       nk_label(m_ui.context(), "error: ", NK_TEXT_LEFT);
       nk_label(m_ui.context(), m_last_error.c_str(), NK_TEXT_LEFT);
     }
@@ -204,13 +194,13 @@ std::optional<StreamState> App::process_gui() {
       nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
       NK_WINDOW_NO_SCROLLBAR)) {
 
-      auto metrics = m_metric_collector->get_metrics();
-      
-      for (const auto& metric : metrics) {
+      //auto metrics = m_metric_collector->get_metrics();
+      //
+      //for (const auto& metric : metrics) {
 
-        nk_layout_row_dynamic(m_ui.context(), 10, 1);
-        nk_label(m_ui.context(), fmt::format("{} : {}", metric.first, metric.second).c_str(), NK_TEXT_ALIGN_LEFT);
-      }
+      //  nk_layout_row_dynamic(m_ui.context(), 10, 1);
+      //  nk_label(m_ui.context(), fmt::format("{} : {}", metric.first, metric.second).c_str(), NK_TEXT_ALIGN_LEFT);
+      //}
       
     }
     m_ui.context()->style.window.fixed_background = old_bg;
