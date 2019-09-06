@@ -38,10 +38,12 @@ public:
   StreamState state() const;
 
 private:
-  void tick();
-  void process_input();
-  void process_title_bar();
-  std::optional<StreamState> process_gui();
+  bool process_input();
+  bool update_background();
+  void update_gui();
+  void update_title_bar();
+  // update config window
+  std::optional<StreamState> update_config();
   void render();
 
   void switch_to(StreamState new_state);

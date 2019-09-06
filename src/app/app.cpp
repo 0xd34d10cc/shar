@@ -72,7 +72,12 @@ App::App(Config config)
 
   m_window.set_header_area(area);
   m_window.set_border(false);
-  m_window.on_move([this] { tick(); });
+  m_window.on_move([this] {
+    if (update_background()) {
+      update_gui();
+      render();
+    }
+  });
   m_window.show();
 }
 
@@ -80,7 +85,9 @@ App::~App() {
   stop_stream();
 }
 
-void App::process_input() {
+bool App::process_input() {
+  bool updated = false;
+
   SDL_Event event;
   nk_input_begin(m_ui.context());
   while (SDL_PollEvent(&event)) {
@@ -95,19 +102,22 @@ void App::process_input() {
 
       if (state[SDL_SCANCODE_LSHIFT]) {
         m_gui_enabled = !m_gui_enabled;
+        updated = true;
       }
     }
 
-    m_ui.handle(&event);
+    updated |= m_ui.handle(&event);
   }
   nk_input_end(m_ui.context());
+  return updated;
 }
 
-void App::process_title_bar() {
+void App::update_title_bar() {
   Size size = m_window.display_size();
 
   // title bar
-  bool active = nk_begin(m_ui.context(), "shar", nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
+  bool active = nk_begin(m_ui.context(), "shar",
+                         nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
                          NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
   nk_end(m_ui.context());
 
@@ -123,7 +133,7 @@ void App::process_title_bar() {
   }
 }
 
-std::optional<StreamState> App::process_gui() {
+std::optional<StreamState> App::update_config() {
   std::optional<StreamState> new_state;
 
   bool display_error = !m_last_error.empty();
@@ -237,24 +247,29 @@ void App::start_stream() {
   std::visit([this](auto& stream) { m_frames = stream.start(); }, m_stream);
 }
 
-void App::tick() {
+bool App::update_background() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
       m_background.bind();
       m_background.update(Point::origin(),
-                          frame->size,
-                          frame->data.get());
+        frame->size,
+        frame->data.get());
       m_background.unbind();
+      return true;
     }
   }
 
-  process_title_bar();
+  return false;
+}
+
+void App::update_gui() {
+  update_title_bar();
 
   try {
     check_stream_state();
 
     if (m_gui_enabled) {
-      if (auto new_state = process_gui()) {
+      if (auto new_state = update_config()) {
         switch_to(*new_state);
         m_last_error.clear();
       }
@@ -267,14 +282,17 @@ void App::tick() {
       m_stream.emplace<Empty>();
     }
   }
-
-  render();
 }
 
 int App::run() {
   while (!m_running.expired()) {
-    process_input();
-    tick();
+    bool updated = process_input();
+    updated |= update_background();
+
+    if (updated) {
+      update_gui();
+      render();
+    }
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
