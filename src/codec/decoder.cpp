@@ -9,6 +9,8 @@ Decoder::Decoder(Context context, Size size, std::size_t fps)
     {}
 
 void Decoder::run(Receiver<ffmpeg::Unit> input, Sender<ffmpeg::Frame> output) {
+  m_bytes_in = m_metrics->add("Decoder in", Metrics::Format::Bytes);
+  m_bytes_out = m_metrics->add("Decoder out", Metrics::Format::Bytes);
   while (!m_running.expired() && input.connected() && output.connected()) {
     auto unit = input.receive();
     if (!unit) {

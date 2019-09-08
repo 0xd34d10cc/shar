@@ -51,13 +51,15 @@ namespace shar {
     void increase(MetricId id, std::size_t delta);
     void decrease(MetricId id, std::size_t delta);
 
+    template <typename Fn>
+    void apply(Fn functor);
+
     // prints metrics values in internal logger
     void report();
 
     // check if metric id is valid
     bool valid(MetricId id) const noexcept;
 
-  private:
     // align by cache line to avoid false sharing
     struct alignas(64) Metric {
       Metric(std::string name, Format format);
@@ -66,8 +68,10 @@ namespace shar {
       Format                   m_format;
       std::atomic<std::size_t> m_value;
 
-      void report(Logger& logger);
+      std::string report(Logger& logger);
     };
+
+  private:
 
     Logger m_logger;
 
@@ -76,4 +80,12 @@ namespace shar {
     std::vector<std::optional<Metric>> m_metrics;
   };
 
+  template<typename Fn>
+  inline void Metrics::apply(Fn functor) {
+    for (auto& metric : m_metrics) {
+      if (metric) {
+        functor(*metric);
+      }
+    }
+  }
 }

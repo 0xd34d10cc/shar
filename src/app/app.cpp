@@ -193,14 +193,12 @@ std::optional<StreamState> App::process_gui() {
     if (nk_begin(m_ui.context(), "metric_drawer",
       nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
       NK_WINDOW_NO_SCROLLBAR)) {
+      
+      m_context.m_metrics->apply([=](Metrics::Metric& metric) {
+        nk_layout_row_dynamic(m_ui.context(), 10, 1);
+        nk_label(m_ui.context(), metric.report(m_context.m_logger).c_str(), NK_TEXT_ALIGN_LEFT);
+      });
 
-      //auto metrics = m_metric_collector->get_metrics();
-      //
-      //for (const auto& metric : metrics) {
-
-      //  nk_layout_row_dynamic(m_ui.context(), 10, 1);
-      //  nk_label(m_ui.context(), fmt::format("{} : {}", metric.first, metric.second).c_str(), NK_TEXT_ALIGN_LEFT);
-      //}
       
     }
     m_ui.context()->style.window.fixed_background = old_bg;
