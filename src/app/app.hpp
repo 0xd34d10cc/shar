@@ -38,10 +38,12 @@ public:
   StreamState state() const;
 
 private:
-  void tick();
-  void process_input();
-  void process_title_bar();
-  std::optional<StreamState> process_gui();
+  bool process_input();
+  bool update_background();
+  void update_gui();
+  void update_title_bar();
+  // update config window
+  std::optional<StreamState> update_config();
   void render();
 
   void switch_to(StreamState new_state);
@@ -72,8 +74,8 @@ private:
   struct Empty {
     void stop() {}
 
-    std::optional<Receiver<codec::ffmpeg::Frame>> start() {
-      // TODO: replace by once<Frame>(Frame::black())
+    std::optional<Receiver<BGRAFrame>> start() {
+      // TODO: replace with once<Frame>(Frame::black())
       return std::nullopt;
     }
 
@@ -89,7 +91,7 @@ private:
   using Stream = std::variant<Empty, Broadcast, View>;
   Stream m_stream;
 
-  std::optional<Receiver<codec::ffmpeg::Frame>> m_frames;
+  std::optional<Receiver<BGRAFrame>> m_frames;
 };
 
 }

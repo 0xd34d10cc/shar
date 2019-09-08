@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include "channel.hpp"
 #include "time.hpp"
+#include "size.hpp"
 #include "codec/ffmpeg/frame.hpp"
 
 
@@ -21,6 +22,11 @@ using CaptureConfigPtr = std::shared_ptr<
 using CaptureManagerPtr = std::shared_ptr<sc::IScreenCaptureManager>;
 
 namespace shar {
+
+struct BGRAFrame {
+  std::unique_ptr<std::uint8_t[]> data{ nullptr };
+  Size size{ Size::empty() };
+};
 
 class Capture : protected Context {
 public:
@@ -34,7 +40,7 @@ public:
   ~Capture() = default;
 
   void run(Sender<codec::ffmpeg::Frame> output,
-           std::optional<Sender<codec::ffmpeg::Frame>> double_output);
+           std::optional<Sender<BGRAFrame>> bgra_out);
   void shutdown();
 
 private:

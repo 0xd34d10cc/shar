@@ -1,5 +1,6 @@
 add_library(common
             logger.hpp
+            error_or.hpp
             env.hpp
             env.cpp
             config.hpp

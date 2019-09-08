@@ -58,6 +58,7 @@ App::App(Config config)
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
+  , m_url(false, false)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
@@ -71,7 +72,12 @@ App::App(Config config)
 
   m_window.set_header_area(area);
   m_window.set_border(false);
-  m_window.on_move([this] { tick(); });
+  m_window.on_move([this] {
+    if (update_background()) {
+      update_gui();
+      render();
+    }
+  });
   m_window.show();
 }
 
@@ -79,7 +85,9 @@ App::~App() {
   stop_stream();
 }
 
-void App::process_input() {
+bool App::process_input() {
+  bool updated = false;
+
   SDL_Event event;
   nk_input_begin(m_ui.context());
   while (SDL_PollEvent(&event)) {
@@ -94,6 +102,7 @@ void App::process_input() {
 
       if (state[SDL_SCANCODE_LSHIFT]) {
         m_gui_enabled = !m_gui_enabled;
+        updated = true;
       }
     }
 
@@ -107,43 +116,42 @@ void App::process_input() {
       }
     }
 
-    m_ui.handle(&event);
+    updated |= m_ui.handle(&event);
   }
   nk_input_end(m_ui.context());
+  return updated;
 }
 
-void App::process_title_bar() {
+void App::update_title_bar() {
   Size size = m_window.display_size();
 
   // title bar
-  if (!nk_begin(m_ui.context(), "shar", nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
-                NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE)) {
+  bool active = nk_begin(m_ui.context(), "shar",
+                         nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
+                         NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
+  nk_end(m_ui.context());
 
-    // not sure why it's there...
-    nk_flags& flags = m_ui.context()->current->layout->flags;
-
-    if (flags & NK_WINDOW_CLOSED) {
+  if (!active) {
+    if (nk_window_is_closed(m_ui.context(), "shar")) {
       m_running.cancel();
     }
 
-    if (flags & NK_WINDOW_MINIMIZED) {
-      // cancel "minimized" state
-      flags &= ~NK_WINDOW_MINIMIZED;
+    if (nk_window_is_collapsed(m_ui.context(), "shar")) {
+      nk_window_collapse(m_ui.context(), "shar", NK_MAXIMIZED);
       m_window.minimize();
     }
   }
-  nk_end(m_ui.context());
 }
 
-std::optional<StreamState> App::process_gui() {
-  Size size = m_window.display_size();
+std::optional<StreamState> App::update_config() {
   std::optional<StreamState> new_state;
-
+  Size size = m_window.display_size();
+  bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(), "config",
-               nk_rect(0.0f, 30.0f, 300.0f, (float)size.height() - 30.0f),
-               NK_WINDOW_BORDER)) {
+               nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
+               NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
-    nk_layout_row_static(m_ui.context(), 30, 80, 3);
+    nk_layout_row_dynamic(m_ui.context(), 30, 3);
     if (m_stop_button.process(m_ui)) {
       new_state = StreamState::None;
     }
@@ -156,7 +164,7 @@ std::optional<StreamState> App::process_gui() {
       new_state = StreamState::View;
     }
 
-    nk_layout_row_static(m_ui.context(), 20, 250, 1);
+    nk_layout_row_dynamic(m_ui.context(), 20, 1);
     m_url.process(m_ui);
 
     const char* state = [this] {
@@ -177,28 +185,26 @@ std::optional<StreamState> App::process_gui() {
     nk_label(m_ui.context(), "state: ", NK_TEXT_LEFT);
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
 
-    if (!m_last_error.empty()) {
-      nk_layout_row_dynamic(m_ui.context(), 20, 2);  
-      nk_label(m_ui.context(), "error: ", NK_TEXT_LEFT);
-      nk_label(m_ui.context(), m_last_error.c_str(), NK_TEXT_LEFT);
+    if (display_error) {
+      nk_layout_row_dynamic(m_ui.context(), 40, 1);
+      nk_text_wrap(m_ui.context(), m_last_error.c_str(),
+                   static_cast<int>(m_last_error.size()));
     }
   }
   nk_end(m_ui.context());
 
   // draw metrics
   if (m_metrics_drawer_enabled){
-
     auto old_bg = m_ui.context()->style.window.fixed_background;
     m_ui.context()->style.window.fixed_background = nk_style_item_hide();
     if (nk_begin(m_ui.context(), "metric_drawer",
       nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
       NK_WINDOW_NO_SCROLLBAR)) {
       
-      m_context.m_metrics->apply([=](Metrics::Metric& metric) {
-        nk_layout_row_dynamic(m_ui.context(), 10, 1);
-        nk_label(m_ui.context(), metric.report(m_context.m_logger).c_str(), NK_TEXT_ALIGN_LEFT);
-      });
-
+    m_context.m_metrics->apply([=](Metrics::Metric& metric) {
+     nk_layout_row_dynamic(m_ui.context(), 10, 1);
+     nk_label(m_ui.context(), metric.report(m_context.m_logger).c_str(), NK_TEXT_ALIGN_LEFT);
+    });
       
     }
     m_ui.context()->style.window.fixed_background = old_bg;
@@ -270,25 +276,29 @@ void App::start_stream() {
   std::visit([this](auto& stream) { m_frames = stream.start(); }, m_stream);
 }
 
-void App::tick() {
+bool App::update_background() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
-      auto bgra = frame->to_bgra();
       m_background.bind();
       m_background.update(Point::origin(),
-        frame->sizes(),
-        bgra.data.get());
+        frame->size,
+        frame->data.get());
       m_background.unbind();
+      return true;
     }
   }
 
-  process_title_bar();
+  return false;
+}
+
+void App::update_gui() {
+  update_title_bar();
 
   try {
     check_stream_state();
 
     if (m_gui_enabled) {
-      if (auto new_state = process_gui()) {
+      if (auto new_state = update_config()) {
         switch_to(*new_state);
         m_last_error.clear();
       }
@@ -301,14 +311,17 @@ void App::tick() {
       m_stream.emplace<Empty>();
     }
   }
-
-  render();
 }
 
 int App::run() {
   while (!m_running.expired()) {
-    process_input();
-    tick();
+    bool updated = process_input();
+    updated |= update_background();
+
+    if (updated) {
+      update_gui();
+      render();
+    }
     std::this_thread::sleep_for(Milliseconds(5));
   }
 

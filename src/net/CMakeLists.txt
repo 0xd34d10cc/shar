@@ -4,6 +4,9 @@ add_library(net
     url.hpp
     url.cpp
 
+    dns.hpp
+    dns.cpp
+
     sender.hpp
     sender_factory.hpp
     sender_factory.cpp
@@ -66,6 +69,9 @@ add_library(net
     stun/message.cpp
     stun/attributes.hpp
     stun/attributes.cpp
+    stun/error.hpp
+    stun/request.hpp
+    stun/request.cpp
 )
 
 target_include_directories(net
@@ -97,6 +103,8 @@ add_executable(nettest
     rtcp/tests/source_description.cpp
     rtcp/tests/bye.cpp
     rtcp/tests/app.cpp
+
+    stun/tests/message.cpp
 )
 
 target_include_directories(nettest

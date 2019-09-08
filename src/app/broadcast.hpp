@@ -27,7 +27,7 @@ public:
   Broadcast& operator=(Broadcast&&) = delete;
   ~Broadcast() = default;
 
-  Receiver<codec::ffmpeg::Frame> start();
+  Receiver<BGRAFrame> start();
   void stop();
 
   bool failed() const;
