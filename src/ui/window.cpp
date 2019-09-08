@@ -10,6 +10,9 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_syswm.h>
 #include <fmt/format.h>
+#ifdef WIN32
+#include <dwmapi.h>
+#endif
 #include "disable_warnings_pop.hpp"
 
 
@@ -151,6 +154,9 @@ Window::Window(const char* name, Size size)
   SDL_GetWindowWMInfo(m_window.get(), &wmInfo);
   HWND hwnd = wmInfo.info.win.window;
   m_callbacks->handle = hwnd;
+
+  static const MARGINS shadow_state[2]{ { 0,0,0,0 },{ 1,1,1,1 } };
+  ::DwmExtendFrameIntoClientArea(hwnd, &shadow_state[true /* enabled */]);
 #endif
 
   // register the event watch function
