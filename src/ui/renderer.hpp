@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "size.hpp"
+#include "point.hpp"
 #include "gl_vtable.hpp"
 
 
@@ -24,7 +26,8 @@ public:
   // render and clear state
   // TODO: decouple command list from State
   void render(State& state, const Window& window);
-  void render(Texture& texture);
+  void render(Texture& texture, Size window_size,
+              Point at, Size texture_size);
 
   nk_user_font* default_font_handle() const;
 
