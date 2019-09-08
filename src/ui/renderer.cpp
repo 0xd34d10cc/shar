@@ -304,23 +304,42 @@ void Renderer::render(State& state, const Window& window) {
   glDisable(GL_SCISSOR_TEST);
 }
 
-void Renderer::render(Texture& texture) {
+void Renderer::render(Texture& texture, Size window_size,
+                      Point at, Size texture_size) {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(0.0f,
+    static_cast<float>(window_size.width()),
+    static_cast<float>(window_size.height()),
+    0.f, 0.f, 1.f);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
   texture.bind();
 
   // TODO: use shaders
   glBegin(GL_QUADS);
 
+  // left top
   glTexCoord2f(0, 0);
-  glVertex3f(-1, 1, 0);
+  glVertex3f(static_cast<float>(at.x),
+             static_cast<float>(at.y), 0);
 
-  glTexCoord2f(0, 1);
-  glVertex3f(-1, -1, 0);
-
-  glTexCoord2f(1, 1);
-  glVertex3f(1, -1, 0);
-
+  // right top
   glTexCoord2f(1, 0);
-  glVertex3f(1, 1, 0);
+  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
+             static_cast<float>(at.y), 0);
+
+  // right bottom
+  glTexCoord2f(1, 1);
+  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
+             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
+
+  // left bottom
+  glTexCoord2f(0, 1);
+  glVertex3f(static_cast<float>(at.x),
+             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
 
   glEnd();
 

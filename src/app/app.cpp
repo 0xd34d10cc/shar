@@ -199,7 +199,9 @@ void App::render() {
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
   // render current background (or current frame)
-  m_renderer.render(m_background);
+  m_renderer.render(m_background, m_window.size(),
+                    Point{0, 30} /* at */,
+                    Size{1080+30 /* FIXME: should be just 1080 */, 1920});
 
   /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
    * with blending, scissor, face culling, depth test and viewport and
