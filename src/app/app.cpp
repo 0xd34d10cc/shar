@@ -76,6 +76,7 @@ App::App(Config config)
     // render unconditionally
     // NOTE: otherwise window will be cropped if part of it
     //       was moved from outside of screen
+    update_background();
     update_gui();
     render();
   });
