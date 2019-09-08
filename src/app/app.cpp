@@ -73,10 +73,12 @@ App::App(Config config)
   m_window.set_header_area(area);
   m_window.set_border(false);
   m_window.on_move([this] {
-    if (update_background()) {
-      update_gui();
-      render();
-    }
+    // render unconditionally
+    // NOTE: otherwise window will be cropped if part of it
+    //       was moved from outside of screen
+    update_background();
+    update_gui();
+    render();
   });
   m_window.show();
 }
