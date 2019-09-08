@@ -112,8 +112,8 @@ static int handle_event(void* user_data, SDL_Event* event) {
       // the user started dragging, so create the timer (with the minimum timeout)
       // if you have vsync enabled, then this shouldn't render unnecessarily
       data->active = SetTimer((HWND)data->handle, data->timer_id,
-                                   16 /* ms, ~60 fps, FIXME: should be controlled by callback */,
-                                   nullptr);
+                              16 /* ms, ~60 fps, FIXME: should be controlled by callback */,
+                              nullptr);
     }
     else if ((winMessage.msg == WM_EXITSIZEMOVE
            || winMessage.msg == WM_CAPTURECHANGED) && data->active) {
