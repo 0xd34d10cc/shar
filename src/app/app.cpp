@@ -202,7 +202,7 @@ void App::render() {
   // render current background (or current frame)
   m_renderer.render(m_background, m_window.size(),
                     Point{0, 30} /* at */,
-                    Size{win_size.height() /* FIXME: should be -30 */, win_size.width()});
+                    Size{win_size.height() - 30, win_size.width()});
 
   /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
    * with blending, scissor, face culling, depth test and viewport and
