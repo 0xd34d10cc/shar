@@ -54,7 +54,7 @@ App::App(Config config)
   , m_window("shar", Size{ 1080 + 30, 1920 })
   , m_renderer(ui::OpenGLVTable::load().value())
   , m_ui()
-  , m_background(m_window.size())
+  , m_background(Size{ 1080, 1920 })
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
@@ -202,7 +202,7 @@ void App::render() {
   // render current background (or current frame)
   m_renderer.render(m_background, m_window.size(),
                     Point{0, 30} /* at */,
-                    Size{win_size.height() /* FIXME: should be just 1080 */, win_size.width()});
+                    Size{win_size.height() /* FIXME: should be -30 */, win_size.width()});
 
   /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
    * with blending, scissor, face culling, depth test and viewport and
