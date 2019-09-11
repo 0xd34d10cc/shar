@@ -15,6 +15,7 @@
 namespace shar::ui {
 
 struct OnMoveData;
+struct HitTestData;
 
 // Handle to SDL window and OpenGL context
 class Window {
@@ -28,7 +29,7 @@ public:
   Size display_size() const;
 
   void set_border(bool active);
-  void set_header_area(Rect area);
+  void set_header(std::size_t height);
 
   void show();
   void minimize();
@@ -56,8 +57,8 @@ private:
 
   SDLWindowPtr m_window;
   GLContextPtr m_context;
-  std::unique_ptr<Rect> m_header;
-  std::unique_ptr<OnMoveData> m_callbacks;
+  std::unique_ptr<HitTestData> m_hittest_data;
+  std::unique_ptr<OnMoveData> m_move_data;
 };
 
 }

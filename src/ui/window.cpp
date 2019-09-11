@@ -25,6 +25,11 @@ struct OnMoveData {
   std::function<void()> on_move;
 };
 
+struct HitTestData {
+  SDL_Window* window{ nullptr };
+  std::size_t header_height{ 0 };
+};
+
 
 struct SDLHandle {
   SDLHandle() {
@@ -63,7 +68,10 @@ static Window::SDLWindowPtr create_window(const char* name, shar::Size size) {
     100, 100, // position
     static_cast<int>(size.width()),
     static_cast<int>(size.height()),
-    SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI
+    SDL_WINDOW_OPENGL
+    | SDL_WINDOW_HIDDEN
+    | SDL_WINDOW_ALLOW_HIGHDPI
+    | SDL_WINDOW_RESIZABLE
   );
 
   if (!window) {
@@ -94,10 +102,44 @@ static Window::GLContextPtr init_gl(SDL_Window* window) {
   return Window::GLContextPtr(context);
 }
 
-static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* area, void* data) {
-  auto* header = reinterpret_cast<Rect*>(data);
+static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* area, void* user_data) {
+  auto* data = reinterpret_cast<HitTestData*>(user_data);
+  int width;
+  int height;
+  SDL_GetWindowSize(data->window, &width, &height);
 
-  if (header->contains(Point{ area->x, area->y })) {
+  const int offset = 10;
+
+  const bool right = area->x >= (width - offset);
+  const bool left = area->x < offset;
+  const bool bottom = area->y > (height - offset);
+  const bool top = area->y < offset;
+
+  if (right) {
+    return top    ? SDL_HITTEST_RESIZE_TOPRIGHT :
+           bottom ? SDL_HITTEST_RESIZE_BOTTOMRIGHT:
+                    SDL_HITTEST_RESIZE_RIGHT;
+  }
+  else if (left) {
+    return top    ? SDL_HITTEST_RESIZE_TOPLEFT :
+           bottom ? SDL_HITTEST_RESIZE_BOTTOMLEFT :
+                    SDL_HITTEST_RESIZE_LEFT;
+  }
+  else if (top) {
+    return SDL_HITTEST_RESIZE_TOP;
+  }
+  else if (bottom) {
+    return SDL_HITTEST_RESIZE_BOTTOM;
+  }
+
+  Rect header{
+    Point::origin(),
+    // -60 for - X buttons
+    // TODO: unhardcode
+    Size{data->header_height, static_cast<std::size_t>(width - 60)}
+  };
+
+  if (header.contains(Point{ area->x, area->y })) {
     return SDL_HITTEST_DRAGGABLE;
   }
 
@@ -140,27 +182,27 @@ static int handle_event(void* user_data, SDL_Event* event) {
 Window::Window(const char* name, Size size)
   : m_window(create_window(name, size))
   , m_context(init_gl(m_window.get()))
-  , m_header(std::make_unique<Rect>(Rect::empty()))
-  , m_callbacks(std::make_unique<OnMoveData>())
+  , m_hittest_data(std::make_unique<HitTestData>())
+  , m_move_data(std::make_unique<OnMoveData>())
 {
-  static std::atomic<int> timer_id{ 0 };
-  m_callbacks->timer_id = ++timer_id;
-
-  SDL_SetWindowHitTest(m_window.get(), hittest_callback, m_header.get());
+  m_hittest_data->window = m_window.get();
+  SDL_SetWindowHitTest(m_window.get(), hittest_callback, m_hittest_data.get());
 
 #ifdef WIN32
   SDL_SysWMinfo wmInfo;
   SDL_VERSION(&wmInfo.version);
   SDL_GetWindowWMInfo(m_window.get(), &wmInfo);
   HWND hwnd = wmInfo.info.win.window;
-  m_callbacks->handle = hwnd;
+  m_move_data->handle = hwnd;
 
   static const MARGINS shadow_state[2]{ { 0,0,0,0 },{ 1,1,1,1 } };
   ::DwmExtendFrameIntoClientArea(hwnd, &shadow_state[true /* enabled */]);
 #endif
+  static std::atomic<int> timer_id{ 0 };
+  m_move_data->timer_id = ++timer_id;
 
   // register the event watch function
-  SDL_AddEventWatch(handle_event, m_callbacks.get());
+  SDL_AddEventWatch(handle_event, m_move_data.get());
   // we need the native Windows events, so we can listen to WM_ENTERSIZEMOVE and WM_TIMER
   SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 }
@@ -168,7 +210,7 @@ Window::Window(const char* name, Size size)
 Window::~Window() {
   if (m_window) {
     SDL_SetWindowHitTest(m_window.get(), nullptr, nullptr);
-    SDL_DelEventWatch(handle_event, m_callbacks.get());
+    SDL_DelEventWatch(handle_event, m_move_data.get());
   }
 }
 
@@ -189,7 +231,7 @@ Size Window::display_size() const {
 }
 
 void Window::on_move(std::function<void()> callback) {
-  m_callbacks->on_move = std::move(callback);
+  m_move_data->on_move = std::move(callback);
 }
 
 void Window::show() {
@@ -204,8 +246,8 @@ void Window::set_border(bool active) {
   SDL_SetWindowBordered(m_window.get(), active ? SDL_TRUE : SDL_FALSE);
 }
 
-void Window::set_header_area(Rect area) {
-  *m_header = area;
+void Window::set_header(std::size_t height) {
+  m_hittest_data->header_height = height;
 }
 
 void Window::swap() {
