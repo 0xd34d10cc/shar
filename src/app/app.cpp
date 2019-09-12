@@ -54,7 +54,7 @@ App::App(Config config)
   , m_window("shar", Size{ 1080 + 30, 1920 })
   , m_renderer(ui::OpenGLVTable::load().value())
   , m_ui()
-  , m_background(m_window.size())
+  , m_background(Size{ 1080, 1920 })
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
@@ -62,6 +62,7 @@ App::App(Config config)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
+  ui::Renderer::init_log(m_context.m_logger);
 
   m_url.set_text(m_context.m_config->url);
 
@@ -70,7 +71,7 @@ App::App(Config config)
     Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
   };
 
-  m_window.set_header_area(area);
+  m_window.set_header(30 /* height */);
   m_window.set_border(false);
   m_window.on_move([this] {
     // render unconditionally
@@ -119,7 +120,7 @@ void App::update_title_bar() {
 
   // title bar
   bool active = nk_begin(m_ui.context(), "shar",
-                         nk_rect(0.0f, 0.0f, (float)size.width(), 30.0f),
+                         nk_rect(-0.0f, -0.0f, (float)size.width(), 30.0f),
                          NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
   nk_end(m_ui.context());
 
@@ -201,7 +202,7 @@ void App::render() {
   // render current background (or current frame)
   m_renderer.render(m_background, m_window.size(),
                     Point{0, 30} /* at */,
-                    Size{1080+30 /* FIXME: should be just 1080 */, 1920});
+                    Size{win_size.height() - 30, win_size.width()});
 
   /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
    * with blending, scissor, face culling, depth test and viewport and

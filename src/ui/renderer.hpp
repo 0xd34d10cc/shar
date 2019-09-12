@@ -10,6 +10,10 @@
 struct nk_font_atlas;
 struct nk_user_font;
 
+namespace shar {
+class Logger;
+}
+
 namespace shar::ui {
 
 struct SDLDevice;
@@ -20,6 +24,8 @@ class Texture;
 
 class Renderer {
 public:
+  static void init_log(const Logger& logger);
+
   Renderer(OpenGLVTable table);
   ~Renderer();
 
