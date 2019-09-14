@@ -82,6 +82,8 @@ namespace shar {
 
   template<typename Fn>
   inline void Metrics::apply(Fn functor) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
     for (auto& metric : m_metrics) {
       if (metric) {
         functor(*metric);

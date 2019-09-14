@@ -20,11 +20,11 @@ add_library(common
             byteorder.cpp
             atomic_string.hpp
             atomic_string.cpp
-	    newtype.hpp
+            newtype.hpp
 
             # metrics
-	    metrics.cpp
-	    metrics.hpp
+            metrics.cpp
+            metrics.hpp
             )
 
 target_include_directories(common
@@ -37,7 +37,6 @@ target_include_directories(common
 
 target_link_libraries(common
   ${CONAN_LIBS_FMT}
-  ${CONAN_LIBS_PROMETHEUS-CPP}
 )
 
 target_compile_definitions(common PRIVATE ${SHAR_COMPILE_DEFINITIONS})
