@@ -31,7 +31,6 @@ void Receiver::run(Output units) {
 
   while (!m_running.expired() && units.connected()) {
     if (auto unit = receive()) {
-      // FIXME: rtp receiver is bottlenecked by this call for some reason
       units.send(std::move(*unit));
     }
 
@@ -58,6 +57,7 @@ void Receiver::run(Output units) {
 
 void Receiver::shutdown() {
   m_running.cancel();
+  m_socket.close(); // to cancel receive_from()
 }
 
 using Unit = Receiver::Unit;
