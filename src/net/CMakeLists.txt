@@ -64,6 +64,10 @@ add_library(net
     rtsp/header.cpp
     rtsp/serializer.hpp
     rtsp/serializer.cpp
+    rtsp/receiver.hpp
+    rtsp/receiver.cpp
+    rtsp/sender.hpp
+    rtsp/sender.cpp
 
     stun/message.hpp
     stun/message.cpp
