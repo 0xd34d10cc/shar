@@ -104,13 +104,11 @@ std::string Metrics::Metric::report(shar::Logger& logger) {
     case Format::Count:
       format = fmt::format("{} {}", m_name, m_value);
       logger.info(format);
-      m_value = 0;
       return format;
     case Format::Bytes:
       auto[value, fraction, suffix] = human_readable_bytes(m_value);
       format = fmt::format("{} {}.{}{}", m_name, value, fraction, suffix);
       logger.info(format);
-      m_value = 0;
       return format;
   }
 

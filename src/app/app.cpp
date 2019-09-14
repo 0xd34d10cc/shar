@@ -194,17 +194,30 @@ std::optional<StreamState> App::update_config() {
   nk_end(m_ui.context());
 
   // draw metrics
-  if (m_metrics_drawer_enabled){
+  if (m_metrics_drawer_enabled) {
+    static std::vector<std::string> detailed_metrics;
     auto old_bg = m_ui.context()->style.window.fixed_background;
     m_ui.context()->style.window.fixed_background = nk_style_item_hide();
     if (nk_begin(m_ui.context(), "metric_drawer",
       nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
       NK_WINDOW_NO_SCROLLBAR)) {
-      
-    m_context.m_metrics->apply([=](Metrics::Metric& metric) {
-     nk_layout_row_dynamic(m_ui.context(), 10, 1);
-     nk_label(m_ui.context(), metric.report(m_context.m_logger).c_str(), NK_TEXT_ALIGN_LEFT);
-    });
+    
+      static int frame_counter = 0;
+      frame_counter++;
+
+      // update metrics values every 0.1 second
+      if (frame_counter % 20 == 0) {
+        detailed_metrics.clear();
+        m_context.m_metrics->apply([=](Metrics::Metric& metric) {
+          detailed_metrics.push_back(metric.report(m_context.m_logger));
+          metric.m_value = 0;
+        });
+      }
+
+      for (const auto& metric : detailed_metrics) {
+        nk_layout_row_dynamic(m_ui.context(), 10, 1);
+        nk_label(m_ui.context(), metric.c_str(), NK_TEXT_ALIGN_LEFT);
+      }
       
     }
     m_ui.context()->style.window.fixed_background = old_bg;
