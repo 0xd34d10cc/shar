@@ -37,6 +37,9 @@ P2PSender::P2PSender(Context context, IpAddress ip, Port port)
 void P2PSender::run(Receiver<Unit> receiver) {
   setup();
 
+  m_packets_sent = m_metrics->add("Packets sent", Metrics::Format::Count);
+  m_bytes_sent = m_metrics->add("Bytes sent", Metrics::Format::Bytes);
+
   while (!m_running.expired() && receiver.connected()) {
     auto unit = receiver.try_receive();
     if (unit) {
@@ -195,7 +198,7 @@ void P2PSender::handle_write(std::size_t bytes_sent, ClientId id) {
         }
 
         m_metrics->increase(m_packets_sent, 1);
-        m_metrics->increase(m_bytes_sent, static_cast<double>(packet_size + client.m_length.size()));
+        m_metrics->increase(m_bytes_sent, packet_size + client.m_length.size());
         client.m_packets.pop();
         client.m_state = Client::State::SendingLength;
       }

@@ -20,7 +20,7 @@ void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
     m_metrics->increase(m_bytes_in, frame->total_size());
     auto units = m_codec.encode(std::move(*frame));
     for (auto& unit: units) {
-      m_metrics->increase(m_bytes_out, static_cast<double>(unit.size()));
+      m_metrics->increase(m_bytes_out, unit.size());
       output.send(std::move(unit));
     }
 

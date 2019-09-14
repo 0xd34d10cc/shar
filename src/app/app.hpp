@@ -19,7 +19,7 @@
 
 #include "broadcast.hpp"
 #include "view.hpp"
-
+#include "time.hpp"
 
 namespace shar {
 
@@ -41,6 +41,7 @@ private:
   bool process_input();
   bool update_background();
   void update_gui();
+  void update_metrics(const Size& size);
   void update_title_bar();
   // update config window
   std::optional<StreamState> update_config();
@@ -73,8 +74,8 @@ private:
 
   struct MetricDrawer {
     std::vector<std::string> detailed_metrics;
-    std::chrono::time_point<std::chrono::steady_clock> last_update;
-    std::chrono::duration<int, std::milli> period;
+    SteadyTime last_update;
+    Milliseconds period;
   };
 
   MetricDrawer m_drawer;

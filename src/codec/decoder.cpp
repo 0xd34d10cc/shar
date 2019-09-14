@@ -17,10 +17,10 @@ void Decoder::run(Receiver<ffmpeg::Unit> input, Sender<ffmpeg::Frame> output) {
       // end of stream
       break;
     }
-    m_metrics->increase(m_bytes_in, static_cast<double>(unit->size()));
+    m_metrics->increase(m_bytes_in, unit->size());
     auto frame = m_codec.decode(std::move(*unit));
     if (frame) {
-      m_metrics->increase(m_bytes_out, static_cast<double>(frame->total_size()));
+      m_metrics->increase(m_bytes_out, frame->total_size());
       output.send(std::move(*frame));
     }
   }

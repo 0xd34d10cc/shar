@@ -54,8 +54,8 @@ void PacketReceiver::start_read() {
 
         auto packets = m_reader.update(m_buffer, received);
 
-        m_metrics->increase(m_bytes_received, static_cast<double>(received));
-        m_metrics->increase(m_packets_received, static_cast<double>(packets.size()));
+        m_metrics->increase(m_bytes_received, received);
+        m_metrics->increase(m_packets_received, packets.size());
         for (auto& packet: packets) {
           m_sender->send(std::move(packet));
         }
