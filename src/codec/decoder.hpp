@@ -4,7 +4,6 @@
 #include "size.hpp"
 #include "channel.hpp"
 #include "cancellation.hpp"
-#include "metrics/gauge.hpp"
 #include "metrics.hpp"
 
 #include "ffmpeg/codec.hpp"

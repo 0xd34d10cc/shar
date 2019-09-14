@@ -6,7 +6,6 @@
 #include "context.hpp"
 #include "cancellation.hpp"
 #include "channel.hpp"
-#include "metrics/gauge.hpp"
 #include "net/types.hpp"
 #include "net/sender.hpp"
 #include "codec/ffmpeg/unit.hpp"

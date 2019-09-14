@@ -25,13 +25,6 @@ add_library(common
             # metrics
 	    metrics.cpp
 	    metrics.hpp
-            metrics/gauge.cpp
-            metrics/gauge.hpp
-            metrics/histogram.cpp
-            metrics/histogram.hpp
-            metrics/registry.cpp
-            metrics/registry.hpp
-            metrics/description.hpp
             )
 
 target_include_directories(common
@@ -40,9 +33,6 @@ target_include_directories(common
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_CLI11}
 
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
-    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/push/include"
-    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/pull/include"
-    PUBLIC SYSTEM "${CONAN_INCLUDE_DIRS_PROMETHEUS-CPP}/core/include"
 )
 
 target_link_libraries(common

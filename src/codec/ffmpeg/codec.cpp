@@ -4,6 +4,7 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
+#include <numeric>
 #include <memory>
 #include <optional>
 
