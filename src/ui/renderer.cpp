@@ -2,9 +2,14 @@
 
 #include <cassert>
 #include <cstdlib> // memset
-#include <iostream>
+#include <optional>
+
+#include "disable_warnings_push.hpp"
+#include <SDL2/SDL_opengl_glext.h>
+#include "disable_warnings_pop.hpp"
 
 #include "nk.hpp"
+#include "logger.hpp"
 #include "gl_vtable.hpp"
 #include "window.hpp"
 #include "state.hpp"
@@ -21,20 +26,55 @@
 #endif
 
 #ifdef SHAR_DEBUG_BUILD
-static void GLAPIENTRY opengl_error_callback(
-  GLenum /*source*/,
-  GLenum type,
-  GLuint /*id */,
-  GLenum severity,
-  GLsizei /*length */,
-  const GLchar* message,
-  const void* /*userParam */
-) {
-  std::cerr << "[GL]:" << (type == GL_DEBUG_TYPE_ERROR ? " !ERROR! " : "")
-    << "type = " << type
-    << ", severity = " << severity
-    << ", message = " << message
-    << std::endl;
+static std::optional<shar::Logger> gl_logger;
+
+static const char* type_to_str(GLenum type) {
+  switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+      return "error";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+      return "deprecated";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+      return "UB";
+    case GL_DEBUG_TYPE_PORTABILITY:
+      return "unportable";
+    case GL_DEBUG_TYPE_PERFORMANCE:
+      return "perf";
+    case GL_DEBUG_TYPE_MARKER:
+      return "cmdstream";
+    case GL_DEBUG_TYPE_PUSH_GROUP:
+      return "begin";
+    case GL_DEBUG_TYPE_POP_GROUP:
+      return "end";
+    case GL_DEBUG_TYPE_OTHER:
+      return "other";
+    default:
+      return "unknown";
+  }
+}
+
+static void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
+                                             GLenum type,
+                                             GLuint /*id */,
+                                             GLenum severity,
+                                             GLsizei /*length */,
+                                             const GLchar* message,
+                                             const void* /*userParam */)
+{
+  if (gl_logger) {
+    auto* t = type_to_str(type);
+    switch (severity) {
+      case GL_DEBUG_SEVERITY_LOW:
+      case GL_DEBUG_SEVERITY_MEDIUM:
+      case GL_DEBUG_SEVERITY_HIGH:
+        gl_logger->error("[GL] [{}] {}", t, message);
+        break;
+      case GL_DEBUG_SEVERITY_NOTIFICATION:
+      default:
+        // ignore, these are purerly informational
+        break;
+    }
+  }
 }
 #endif
 
@@ -60,6 +100,14 @@ struct Vertex {
   float uv[2];
   nk_byte col[4];
 };
+
+void Renderer::init_log(const Logger& logger) {
+#ifdef SHAR_DEBUG_BUILD
+  gl_logger = logger;
+#else
+  (void)logger;
+#endif
+}
 
 Renderer::Renderer(OpenGLVTable table)
   : m_device(std::make_unique<SDLDevice>())
@@ -304,23 +352,42 @@ void Renderer::render(State& state, const Window& window) {
   glDisable(GL_SCISSOR_TEST);
 }
 
-void Renderer::render(Texture& texture) {
+void Renderer::render(Texture& texture, Size window_size,
+                      Point at, Size texture_size) {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(0.0f,
+    static_cast<float>(window_size.width()),
+    static_cast<float>(window_size.height()),
+    0.f, 0.f, 1.f);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
   texture.bind();
 
   // TODO: use shaders
   glBegin(GL_QUADS);
 
+  // left top
   glTexCoord2f(0, 0);
-  glVertex3f(-1, 1, 0);
+  glVertex3f(static_cast<float>(at.x),
+             static_cast<float>(at.y), 0);
 
-  glTexCoord2f(0, 1);
-  glVertex3f(-1, -1, 0);
-
-  glTexCoord2f(1, 1);
-  glVertex3f(1, -1, 0);
-
+  // right top
   glTexCoord2f(1, 0);
-  glVertex3f(1, 1, 0);
+  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
+             static_cast<float>(at.y), 0);
+
+  // right bottom
+  glTexCoord2f(1, 1);
+  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
+             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
+
+  // left bottom
+  glTexCoord2f(0, 1);
+  glVertex3f(static_cast<float>(at.x),
+             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
 
   glEnd();
 
