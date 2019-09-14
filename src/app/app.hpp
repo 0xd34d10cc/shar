@@ -71,6 +71,14 @@ private:
 
   std::string m_last_error;
 
+  struct MetricDrawer {
+    std::vector<std::string> detailed_metrics;
+    std::chrono::time_point<std::chrono::steady_clock> last_update;
+    std::chrono::duration<int, std::milli> period;
+  };
+
+  MetricDrawer m_drawer;
+  
   struct Empty {
     void stop() {}
 

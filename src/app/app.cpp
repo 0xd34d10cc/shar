@@ -59,6 +59,9 @@ App::App(Config config)
   , m_stream_button("stream")
   , m_view_button("view")
   , m_url(false, false)
+  , m_drawer{ {}, 
+              std::chrono::steady_clock::now(), 
+              std::chrono::duration<int, std::milli>(1000)}
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
@@ -195,26 +198,24 @@ std::optional<StreamState> App::update_config() {
 
   // draw metrics
   if (m_metrics_drawer_enabled) {
-    static std::vector<std::string> detailed_metrics;
     auto old_bg = m_ui.context()->style.window.fixed_background;
     m_ui.context()->style.window.fixed_background = nk_style_item_hide();
     if (nk_begin(m_ui.context(), "metric_drawer",
       nk_rect((float)size.width()-200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
       NK_WINDOW_NO_SCROLLBAR)) {
     
-      static int frame_counter = 0;
-      frame_counter++;
-
       // update metrics values every 0.1 second
-      if (frame_counter % 20 == 0) {
-        detailed_metrics.clear();
+      if (auto now = std::chrono::steady_clock::now(); now - m_drawer.last_update > m_drawer.period) {
+        m_drawer.detailed_metrics.clear();
+
+        m_drawer.last_update = now;
         m_context.m_metrics->apply([=](Metrics::Metric& metric) {
-          detailed_metrics.push_back(metric.report(m_context.m_logger));
+          m_drawer.detailed_metrics.push_back(metric.report(m_context.m_logger));
           metric.m_value = 0;
         });
       }
 
-      for (const auto& metric : detailed_metrics) {
+      for (const auto& metric : m_drawer.detailed_metrics) {
         nk_layout_row_dynamic(m_ui.context(), 10, 1);
         nk_label(m_ui.context(), metric.c_str(), NK_TEXT_ALIGN_LEFT);
       }
