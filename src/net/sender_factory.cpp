@@ -7,7 +7,6 @@
 #include "rtp/sender.hpp"
 #include "rtsp/server.hpp"
 
-
 namespace shar::net {
 
 std::unique_ptr<IPacketSender> create_sender(Context context, Url url) {
