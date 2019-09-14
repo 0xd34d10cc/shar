@@ -19,7 +19,7 @@
 
 #include "broadcast.hpp"
 #include "view.hpp"
-
+#include "time.hpp"
 
 namespace shar {
 
@@ -41,6 +41,7 @@ private:
   bool process_input();
   bool update_background();
   void update_gui();
+  void update_metrics(const Size& size);
   void update_title_bar();
   // update config window
   std::optional<StreamState> update_config();
@@ -57,6 +58,7 @@ private:
   Cancellation m_running;
 
   bool m_gui_enabled{ true };
+  bool m_metrics_drawer_enabled{ false };
 
   ui::Window m_window;
   ui::Renderer m_renderer;
@@ -67,8 +69,17 @@ private:
   ui::Button m_stream_button;
   ui::Button m_view_button;
   ui::TextEdit m_url;
+
   std::string m_last_error;
 
+  struct MetricDrawer {
+    std::vector<std::string> detailed_metrics;
+    SteadyTime last_update;
+    Milliseconds period;
+  };
+
+  MetricDrawer m_drawer;
+  
   struct Empty {
     void stop() {}
 
