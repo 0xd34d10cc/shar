@@ -16,11 +16,11 @@ target_include_directories(shar
                            )
 
 target_link_libraries(shar
-                      capture
-                      codec
-                      net
-                      ui
-                      common
+                      PRIVATE capture
+                      PRIVATE codec
+                      PRIVATE net
+                      PRIVATE ui
+                      PRIVATE common
                       )
 
 target_compile_definitions(shar PRIVATE ${SHAR_COMPILE_DEFINITIONS})
