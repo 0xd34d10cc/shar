@@ -17,6 +17,7 @@ void ResponseSender::run(Receiver<Unit> packets) {
   m_acceptor.open(endpoint.protocol());
   m_acceptor.set_option(tcp::Acceptor::reuse_address(true));
   m_acceptor.bind(endpoint);
+  m_acceptor.listen(10);
   start_accepting();
 
   while (!m_running.expired() ) {
@@ -32,16 +33,20 @@ void ResponseSender::shutdown() {
 void ResponseSender::start_accepting(){
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
-      m_logger.info("Acceptor error");
+      m_logger.error("Acceptor error: {}", ec.message());
       if (m_clients.empty()){
         shutdown();
       }
       return;
     }
-    auto clientId = static_cast<ClientId>(m_current_socket.native_handle());
-    m_logger.info("Client {} connected.", clientId);
+    auto client_id = static_cast<std::size_t>(m_current_socket.native_handle());
+    m_logger.info("Client {} connected.", client_id);
 
-    m_clients.emplace(clientId,  std::move(m_current_socket));
+    auto [client_pos, is_emplaced] = m_clients.emplace(client_id,  std::move(m_current_socket));
+    if (is_emplaced) {
+      receive_request(client_pos);
+    }
+
     m_current_socket = tcp::Socket(m_context);
 
     start_accepting();
@@ -89,9 +94,9 @@ void ResponseSender::receive_request(ClientPos client_pos) {
 
     try {
       Request request({ client.m_headers.data(), client.m_headers.size() });
+      client.m_received_bytes += size;
       auto parsing_result = request.parse(reinterpret_cast<const char*>(client.m_buffer.data()), client.m_received_bytes);
       if (!parsing_result.has_value()) {
-        client.m_received_bytes += size;
         receive_request(client_pos);
         return;
       }
