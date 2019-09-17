@@ -31,13 +31,14 @@ P2PSender::P2PSender(Context context, IpAddress ip, Port port)
     , m_context()
     , m_current_socket(m_context)
     , m_acceptor(m_context)
-    , m_overflown_count(0)
-    , m_packets_sent({"PacketsSent", "Number of sent packets", "count"}, m_registry)
-    , m_bytes_sent({"BytesSent", "Number of sent bytes", "bytes"}, m_registry) {}
+    , m_overflown_count(0) {}
 
 
 void P2PSender::run(Receiver<Unit> receiver) {
   setup();
+
+  m_packets_sent = m_metrics->add("Packets sent", Metrics::Format::Count);
+  m_bytes_sent = m_metrics->add("Bytes sent", Metrics::Format::Bytes);
 
   while (!m_running.expired() && receiver.connected()) {
     auto unit = receiver.try_receive();
@@ -196,8 +197,8 @@ void P2PSender::handle_write(std::size_t bytes_sent, ClientId id) {
           client.m_overflown = false;
         }
 
-        m_packets_sent.increment();
-        m_bytes_sent.increment(static_cast<double>(packet_size + client.m_length.size()));
+        m_metrics->increase(m_packets_sent, 1);
+        m_metrics->increase(m_bytes_sent, packet_size + client.m_length.size());
         client.m_packets.pop();
         client.m_state = Client::State::SendingLength;
       }

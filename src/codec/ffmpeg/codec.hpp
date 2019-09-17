@@ -5,7 +5,6 @@
 
 #include "size.hpp"
 #include "context.hpp"
-#include "metrics/histogram.hpp"
 
 #include "frame.hpp"
 #include "options.hpp"
@@ -53,7 +52,9 @@ private:
 
   AVContextPtr       m_context;
   AVCodec*           m_codec; // static lifetime
-  metrics::Histogram m_full_delay;
+  
+  //TODO: implement Format::Histogram or rewrite this to Format::Count
+  //metrics::Histogram m_full_delay;
   std::uint32_t      m_frame_counter;
 
 };

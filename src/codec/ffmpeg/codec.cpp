@@ -4,6 +4,7 @@ extern "C" {
 }
 #include "disable_warnings_pop.hpp"
 
+#include <numeric>
 #include <memory>
 #include <optional>
 
@@ -116,8 +117,8 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
     setup_logging(m_config, m_logger);
   }
 
-  m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
-                                     m_registry, { 5.0, 10.0, 15.0, 30.0 });
+  /*m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
+                                     m_registry, { 5.0, 10.0, 15.0, 30.0 });*/
   ffmpeg::Options opts{};
   for (const auto& [key, value]: m_config->options) {
     if (!opts.set(key.c_str(), value.c_str())) {
@@ -163,7 +164,7 @@ std::vector<Unit> Codec::encode(Frame image) {
       // NOTE: this delay is incorrect, because encoder is able to buffer frames.
       const auto delay = Clock::now() - image.timestamp();
       const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
-      m_full_delay.Observe(static_cast<double>(delay_ms.count()));
+      //m_full_delay.Observe(static_cast<double>(delay_ms.count()));
     }
   }
 
