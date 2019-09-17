@@ -31,4 +31,8 @@ bool Serializer::append_number(std::size_t number) {
   return success;
 }
 
+std::size_t Serializer::written_bytes() const noexcept {
+  return m_written_bytes;
+}
+
 }

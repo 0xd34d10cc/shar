@@ -60,6 +60,8 @@ ResponseSender::Client::Client(tcp::Socket&& socket)
   , m_received_bytes(0)
   , m_sent_bytes(0)
   , m_headers(10)
+  , m_response({ m_headers.data(), m_headers.size() })
+  , m_response_size(0)
 {
 }
 
@@ -101,7 +103,17 @@ void ResponseSender::receive_request(ClientPos client_pos) {
         return;
       }
       client.m_sent_bytes = 0;
-      send_response(client_pos);
+      proccess_request(client_pos, request);
+
+      if (auto size = 
+        client.m_response.serialize(reinterpret_cast<char*>(client.m_buffer.data()),
+                                    client.m_buffer.size())) {
+        client.m_response_size = size.value();
+        send_response(client_pos);
+        return;
+      }
+      m_logger.error("Buffer overflow at the response serializing. ClientId {}", id);
+      disconnect_client(client_pos);
     }
     catch (const std::runtime_error& error) {
       m_logger.info("Client {} request parsing error: ", id);
@@ -113,14 +125,12 @@ void ResponseSender::receive_request(ClientPos client_pos) {
 }
 
 void ResponseSender::send_response(ClientPos client_pos) {
-  static std::string_view simple_response =
-    "RTSP/1.0 501 NOT_IMPLEMENTED\r\n"
-    "\r\n";
 
   auto& client = client_pos->second;
   auto id = client_pos->first;
 
-  auto buffer = span(simple_response.data() + client.m_sent_bytes, simple_response.size() - client.m_sent_bytes);
+
+  auto buffer = span(client.m_buffer.data() + client.m_sent_bytes, client.m_response_size - client.m_sent_bytes);
   client.m_socket.async_send(buffer, [this, &client, id](const ErrorCode& ec, const std::size_t size) {
     auto client_pos = m_clients.find(id);
 
@@ -134,10 +144,46 @@ void ResponseSender::send_response(ClientPos client_pos) {
       return;
     }
     client.m_sent_bytes += size;
-    if (simple_response.size() == client.m_sent_bytes) {
+    if (client.m_response_size == client.m_sent_bytes) {
       client.m_received_bytes = 0;
       receive_request(client_pos);
     }
     });
 }
+
+
+void ResponseSender::proccess_request(ClientPos client_pos, Request request) {
+  assert(request.m_type.has_value());
+  auto& response = client_pos->second.m_response;
+  switch (request.m_type.value()) {
+  case Request::Type::OPTIONS: {
+    response.m_version = 1;
+    response.m_status_code = 200;
+    response.m_reason = "OK";
+    response.m_headers.data[0] = Header("Public", "");
+    response.m_headers.len = 1;
+    return;
+  }
+  case Request::Type::DESCRIBE:
+  case Request::Type::SETUP:
+  case Request::Type::TEARDOWN:
+  case Request::Type::PLAY:
+  case Request::Type::PAUSE:
+  case Request::Type::GET_PARAMETER:
+  case Request::Type::SET_PARAMETER:
+  case Request::Type::REDIRECT:
+  case Request::Type::ANNOUNCE:
+  case Request::Type::RECORD: {
+    response.m_version = 1;
+    response.m_status_code = 501;
+    response.m_reason = "Not implemented";
+    response.m_headers.len = 0;
+    return;
+  }
+  default: {
+    m_logger.error("Unknown request type. {}", static_cast<int>(request.m_type.value()));
+  }
+  }
+}
+
 }
