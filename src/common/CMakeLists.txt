@@ -28,7 +28,7 @@ add_library(common
             )
 
 target_include_directories(common
-    PRIVATE .
+    PUBLIC .
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_JSONFORMODERNCPP}
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_CLI11}
 
@@ -36,7 +36,7 @@ target_include_directories(common
 )
 
 target_link_libraries(common
-  ${CONAN_LIBS_FMT}
+  PUBLIC ${CONAN_LIBS_FMT}
 )
 
 target_compile_definitions(common PRIVATE ${SHAR_COMPILE_DEFINITIONS})

@@ -78,14 +78,16 @@ add_library(net
 
 target_include_directories(net
     PUBLIC ..
-    PUBLIC ../common
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
 )
 
-target_link_libraries(net common)
+target_link_libraries(net PUBLIC common)
 
 if (WIN32)
-  target_link_libraries(net ws2_32 iphlpapi)
+  target_link_libraries(net
+    PUBLIC ws2_32
+    PUBLIC iphlpapi
+  )
 endif()
 
 target_compile_definitions(net PRIVATE ${SHAR_COMPILE_DEFINITIONS})
@@ -110,15 +112,13 @@ add_executable(nettest
 )
 
 target_include_directories(nettest
-    PRIVATE ..
-    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE ${CONAN_INCLUDE_DIRS_GTEST}
 )
 
 target_link_libraries(nettest
-    net
-    common
-    ${CONAN_LIBS_GTEST}
+    PRIVATE net
+    PRIVATE common
+    PRIVATE ${CONAN_LIBS_GTEST}
 )
 
 target_compile_definitions(nettest PRIVATE ${SHAR_COMPILE_DEFINITIONS})
@@ -130,16 +130,13 @@ add_test(NAME nettest COMMAND nettest)
 add_executable(stunc stun/stunc.cpp)
 
 target_include_directories(stunc
-    PRIVATE ..
-    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
 )
 
-target_link_libraries(stunc common net)
-
-if (WIN32)
-  target_link_libraries(stunc ws2_32 iphlpapi)
-endif()
+target_link_libraries(stunc
+    PRIVATE common
+    PRIVATE net
+)
 
 target_compile_definitions(stunc PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(stunc PRIVATE ${SHAR_COMPILE_OPTIONS})

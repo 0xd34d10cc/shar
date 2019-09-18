@@ -17,13 +17,12 @@ add_library(codec
 
 target_include_directories(codec
     PUBLIC ..
-    PUBLIC ../common
 )
 
 target_link_libraries(codec
-    common
-    ${CONAN_LIBS_FFMPEG}
-    ${CONAN_LIBS_LIBX264}
+    PUBLIC common
+    PRIVATE ${CONAN_LIBS_FFMPEG}
+    PRIVATE ${CONAN_LIBS_LIBX264}
 )
 
 target_compile_definitions(codec PRIVATE ${SHAR_COMPILE_DEFINITIONS})
