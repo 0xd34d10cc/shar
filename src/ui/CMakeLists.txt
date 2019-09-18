@@ -23,16 +23,15 @@ add_library(ui
 
 target_include_directories(ui
     PUBLIC ..
-    PUBLIC ../common
-    PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_SDL2}
+    PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SDL2}
 )
 
 find_package(OpenGL REQUIRED)
 
 target_link_libraries(ui
-    common
-    ${CONAN_LIBS_SDL2}
-    ${OPENGL_gl_LIBRARY}
+    PUBLIC common
+    PUBLIC ${CONAN_LIBS_SDL2}
+    PUBLIC ${OPENGL_gl_LIBRARY}
 )
 
 target_compile_definitions(ui PRIVATE ${SHAR_COMPILE_DEFINITIONS})
