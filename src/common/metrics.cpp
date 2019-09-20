@@ -1,22 +1,42 @@
-#include "metrics.hpp"
-
 #include <cassert>
 #include <array>
+
+#include "disable_warnings_push.hpp"
+#include <fmt/format.h>
+#include "disable_warnings_pop.hpp"
+
+#include "metrics.hpp"
 
 
 namespace {
 
-std::tuple<std::size_t, std::size_t, const char*> human_readable_bytes(std::size_t value) {
-  static const std::array<const char*, 6> suffixes = {
+using Suffixes = std::array<const char*, 6>;
+
+static const Suffixes bytes_suffixes = {
       "bytes",
       "kb",
       "mb",
       "gb",
       "tb",
       "pb"
-  };
+};
 
+static const Suffixes bits_suffixes = {
+      "bits",
+      "kbit",
+      "mbit",
+      "gbit",
+      "tbit",
+      "pbit"
+};
 
+struct FormatData {
+  std::size_t value;
+  std::size_t rem;
+  const char* suffix;
+};
+
+FormatData human_readable(std::size_t value, const Suffixes& suffixes) {
   std::size_t i   = 0;
   std::size_t rem = 0;
 
@@ -39,9 +59,8 @@ std::tuple<std::size_t, std::size_t, const char*> human_readable_bytes(std::size
 
 namespace shar {
 
-Metrics::Metrics(std::size_t size, Logger logger)
-    : m_logger(std::move(logger))
-    , m_metrics(size) {}
+Metrics::Metrics(std::size_t size)
+    : m_metrics(size) {}
 
 bool Metrics::valid(shar::MetricId id) const noexcept {
   return id.valid() && id.get() < m_metrics.size() && m_metrics[id.get()].has_value();
@@ -82,39 +101,48 @@ void Metrics::decrease(shar::MetricId id, std::size_t delta) {
   }
 }
 
-void Metrics::report() {
-  std::lock_guard<std::mutex> lock(m_mutex);
-
-  for (auto& metric: m_metrics) {
-    if (metric) {
-      metric->report(m_logger);
-      metric->m_value = 0;
-    }
-  }
-}
-
-Metrics::Metric::Metric(std::string name, Format format)
+Metrics::MetricData::MetricData(std::string name, Format format)
     : m_name(std::move(name))
     , m_format(format)
     , m_value(0) {}
 
-std::string Metrics::Metric::report(shar::Logger& logger) {
-  std::string format;
+std::string Metrics::MetricData::format() {
   switch (m_format) {
     case Format::Count:
-      format = fmt::format("{} {}", m_name, m_value);
-      logger.info(format);
-      return format;
+      return fmt::format("{} {}", m_name, m_value);
     case Format::Bytes: {
-      auto[value, fraction, suffix] = human_readable_bytes(m_value);
-      format = fmt::format("{} {}.{}{}", m_name, value, fraction, suffix);
-      logger.info(format);
-      return format;
+      auto[value, rem, suffix] = human_readable(m_value, bytes_suffixes);
+      return fmt::format("{} {}.{}{}", m_name, value, rem, suffix);
+    }
+    case Format::Bits: {
+      auto [value, rem, suffix] = human_readable(m_value, bits_suffixes);
+      return fmt::format("{} {}.{}{}", m_name, value, rem, suffix);
     }
     default:
-      return "";
+      assert(false);
+      throw std::runtime_error(
+        fmt::format("Unknown metric format: {}", static_cast<int>(m_format))
+      );
   }
+}
 
+Metric::Metric(MetricsPtr metrics, std::string name, Metrics::Format format)
+  : m_metrics(std::move(metrics))
+  , m_id(m_metrics->add(std::move(name), format))
+{}
+
+Metric::~Metric() {
+  if (m_metrics) {
+    m_metrics->remove(m_id);
+  }
+}
+
+void Metric::increase(std::size_t delta) {
+  m_metrics->increase(m_id, delta);
+}
+
+void Metric::decrease(std::size_t delta) {
+  m_metrics->decrease(m_id, delta);
 }
 
 }

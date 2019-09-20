@@ -38,7 +38,7 @@ static Context make_context(Config c) {
   }
 
   auto logger = Logger(config->logs_location, shar_loglvl);
-  auto metrics = std::make_shared<Metrics>(20, logger);
+  auto metrics = std::make_shared<Metrics>(20);
 
   return Context{
     std::move(config),
@@ -59,9 +59,13 @@ App::App(Config config)
   , m_stream_button("stream")
   , m_view_button("view")
   , m_url(false, false)
-  , m_drawer{ {}, 
-              SteadyClock::now(), 
-              Milliseconds(1000)}
+  , m_metrics_data{
+      std::vector<std::string>(),
+      Clock::now(),
+      Seconds(1)
+  }
+  , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
+  , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
@@ -77,6 +81,8 @@ App::App(Config config)
   m_window.set_header(30 /* height */);
   m_window.set_border(false);
   m_window.on_move([this] {
+    m_ticks.increase(1);
+
     // render unconditionally
     // NOTE: otherwise window will be cropped if part of it
     //       was moved from outside of screen
@@ -101,24 +107,24 @@ bool App::process_input() {
       m_running.cancel();
     }
 
-    // change gui visibility on shift+g
+    // change gui visibility on ctrl+g
     if (event.type == SDL_KEYDOWN &&
         event.key.keysym.sym == SDLK_g) {
       const Uint8* state = SDL_GetKeyboardState(0);
 
-      if (state[SDL_SCANCODE_LSHIFT]) {
+      if (state[SDL_SCANCODE_LCTRL]) {
         m_gui_enabled = !m_gui_enabled;
         updated = true;
       }
     }
 
-    // change metric drawer visibility on shift+m
+    // change metric drawer visibility on ctrl+m
     if (event.type == SDL_KEYDOWN &&
       event.key.keysym.sym == SDLK_m) {
       const Uint8* state = SDL_GetKeyboardState(0);
 
-      if (state[SDL_SCANCODE_LSHIFT]) {
-        m_metrics_drawer_enabled = !m_metrics_drawer_enabled;
+      if (state[SDL_SCANCODE_LCTRL]) {
+        m_render_metrics = !m_render_metrics;
       }
     }
 
@@ -149,26 +155,21 @@ void App::update_title_bar() {
   }
 }
 
-void App::update_metrics(const Size& size) {
+void App::update_metrics() {
+  check_metrics();
+
+  auto size = m_window.display_size();
+
   auto old_bg = m_ui.context()->style.window.fixed_background;
   m_ui.context()->style.window.fixed_background = nk_style_item_hide();
   if (nk_begin(m_ui.context(), "metric_drawer",
-    nk_rect((float)size.width() - 200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
-    NK_WINDOW_NO_SCROLLBAR)) {
+               nk_rect((float)size.width() - 200.0f, 30.0f, 200.0f,
+                       (float)size.height() - 500.0f),
+               NK_WINDOW_NO_SCROLLBAR)) {
 
-    if (auto now = SteadyClock::now(); now - m_drawer.last_update > m_drawer.period) {
-      m_drawer.detailed_metrics.clear();
-
-      m_drawer.last_update = now;
-      m_context.m_metrics->apply([this](Metrics::Metric& metric) {
-        m_drawer.detailed_metrics.push_back(metric.report(m_context.m_logger));
-        metric.m_value = 0;
-      });
-    }
-
-    for (const auto& metric : m_drawer.detailed_metrics) {
+    for (const auto& line : m_metrics_data.text) {
       nk_layout_row_dynamic(m_ui.context(), 10, 1);
-      nk_label(m_ui.context(), metric.c_str(), NK_TEXT_ALIGN_LEFT);
+      nk_label(m_ui.context(), line.c_str(), NK_TEXT_ALIGN_LEFT);
     }
 
   }
@@ -226,15 +227,12 @@ std::optional<StreamState> App::update_config() {
   }
   nk_end(m_ui.context());
 
-  // draw metrics
-  if (m_metrics_drawer_enabled) {
-    update_metrics(size);
-  }
-
   return new_state;
 }
 
 void App::render() {
+  m_fps.increase(1);
+
   const auto win_size = m_window.display_size();
   int width = static_cast<int>(win_size.width());
   int height = static_cast<int>(win_size.height());
@@ -324,6 +322,10 @@ void App::update_gui() {
         m_last_error.clear();
       }
     }
+
+    if (m_render_metrics) {
+      update_metrics();
+    }
   }
   catch (const std::exception & e) {
     m_last_error = e.what();
@@ -336,13 +338,20 @@ void App::update_gui() {
 
 int App::run() {
   while (!m_running.expired()) {
+    m_ticks.increase(1);
+
     bool updated = process_input();
     updated |= update_background();
+
+   /* if (m_render_metrics) {
+      updated |= check_metrics();
+    }*/
 
     if (updated) {
       update_gui();
       render();
     }
+
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
@@ -357,6 +366,22 @@ void App::check_stream_state() {
     m_last_error = std::visit([this](auto& stream) { return stream.error(); }, m_stream);
     switch_to(StreamState::None);
   }
+}
+
+bool App::check_metrics() {
+  auto now = Clock::now();
+  const bool update = now - m_metrics_data.last_update > m_metrics_data.period;
+  if (update) {
+    m_metrics_data.text.clear();
+
+    m_metrics_data.last_update = now;
+    m_context.m_metrics->for_each([this](Metrics::MetricData& metric) {
+      m_metrics_data.text.emplace_back(metric.format());
+      metric.m_value = 0;
+    });
+  }
+
+  return update;
 }
 
 StreamState App::state() const {

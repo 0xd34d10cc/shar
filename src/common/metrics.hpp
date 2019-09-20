@@ -7,87 +7,98 @@
 #include <limits>
 #include <mutex>
 
-#include "logger.hpp"
 #include "newtype.hpp"
 
 
 namespace shar {
 
-  class Metrics;
+class Metrics;
 
-  using MetricsPtr = std::shared_ptr<Metrics>;
+using MetricsPtr = std::shared_ptr<Metrics>;
 
-  class MetricId : protected NewType<std::size_t> {
-    static const std::size_t INVALID_ID = std::numeric_limits<std::size_t>::max();
+class MetricId : protected NewType<std::size_t> {
+  static const std::size_t INVALID_ID = std::numeric_limits<std::size_t>::max();
 
-  public:
-    MetricId()
-      : NewType(INVALID_ID) {}
+public:
+  MetricId()
+    : NewType(INVALID_ID) {}
 
-    bool valid() const {
-      return get() != INVALID_ID;
-    }
+  bool valid() const {
+    return get() != INVALID_ID;
+  }
 
-    friend class Metrics;
+  friend class Metrics;
 
-  protected:
-    MetricId(std::size_t index)
-      : NewType(index) {}
+protected:
+  MetricId(std::size_t index)
+    : NewType(index) {}
+};
+
+class Metrics {
+public:
+  enum class Format {
+    Count,
+    Bytes,
+    Bits
   };
 
-  class Metrics {
-  public:
-    enum class Format {
-      Count,
-      Bytes
-    };
+  Metrics(std::size_t size);
 
-    Metrics(std::size_t size, Logger logger);
+  MetricId add(std::string name, Format format) noexcept;
+  void remove(MetricId id) noexcept;
 
-    MetricId add(std::string name, Format format) noexcept;
-    void remove(MetricId id) noexcept;
+  // Modify metric value. Does nothing if |id| is invalid
+  void increase(MetricId id, std::size_t delta);
+  void decrease(MetricId id, std::size_t delta);
 
-    // Modify metric value. Does nothing if |id| is invalid
-    void increase(MetricId id, std::size_t delta);
-    void decrease(MetricId id, std::size_t delta);
-
-    template <typename Fn>
-    void apply(Fn functor);
-
-    // prints metrics values in internal logger
-    void report();
-
-    // check if metric id is valid
-    bool valid(MetricId id) const noexcept;
-
-    // align by cache line to avoid false sharing
-    struct alignas(64) Metric {
-      Metric(std::string name, Format format);
-
-      std::string              m_name;
-      Format                   m_format;
-      std::atomic<std::size_t> m_value;
-
-      std::string report(Logger& logger);
-    };
-
-  private:
-
-    Logger m_logger;
-
-    // mutex to prevent data races when adding/removing/reporting metrics
-    std::mutex                         m_mutex;
-    std::vector<std::optional<Metric>> m_metrics;
-  };
-
-  template<typename Fn>
-  inline void Metrics::apply(Fn functor) {
+  template <typename Fn>
+  void for_each(Fn&& f) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     for (auto& metric : m_metrics) {
       if (metric) {
-        functor(*metric);
+        f(*metric);
       }
     }
   }
+
+  // check if metric id is valid
+  bool valid(MetricId id) const noexcept;
+
+  // align by cache line to avoid false sharing
+  struct alignas(64) MetricData {
+    MetricData(std::string name, Format format);
+
+    std::string              m_name;
+    Format                   m_format;
+    std::atomic<std::size_t> m_value;
+
+    std::string format();
+  };
+
+private:
+  // mutex to prevent data races when adding/removing/reporting metrics
+  std::mutex m_mutex;
+  std::vector<std::optional<MetricData>> m_metrics;
+};
+
+class Metric {
+public:
+  Metric(MetricsPtr metrics,
+         std::string name,
+         Metrics::Format format=Metrics::Format::Count);
+  Metric(const Metric&) = delete;
+  Metric(Metric&&) = default;
+  Metric& operator=(const Metric&) = delete;
+  Metric& operator=(Metric&&) = default;
+  ~Metric();
+
+  void increase(std::size_t delta);
+  void decrease(std::size_t delta);
+
+private:
+  MetricsPtr m_metrics;
+  MetricId m_id;
+};
+
 }
