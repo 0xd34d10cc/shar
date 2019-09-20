@@ -41,7 +41,7 @@ private:
   bool process_input();
   bool update_background();
   void update_gui();
-  void update_metrics(const Size& size);
+  void update_metrics();
   void update_title_bar();
   // update config window
   std::optional<StreamState> update_config();
@@ -51,6 +51,7 @@ private:
   void stop_stream();
   void start_stream();
   void check_stream_state();
+  bool check_metrics();
 
   void save_config();
 
@@ -58,7 +59,7 @@ private:
   Cancellation m_running;
 
   bool m_gui_enabled{ true };
-  bool m_metrics_drawer_enabled{ false };
+  bool m_render_metrics{ false };
 
   ui::Window m_window;
   ui::Renderer m_renderer;
@@ -72,14 +73,16 @@ private:
 
   std::string m_last_error;
 
-  struct MetricDrawer {
-    std::vector<std::string> detailed_metrics;
-    SteadyTime last_update;
+  struct MetricsData {
+    std::vector<std::string> text;
+    TimePoint last_update;
     Milliseconds period;
   };
 
-  MetricDrawer m_drawer;
-  
+  Metric m_ticks;
+  Metric m_fps;
+  MetricsData m_metrics_data;
+
   struct Empty {
     void stop() {}
 

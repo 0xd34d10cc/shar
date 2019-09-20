@@ -11,6 +11,7 @@
 #include "codec/ffmpeg/unit.hpp"
 #include "metrics.hpp"
 
+
 namespace shar::net::tcp {
 
 using codec::ffmpeg::Unit;
@@ -85,8 +86,8 @@ private:
 
   std::size_t m_overflown_count;
 
-  MetricId m_packets_sent;
-  MetricId m_bytes_sent;
+  Metric m_packets_sent;
+  Metric m_bytes_sent;
 };
 
 } // namespace shar::tcp

@@ -9,18 +9,20 @@ Decoder::Decoder(Context context, Size size, std::size_t fps)
     {}
 
 void Decoder::run(Receiver<ffmpeg::Unit> input, Sender<ffmpeg::Frame> output) {
-  m_bytes_in = m_metrics->add("Decoder in", Metrics::Format::Bytes);
-  m_bytes_out = m_metrics->add("Decoder out", Metrics::Format::Bytes);
+  Metric m_bytes_in{ m_metrics, "Decoder in", Metrics::Format::Bytes };
+  Metric m_bytes_out{ m_metrics, "Decoder out", Metrics::Format::Bytes };
+
   while (!m_running.expired() && input.connected() && output.connected()) {
     auto unit = input.receive();
     if (!unit) {
       // end of stream
       break;
     }
-    m_metrics->increase(m_bytes_in, unit->size());
+
+    m_bytes_in.increase(unit->size());
     auto frame = m_codec.decode(std::move(*unit));
     if (frame) {
-      m_metrics->increase(m_bytes_out, frame->total_size());
+      m_bytes_out.increase(frame->total_size());
       output.send(std::move(*frame));
     }
   }

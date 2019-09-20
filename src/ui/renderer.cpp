@@ -76,7 +76,7 @@ static void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
     }
   }
 }
-#endif
+#endif // SHAR_DEBUG_BUILD
 
 namespace shar::ui {
 
