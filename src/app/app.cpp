@@ -115,6 +115,7 @@ bool App::process_input() {
       if (state[SDL_SCANCODE_LCTRL]) {
         m_gui_enabled = !m_gui_enabled;
         updated = true;
+        m_ui.clear();
       }
     }
 
@@ -125,6 +126,8 @@ bool App::process_input() {
 
       if (state[SDL_SCANCODE_LCTRL]) {
         m_render_metrics = !m_render_metrics;
+        updated = true;
+        m_ui.clear();
       }
     }
 
@@ -156,13 +159,13 @@ void App::update_title_bar() {
 }
 
 void App::update_metrics() {
-  check_metrics();
-
   auto size = m_window.display_size();
 
-  auto old_bg = m_ui.context()->style.window.fixed_background;
-  m_ui.context()->style.window.fixed_background = nk_style_item_hide();
-  if (nk_begin(m_ui.context(), "metric_drawer",
+  auto& background_style = m_ui.context()->style.window.fixed_background;
+  auto old_bg = background_style;
+  background_style = nk_style_item_hide();
+
+  if (nk_begin(m_ui.context(), "metrics",
                nk_rect((float)size.width() - 200.0f, 30.0f, 200.0f,
                        (float)size.height() - 500.0f),
                NK_WINDOW_NO_SCROLLBAR)) {
@@ -173,8 +176,9 @@ void App::update_metrics() {
     }
 
   }
-  m_ui.context()->style.window.fixed_background = old_bg;
   nk_end(m_ui.context());
+
+  background_style = old_bg;
 }
 
 std::optional<StreamState> App::update_config() {
@@ -300,8 +304,8 @@ bool App::update_background() {
     if (auto frame = m_frames->try_receive()) {
       m_background.bind();
       m_background.update(Point::origin(),
-        frame->size,
-        frame->data.get());
+                          frame->size,
+                          frame->data.get());
       m_background.unbind();
       return true;
     }
@@ -316,15 +320,15 @@ void App::update_gui() {
   try {
     check_stream_state();
 
+    if (m_render_metrics) {
+      update_metrics();
+    }
+
     if (m_gui_enabled) {
       if (auto new_state = update_config()) {
         switch_to(*new_state);
         m_last_error.clear();
       }
-    }
-
-    if (m_render_metrics) {
-      update_metrics();
     }
   }
   catch (const std::exception & e) {
@@ -343,9 +347,9 @@ int App::run() {
     bool updated = process_input();
     updated |= update_background();
 
-   /* if (m_render_metrics) {
+    if (m_render_metrics) {
       updated |= check_metrics();
-    }*/
+    }
 
     if (updated) {
       update_gui();
