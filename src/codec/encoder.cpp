@@ -9,18 +9,18 @@ Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
 }
 
 void Encoder::run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output) {
-  m_bytes_in = m_metrics->add("Encoder in", Metrics::Format::Bytes);
-  m_bytes_out = m_metrics->add("Encoder out", Metrics::Format::Bytes);
+  Metric bytes_in{ m_metrics, "Encoder in", Metrics::Format::Bytes };
+  Metric bytes_out{ m_metrics, "Encoder out", Metrics::Format::Bytes };
 
   while (auto frame = input.receive()) {
     if (m_running.expired() || !output.connected()) {
       break;
     }
 
-    m_metrics->increase(m_bytes_in, frame->total_size());
+    bytes_in.increase(frame->total_size());
     auto units = m_codec.encode(std::move(*frame));
     for (auto& unit: units) {
-      m_metrics->increase(m_bytes_out, unit.size());
+      bytes_out.increase(unit.size());
       output.send(std::move(unit));
     }
 

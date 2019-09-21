@@ -12,13 +12,12 @@ PacketReceiver::PacketReceiver(Context context, IpAddress server, Port port)
     , m_port(port)
     , m_context()
     , m_receiver(m_context)
-    , m_packets_received()
-    , m_bytes_received() {}
+    , m_packets_received(m_metrics, "Packets received", Metrics::Format::Count)
+    , m_bytes_received(m_metrics, "Bytes received", Metrics::Format::Bytes)
+    {}
 
 void PacketReceiver::run(Sender<codec::ffmpeg::Unit> sender) {
   m_sender = &sender; // TODO: remove this hack
-  m_bytes_received = m_metrics->add("Bytes received", Metrics::Format::Bytes);
-  m_packets_received = m_metrics->add("Packets received", Metrics::Format::Count);
   Endpoint endpoint{ m_server_address, m_port };
   // FIXME: throws exception
   m_receiver.connect(endpoint);
@@ -54,8 +53,8 @@ void PacketReceiver::start_read() {
 
         auto packets = m_reader.update(m_buffer, received);
 
-        m_metrics->increase(m_bytes_received, received);
-        m_metrics->increase(m_packets_received, packets.size());
+        m_bytes_received.increase(received);
+        m_packets_received.increase(packets.size());
         for (auto& packet: packets) {
           m_sender->send(std::move(packet));
         }

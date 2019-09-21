@@ -29,9 +29,6 @@ public:
 private:
   Cancellation m_running;
   ffmpeg::Codec m_codec;
-
-  MetricId m_bytes_in;
-  MetricId m_bytes_out;
 };
 
 }

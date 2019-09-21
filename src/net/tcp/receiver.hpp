@@ -37,8 +37,8 @@ private:
   IOContext    m_context;
   Socket       m_receiver;
 
-  MetricId m_packets_received;
-  MetricId m_bytes_received;
+  Metric m_packets_received;
+  Metric m_bytes_received;
 };
 
 }
