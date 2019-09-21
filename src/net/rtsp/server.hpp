@@ -10,17 +10,17 @@ namespace shar::net::rtsp {
 
 using codec::ffmpeg::Unit;
 
-class ResponseSender :
+class Server :
   public IPacketSender,
   protected Context
 {
 public:
-  ResponseSender(Context context, IpAddress ip, Port port);
-  ResponseSender(const ResponseSender&) = delete;
-  ResponseSender(ResponseSender&&) = delete;
-  ResponseSender& operator=(const ResponseSender&) = delete;
-  ResponseSender& operator=(ResponseSender&&) = delete;
-  ~ResponseSender() override = default;
+  Server(Context context, IpAddress ip, Port port);
+  Server(const Server&) = delete;
+  Server(Server&&) = delete;
+  Server& operator=(const Server&) = delete;
+  Server& operator=(Server&&) = delete;
+  ~Server() override = default;
 
   void run(Receiver<Unit> packets) override;
   void shutdown() override;
