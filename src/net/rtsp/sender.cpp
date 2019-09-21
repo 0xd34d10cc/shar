@@ -155,16 +155,52 @@ void ResponseSender::send_response(ClientPos client_pos) {
 void ResponseSender::proccess_request(ClientPos client_pos, Request request) {
   assert(request.m_type.has_value());
   auto& response = client_pos->second.m_response;
+  auto  cseq_pos = std::find_if(request.m_headers.data, request.m_headers.data + request.m_headers.len,
+    [](const Header& header) {
+      auto cmp_res = 1;
+      if (header.key.size() == 4) { // "CSeq" size
+        cmp_res = std::memcmp(header.key.data(), "CSeq", 4);
+      }
+      return cmp_res == 0;
+    });
+
+  if (cseq_pos == request.m_headers.data + request.m_headers.len) {
+    m_logger.warning("CSeq header wasn't found. Client {}", client_pos->first);
+    response.m_version = 1;
+    response.m_status_code = 400;
+    response.m_reason = "Bad request";
+
+    response.m_headers.len = 0;
+    return;
+  }
+
   switch (request.m_type.value()) {
   case Request::Type::OPTIONS: {
     response.m_version = 1;
     response.m_status_code = 200;
     response.m_reason = "OK";
-    response.m_headers.data[0] = Header("Public", "");
-    response.m_headers.len = 1;
+    response.m_headers.data[0] = *cseq_pos;
+    response.m_headers.data[1] = Header("Public", "DESCRIBE");
+    response.m_headers.len = 2;
     return;
   }
-  case Request::Type::DESCRIBE:
+  case Request::Type::DESCRIBE: {
+    std::string_view simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
+      "c = IN IP4 127.0.0.1\r\n"
+      "m = video 1336 RTP / AVP 96\r\n"
+      "a = rtpmap:96 H264 / 90000\r\n"
+      "a = fmtp : 96 packetization - mode = 1";
+    auto sdp_size = std::to_string(simple_sdp.size());
+    response.m_version = 1;
+    response.m_status_code = 200;
+    response.m_reason = "0K";
+    response.m_headers.data[0] = *cseq_pos;
+    response.m_headers.data[1] = Header("Content-type", "application/sdp");
+    response.m_headers.data[2] = Header("Contrent-length", sdp_size.data());
+    response.m_headers.len = 3;
+    response.m_body = simple_sdp;
+    return;
+  }
   case Request::Type::SETUP:
   case Request::Type::TEARDOWN:
   case Request::Type::PLAY:
