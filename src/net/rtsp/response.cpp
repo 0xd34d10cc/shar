@@ -82,6 +82,10 @@ std::optional<std::size_t> Response::serialize(char* destination, std::size_t si
     TRY_SERIALIZE(serializer.append_string(m_headers.data[i].value));
     TRY_SERIALIZE(serializer.append_string("\r\n"));
   }
+  if (m_body.has_value()) {
+    TRY_SERIALIZE(serializer.append_string(m_body.value()));
+    TRY_SERIALIZE(serializer.append_string("\r\n"));
+  }
   //serialize empty line after headers
   TRY_SERIALIZE(serializer.append_string("\r\n"));
 

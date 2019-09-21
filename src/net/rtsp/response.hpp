@@ -28,6 +28,8 @@ struct Response {
   std::optional<std::string_view> m_reason; // Reason-Phrase 
 
   Headers m_headers;
+
+  std::optional<std::string_view> m_body;
 };
 
 }
