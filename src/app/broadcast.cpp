@@ -1,7 +1,6 @@
 #include <fstream>
 
 #include "broadcast.hpp"
-#include "metrics/registry.hpp"
 #include "net/sender_factory.hpp"
 
 

@@ -11,7 +11,6 @@ class Shar(ConanFile):
                        "spdlog/0.17.0@bincrafters/stable",            # logs
                        "gtest/1.8.1@bincrafters/stable",              # UTs
                        # TODO: move to 0xd34d10cc
-                       "prometheus-cpp/0.6.0@d34dpkgs/testing",       # metrics
                        "jsonformoderncpp/3.5.0@vthiery/stable",       # config
                        "CLI11/1.7.1@cliutils/stable",                 # command line options
                        # TODO: make separate package at d34dpkgs with version > 4.0

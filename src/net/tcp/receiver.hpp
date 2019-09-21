@@ -4,7 +4,6 @@
 #include "cancellation.hpp"
 #include "channel.hpp"
 #include "packet_parser.hpp"
-#include "metrics/gauge.hpp"
 #include "net/receiver.hpp"
 #include "net/types.hpp"
 
@@ -38,8 +37,8 @@ private:
   IOContext    m_context;
   Socket       m_receiver;
 
-  metrics::Gauge m_packets_received;
-  metrics::Gauge m_bytes_received;
+  MetricId m_packets_received;
+  MetricId m_bytes_received;
 };
 
 }

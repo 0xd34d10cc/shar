@@ -38,12 +38,12 @@ static Context make_context(Config c) {
   }
 
   auto logger = Logger(config->logs_location, shar_loglvl);
-  auto registry = std::make_shared<metrics::Registry>();
+  auto metrics = std::make_shared<Metrics>(20, logger);
 
   return Context{
     std::move(config),
     std::move(logger),
-    std::move(registry)
+    std::move(metrics)
   };
 }
 
@@ -59,6 +59,9 @@ App::App(Config config)
   , m_stream_button("stream")
   , m_view_button("view")
   , m_url(false, false)
+  , m_drawer{ {}, 
+              SteadyClock::now(), 
+              Milliseconds(1000)}
   , m_stream(Empty{})
 {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
@@ -98,7 +101,7 @@ bool App::process_input() {
       m_running.cancel();
     }
 
-    // change gui visibility on shift+f
+    // change gui visibility on shift+g
     if (event.type == SDL_KEYDOWN &&
         event.key.keysym.sym == SDLK_g) {
       const Uint8* state = SDL_GetKeyboardState(0);
@@ -106,6 +109,16 @@ bool App::process_input() {
       if (state[SDL_SCANCODE_LSHIFT]) {
         m_gui_enabled = !m_gui_enabled;
         updated = true;
+      }
+    }
+
+    // change metric drawer visibility on shift+m
+    if (event.type == SDL_KEYDOWN &&
+      event.key.keysym.sym == SDLK_m) {
+      const Uint8* state = SDL_GetKeyboardState(0);
+
+      if (state[SDL_SCANCODE_LSHIFT]) {
+        m_metrics_drawer_enabled = !m_metrics_drawer_enabled;
       }
     }
 
@@ -136,9 +149,36 @@ void App::update_title_bar() {
   }
 }
 
+void App::update_metrics(const Size& size) {
+  auto old_bg = m_ui.context()->style.window.fixed_background;
+  m_ui.context()->style.window.fixed_background = nk_style_item_hide();
+  if (nk_begin(m_ui.context(), "metric_drawer",
+    nk_rect((float)size.width() - 200.0f, 30.0f, 200.0f, (float)size.height() - 500.0f),
+    NK_WINDOW_NO_SCROLLBAR)) {
+
+    if (auto now = SteadyClock::now(); now - m_drawer.last_update > m_drawer.period) {
+      m_drawer.detailed_metrics.clear();
+
+      m_drawer.last_update = now;
+      m_context.m_metrics->apply([this](Metrics::Metric& metric) {
+        m_drawer.detailed_metrics.push_back(metric.report(m_context.m_logger));
+        metric.m_value = 0;
+      });
+    }
+
+    for (const auto& metric : m_drawer.detailed_metrics) {
+      nk_layout_row_dynamic(m_ui.context(), 10, 1);
+      nk_label(m_ui.context(), metric.c_str(), NK_TEXT_ALIGN_LEFT);
+    }
+
+  }
+  m_ui.context()->style.window.fixed_background = old_bg;
+  nk_end(m_ui.context());
+}
+
 std::optional<StreamState> App::update_config() {
   std::optional<StreamState> new_state;
-
+  Size size = m_window.display_size();
   bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(), "config",
                nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
@@ -185,6 +225,11 @@ std::optional<StreamState> App::update_config() {
     }
   }
   nk_end(m_ui.context());
+
+  // draw metrics
+  if (m_metrics_drawer_enabled) {
+    update_metrics(size);
+  }
 
   return new_state;
 }
