@@ -50,7 +50,9 @@ void Server::start_accepting(){
       assert(false);
       m_logger.error("Client {} wasn't added into server's map", client_id);
     }
+
     m_current_socket = tcp::Socket(m_context);
+
     start_accepting();
     });
 }
@@ -62,6 +64,8 @@ Server::Client::Client(tcp::Socket&& socket)
   , m_received_bytes(0)
   , m_sent_bytes(0)
   , m_headers(10)
+  , m_response({ m_headers.data(), m_headers.size() })
+  , m_response_size(0)
 {
 }
 
@@ -81,21 +85,22 @@ void Server::receive_request(ClientPos client_pos) {
     return;
   }
   auto buffer = span(client.m_buffer.data() + client.m_received_bytes, 4096 - client.m_received_bytes);
-  client.m_socket.async_receive(buffer, [this, id](const ErrorCode& ec, const std::size_t size)   {
+  client.m_socket.async_receive(buffer, [this, id](const ErrorCode& ec, const std::size_t size) {
     auto client_pos = m_clients.find(id);
 
     if (client_pos == m_clients.end()) {
       m_logger.info("Client {} not found", id);
       return;
-    } 
+    }
     if (ec) {
-      m_logger.info("Socket read error (Client {}): {}", id, ec.message());
+      m_logger.error("Socket read error (Client {}): {}", id, ec.message());
       disconnect_client(client_pos);
       return;
     }
 
-    auto& client = client_pos->second;
     try {
+
+      auto& client = client_pos->second;
       Request request({ client.m_headers.data(), client.m_headers.size() });
       client.m_received_bytes += size;
       auto parsing_result = request.parse(reinterpret_cast<const char*>(client.m_buffer.data()), client.m_received_bytes);
@@ -104,10 +109,20 @@ void Server::receive_request(ClientPos client_pos) {
         return;
       }
       client.m_sent_bytes = 0;
-      send_response(client_pos);
+      proccess_request(client_pos, request);
+
+      if (auto size = 
+        client.m_response.serialize(reinterpret_cast<char*>(client.m_buffer.data()),
+                                    client.m_buffer.size())) {
+        client.m_response_size = size.value();
+        send_response(client_pos);
+        return;
+      }
+      m_logger.error("Buffer overflow at the response serializing. ClientId {}", id);
+      disconnect_client(client_pos);
     }
     catch (const std::runtime_error& error) {
-      m_logger.warning("Client {} request parsing error: {}", id, error.what());  
+      m_logger.info("Client {} request parsing error: {}", id, error.what());
       disconnect_client(client_pos);
     }
     });
@@ -115,33 +130,101 @@ void Server::receive_request(ClientPos client_pos) {
 }
 
 void Server::send_response(ClientPos client_pos) {
-  static std::string_view simple_response =
-    "RTSP/1.0 501 NOT_IMPLEMENTED\r\n"
-    "\r\n";
 
   auto& client = client_pos->second;
   auto id = client_pos->first;
 
-  auto buffer = span(simple_response.data() + client.m_sent_bytes, simple_response.size() - client.m_sent_bytes);
+
+  auto buffer = span(client.m_buffer.data() + client.m_sent_bytes, client.m_response_size - client.m_sent_bytes);
   client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, const std::size_t size) {
     auto client_pos = m_clients.find(id);
-
     if (client_pos == m_clients.end()) {
       m_logger.info("Client {} not found", id);
       return;
     }
     if (ec) {
-      m_logger.info("Socket send error (Client {}", id);
+      m_logger.info("Socket send error (Client {}): {}", id, ec.message());
       disconnect_client(client_pos);
       return;
     }
-
     auto& client = client_pos->second;
     client.m_sent_bytes += size;
-    if (simple_response.size() == client.m_sent_bytes) {
+    if (client.m_response_size == client.m_sent_bytes) {
       client.m_received_bytes = 0;
       receive_request(client_pos);
     }
     });
 }
+
+
+void Server::proccess_request(ClientPos client_pos, Request request) {
+  assert(request.m_type.has_value());
+  auto& response = client_pos->second.m_response;
+  auto  cseq_pos = std::find_if(request.m_headers.data, request.m_headers.data + request.m_headers.len,
+    [](const Header& header) {
+      auto cmp_res = 1;
+      if (header.key.size() == 4) { // "CSeq" size
+        cmp_res = std::memcmp(header.key.data(), "CSeq", 4);
+      }
+      return cmp_res == 0;
+    });
+
+  if (cseq_pos == request.m_headers.data + request.m_headers.len) {
+    m_logger.warning("CSeq header wasn't found. Client {}", client_pos->first);
+    response.m_version = 1;
+    response.m_status_code = 400;
+    response.m_reason = "Bad request";
+
+    response.m_headers.len = 0;
+    return;
+  }
+
+  switch (request.m_type.value()) {
+  case Request::Type::OPTIONS: {
+    response.m_version = 1;
+    response.m_status_code = 200;
+    response.m_reason = "OK";
+    response.m_headers.data[0] = *cseq_pos;
+    response.m_headers.data[1] = Header("Public", "DESCRIBE");
+    response.m_headers.len = 2;
+    return;
+  }
+  case Request::Type::DESCRIBE: {
+    std::string_view simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
+      "c = IN IP4 127.0.0.1\r\n"
+      "m = video 1336 RTP / AVP 96\r\n"
+      "a = rtpmap:96 H264 / 90000\r\n"
+      "a = fmtp : 96 packetization - mode = 1";
+    auto sdp_size = std::to_string(simple_sdp.size());
+    response.m_version = 1;
+    response.m_status_code = 200;
+    response.m_reason = "0K";
+    response.m_headers.data[0] = *cseq_pos;
+    response.m_headers.data[1] = Header("Content-type", "application/sdp");
+    response.m_headers.data[2] = Header("Contrent-length", sdp_size.data());
+    response.m_headers.len = 3;
+    response.m_body = simple_sdp;
+    return;
+  }
+  case Request::Type::SETUP:
+  case Request::Type::TEARDOWN:
+  case Request::Type::PLAY:
+  case Request::Type::PAUSE:
+  case Request::Type::GET_PARAMETER:
+  case Request::Type::SET_PARAMETER:
+  case Request::Type::REDIRECT:
+  case Request::Type::ANNOUNCE:
+  case Request::Type::RECORD: {
+    response.m_version = 1;
+    response.m_status_code = 501;
+    response.m_reason = "Not implemented";
+    response.m_headers.len = 0;
+    return;
+  }
+  default: {
+    m_logger.error("Unknown request type. {}", static_cast<int>(request.m_type.value()));
+  }
+  }
+}
+
 }
