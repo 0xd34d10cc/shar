@@ -5,6 +5,7 @@
 #include "tcp/sender.hpp"
 #include "tcp/p2p_sender.hpp"
 #include "rtp/sender.hpp"
+#include "rtsp/server.hpp"
 
 
 namespace shar::net {
@@ -34,9 +35,12 @@ std::unique_ptr<IPacketSender> create_sender(Context context, Url url) {
       return std::make_unique<rtp::PacketSender>(std::move(context),
                                                  *address,
                                                  url.port());
+    case Protocol::RTSP:
+      return std::make_unique<rtsp::Server>(std::move(context),
+                                                    *address,
+                                                    url.port());
     default:
       assert(false);
-    case Protocol::RTSP:
       throw std::runtime_error("Unsupported protocol");
   }
 }
