@@ -13,8 +13,7 @@ class Shar(ConanFile):
                        # TODO: move to 0xd34d10cc
                        "jsonformoderncpp/3.5.0@vthiery/stable",       # config
                        "CLI11/1.7.1@cliutils/stable",                 # command line options
-                       # TODO: make separate package at d34dpkgs with version > 4.0
-                       "nuklear/1.33.0@shearer12345/testing")         # ui
+                       "nuklear/1.33.0@0xd34d10cc/testing")         # ui
 
     generators      = "cmake"
 

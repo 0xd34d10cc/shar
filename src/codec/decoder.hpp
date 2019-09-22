@@ -4,7 +4,6 @@
 #include "size.hpp"
 #include "channel.hpp"
 #include "cancellation.hpp"
-#include "metrics.hpp"
 
 #include "ffmpeg/codec.hpp"
 #include "ffmpeg/unit.hpp"
@@ -28,9 +27,6 @@ public:
 private:
   Cancellation m_running;
   ffmpeg::Codec m_codec;
-
-  MetricId m_bytes_in;
-  MetricId m_bytes_out;
 };
 
 }
