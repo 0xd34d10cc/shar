@@ -20,7 +20,7 @@ struct Response {
   explicit Response(Headers headers);
 
   std::optional<std::size_t> parse(const char* buffer, std::size_t size);
-  //return false if we haven't enough space in buffer
+  //return std::nullopt if we haven't enough space in buffer
   std::optional<std::size_t> serialize(char* destination, std::size_t size);
 
   std::optional<std::size_t> m_version;
