@@ -66,8 +66,8 @@ Server::Client::Client(tcp::Socket&& socket)
   , m_received_bytes(0)
   , m_sent_bytes(0)
   , m_headers(10)
-  , m_response({ m_headers.data(), m_headers.size() })
   , m_response_size(0)
+  , m_headers_info_buffer(100)
 {
 }
 
@@ -159,25 +159,12 @@ void Server::send_response(ClientPos client_pos) {
 }
 
 
-<<<<<<< HEAD
 Response Server::proccess_request(ClientPos client_pos, Request request) {
   assert(request.m_type.has_value());
   Response response({client_pos->second.m_headers.data(), client_pos->second.m_headers.size()});
   auto  cseq_pos = std::find_if(request.m_headers.data, request.m_headers.data + request.m_headers.len,
     [](const Header& header) {
       return header.key == "CSeq";
-=======
-void Server::proccess_request(ClientPos client_pos, Request request) {
-  assert(request.m_type.has_value());
-  auto& response = client_pos->second.m_response;
-  auto  cseq_pos = std::find_if(request.m_headers.data, request.m_headers.data + request.m_headers.len,
-    [](const Header& header) {
-      auto cmp_res = 1;
-      if (header.key.size() == 4) { // "CSeq" size
-        cmp_res = std::memcmp(header.key.data(), "CSeq", 4);
-      }
-      return cmp_res == 0;
->>>>>>> Ah here we fix merge conflicts again
     });
 
   if (cseq_pos == request.m_headers.data + request.m_headers.len) {
@@ -187,11 +174,7 @@ void Server::proccess_request(ClientPos client_pos, Request request) {
     response.m_reason = "Bad request";
 
     response.m_headers.len = 0;
-<<<<<<< HEAD
     return response;
-=======
-    return;
->>>>>>> Ah here we fix merge conflicts again
   }
 
   switch (request.m_type.value()) {
@@ -202,22 +185,14 @@ void Server::proccess_request(ClientPos client_pos, Request request) {
     response.m_headers.data[0] = *cseq_pos;
     response.m_headers.data[1] = Header("Public", "DESCRIBE");
     response.m_headers.len = 2;
-<<<<<<< HEAD
     return response;
   }
   case Request::Type::DESCRIBE: {
     static std::string_view simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
-=======
-    return;
-  }
-  case Request::Type::DESCRIBE: {
-    std::string_view simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
->>>>>>> Ah here we fix merge conflicts again
       "c = IN IP4 127.0.0.1\r\n"
       "m = video 1336 RTP / AVP 96\r\n"
       "a = rtpmap:96 H264 / 90000\r\n"
       "a = fmtp : 96 packetization - mode = 1";
-<<<<<<< HEAD
     auto& buffer = client_pos->second.m_headers_info_buffer;
 
     auto [num_end_ptr, ec] = std::to_chars(buffer.data(), buffer.data()+buffer.size(), simple_sdp.size());
@@ -225,27 +200,17 @@ void Server::proccess_request(ClientPos client_pos, Request request) {
       m_logger.error("Cannot convert SDP size from number to string");
       assert(false);
     }
-=======
-    auto sdp_size = std::to_string(simple_sdp.size());
->>>>>>> Ah here we fix merge conflicts again
     response.m_version = 1;
     response.m_status_code = 200;
     response.m_reason = "0K";
     response.m_headers.data[0] = *cseq_pos;
     response.m_headers.data[1] = Header("Content-type", "application/sdp");
-<<<<<<< HEAD
     response.m_headers.data[2] = Header("Contrent-length", 
                                         std::string_view(buffer.data(), 
                                                          num_end_ptr + 1 - buffer.data()));
     response.m_headers.len = 3;
     response.m_body = simple_sdp;
     return response;
-=======
-    response.m_headers.data[2] = Header("Contrent-length", sdp_size.data());
-    response.m_headers.len = 3;
-    response.m_body = simple_sdp;
-    return;
->>>>>>> Ah here we fix merge conflicts again
   }
   case Request::Type::SETUP:
   case Request::Type::TEARDOWN:
@@ -260,19 +225,12 @@ void Server::proccess_request(ClientPos client_pos, Request request) {
     response.m_status_code = 501;
     response.m_reason = "Not implemented";
     response.m_headers.len = 0;
-<<<<<<< HEAD
     return response;
   }
   default: {
     assert(false);  
     m_logger.error("Unknown request type. {}", static_cast<int>(request.m_type.value()));
     throw std::runtime_error("Unknown request type.");
-=======
-    return;
-  }
-  default: {
-    m_logger.error("Unknown request type. {}", static_cast<int>(request.m_type.value()));
->>>>>>> Ah here we fix merge conflicts again
   }
   }
 }
