@@ -58,13 +58,13 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
   return response_line_size + headers_len.value();
 }
 
-bool Response::serialize(char* destination, std::size_t size) {
+std::optional<std::size_t> Response::serialize(char* destination, std::size_t size) {
   if (!m_version.has_value() || !m_reason.has_value() ||
        m_status_code == std::numeric_limits<std::uint16_t>::max()) {
     throw std::runtime_error("One of fields is not initialized");
   }
   Serializer serializer(destination, size);
-#define TRY_SERIALIZE(EXP) if(!(EXP)) return false
+#define TRY_SERIALIZE(EXP) if(!(EXP)) return std::nullopt
   //serialize version
   TRY_SERIALIZE(serializer.append_string("RTSP/1.0"));
   TRY_SERIALIZE(serializer.append_string(" "));
@@ -82,10 +82,14 @@ bool Response::serialize(char* destination, std::size_t size) {
     TRY_SERIALIZE(serializer.append_string(m_headers.data[i].value));
     TRY_SERIALIZE(serializer.append_string("\r\n"));
   }
+  if (m_body.has_value()) {
+    TRY_SERIALIZE(serializer.append_string(m_body.value()));
+    TRY_SERIALIZE(serializer.append_string("\r\n"));
+  }
   //serialize empty line after headers
   TRY_SERIALIZE(serializer.append_string("\r\n"));
 
-  return true;
+  return serializer.written_bytes();
 #undef TRY_SERIALIZE
 }
 }

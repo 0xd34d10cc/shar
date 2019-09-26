@@ -37,6 +37,8 @@ private:
     std::size_t               m_received_bytes;
     std::size_t               m_sent_bytes;
     std::vector<Header>       m_headers;
+    std::size_t               m_response_size;
+    std::vector<char> m_headers_info_buffer;
   };
 
   using ClientId = std::size_t;
@@ -45,6 +47,7 @@ private:
   void receive_request(ClientPos client);
   void send_response(ClientPos client);
   void disconnect_client(ClientPos client);
+  Response proccess_request(ClientPos client, Request request);
   Cancellation   m_running;
 
 
