@@ -238,18 +238,42 @@ void App::render() {
   m_fps.increase(1);
 
   const auto win_size = m_window.display_size();
+  {
   int width = static_cast<int>(win_size.width());
   int height = static_cast<int>(win_size.height());
 
   // prepare state
   glViewport(0, 0, width, height);
+  }
   glClear(GL_COLOR_BUFFER_BIT);
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
   // render current background (or current frame)
+  const std::size_t header_size = 30;
+  const std::size_t height_ratio = 9;
+  const std::size_t width_ratio = 16;
+  const std::size_t max_height = win_size.height() - header_size;
+
+  bool width_bounded = true;
+  std::size_t w = win_size.width();
+  std::size_t h = (w * height_ratio / width_ratio);
+  if (h > max_height) {
+    width_bounded = false;
+    h = max_height;
+    w = h * width_ratio / height_ratio;
+  }
+
+  // FIXME: x in Point is for horizontal axis, but first
+  //        parameter for Size is height which is very confusing
+  auto at = Point{0, header_size};
+  if (width_bounded) {
+    at.y += (max_height - h) / 2;
+  } else {
+    at.x += (win_size.width() - w) / 2;
+  }
+
   m_renderer.render(m_background, m_window.size(),
-                    Point{0, 30} /* at */,
-                    Size{win_size.height() - 30, win_size.width()});
+                    at, Size{h, w});
 
   /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
    * with blending, scissor, face culling, depth test and viewport and
