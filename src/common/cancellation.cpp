@@ -10,6 +10,7 @@ Cancellation::Cancellation(Cancellation&& other) {
 }
 
 Cancellation& Cancellation::operator=(Cancellation&& other) {
+  (void)other;
   if (this != &other) {
     assert(!other.expired());
     assert(!expired());
