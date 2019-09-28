@@ -21,7 +21,7 @@ class ErrorCategory : public std::error_category {
     return "net::rtsp";
   }
 
-  virtual const char* message(int c) const override final {
+  virtual std::string message(int c) const override final {
     switch (static_cast<Error>(c)) {
     case Error::success:
       return "success";
@@ -60,7 +60,7 @@ inline const ErrorCategory& error_category() {
 
 // Overload the global make_error_code() free function with our
 // custom enum. It will be found via ADL by the compiler if needed.
-inline std::error_code make_error_code(shar::net::stun::Error e) {
+inline std::error_code make_error_code(shar::net::rtsp::Error e) {
   return { static_cast<int>(e), shar::net::rtsp::error_category() };
 }
 

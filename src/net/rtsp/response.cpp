@@ -7,11 +7,13 @@
 
 namespace shar::net::rtsp {
 
+#define FAIL(code) return make_error_code(code)
+
 Response::Response(Headers headers)
   : m_headers(std::move(headers))
   , m_status_code(std::numeric_limits<uint16_t>::max()){}
 
-std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size)
+ErrorOr<std::size_t> Response::parse(const char * buffer, std::size_t size)
 {
 
   const char* current = buffer;
@@ -19,52 +21,61 @@ std::optional<std::size_t> Response::parse(const char * buffer, std::size_t size
 
   const char* version_end = std::find(current, end, ' ');
   auto version = parse_version(current, version_end - current);
-  if (version_end == end || !version.has_value()) {
-    return std::nullopt;
+  if (version.err()) {
+    return version.err();
   }
-  m_version = version;
+  if (version_end == end) {
+    FAIL(Error::notEnoughData);
+  }
+  m_version = *version;
   current = version_end + 1; //Move to first symbol after space
 
   const char* status_code_end = std::find(current, end, ' ');
   if (status_code_end == end) {
-    return std::nullopt;
+    FAIL(Error::notEnoughData);
   }
   auto status_code = parse_status_code(current, status_code_end - current);
-  if (status_code < 100 || status_code > 600) {
-    throw std::runtime_error("Invalid status code value");
+  if (status_code.err()) {
+    return status_code.err();
   }
-  m_status_code = status_code;
+  if (*status_code < 100 || *status_code > 600) {
+    FAIL(Error::invalidStatusCode);
+  }
+  m_status_code = *status_code;
   current = status_code_end + 1; //Move to first symbol after space
 
   auto reason_end = find_line_ending(current, end - current);
-  if (!reason_end.has_value() || reason_end.value() == end) {
-    return std::nullopt;
+  if (reason_end.err()) {
+    return reason_end.err();
   }
-  m_reason = std::string_view(current, reason_end.value() - current);
+  if (*reason_end == end) {
+    FAIL(Error::notEnoughData);
+  }
+  m_reason = std::string_view(current, *reason_end - current);
 
-  if (reason_end.value() + 2 == end) {
-    return std::nullopt;
+  if (*reason_end + 2 == end) {
+    FAIL(Error::notEnoughData);
   }
 
-  current = reason_end.value() + 2;
+  current = *reason_end + 2;
 
   auto headers_len = parse_headers(current, end - current, m_headers);
-  if (!headers_len.has_value()) {
-    return std::nullopt;
+  if (headers_len.err()) {
+    return headers_len.err();
   }
 
   std::size_t response_line_size = current - buffer;
 
-  return response_line_size + headers_len.value();
+  return response_line_size + *headers_len;
 }
 
-std::optional<std::size_t> Response::serialize(char* destination, std::size_t size) {
+ErrorOr<std::size_t> Response::serialize(char* destination, std::size_t size) {
   if (!m_version.has_value() || !m_reason.has_value() ||
        m_status_code == std::numeric_limits<std::uint16_t>::max()) {
-    throw std::runtime_error("One of fields is not initialized");
+    FAIL(Error::unitializedField);
   }
   Serializer serializer(destination, size);
-#define TRY_SERIALIZE(EXP) if(!(EXP)) return std::nullopt
+#define TRY_SERIALIZE(EXP) if(!(EXP)) FAIL(Error::notEnoughData);
   //serialize version
   TRY_SERIALIZE(serializer.append_string("RTSP/1.0"));
   TRY_SERIALIZE(serializer.append_string(" "));

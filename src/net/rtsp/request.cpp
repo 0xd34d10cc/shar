@@ -10,9 +10,11 @@
 
 namespace shar::net::rtsp {
 
+#define FAIL(code) return make_error_code(code)
+
 Request::Request(Headers headers) : m_headers(std::move(headers)) {}
 
-static std::optional<Request::Type> parse_type(const char* begin, std::size_t size) {
+static ErrorOr<Request::Type> parse_type(const char* begin, std::size_t size) {
 
   int i = 0;
   std::size_t len = 0;
@@ -25,7 +27,7 @@ if (size == len && i == 0) {\
 return Request::Type::TYPE;\
 }\
 if (i == 0 && size != len) {\
-return std::nullopt;\
+FAIL(Error::notEnoughData);\
 }\
 }
 
@@ -40,7 +42,7 @@ return std::nullopt;\
   TRY_TYPE(REDIRECT);
   TRY_TYPE(ANNOUNCE);
   TRY_TYPE(RECORD);
-  throw std::runtime_error("Invalid message type");
+  FAIL(Error::invalidType);
 #undef TRY_TYPE
 }
 
@@ -60,7 +62,7 @@ static bool is_valid_address(std::string_view address) {
   return true;
 }
 
-std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t size) {
+ErrorOr<std::size_t> Request::parse(const char * buffer, const std::size_t size) {
 
   const char* current = buffer;
   const char* end = current + size;
@@ -69,52 +71,54 @@ std::optional<std::size_t> Request::parse(const char * buffer, const std::size_t
 
   std::size_t type_size = type_end - current;
   auto type = parse_type(current, type_size);
-  if (!type.has_value() || type_end == end) {
-    return std::nullopt;
+  if (type.err()) {
+    return type.err();
   }
-  m_type = type;
+  else if(type_end == end) {
+    FAIL(Error::notEnoughData);
+  }
+  m_type = *type;
   current += type_size + 1; //Move to first symbol after space
 
   const char* address_end = std::find(current, end, ' ');
-  if (address_end - current >= 512) {
-    throw std::runtime_error("Address is too big");
-  }
-  if (!is_valid_address(std::string_view(current, address_end - current))) {
-    throw std::runtime_error("Address contains invalid characters");
+  if (address_end - current >= 512 || 
+    !is_valid_address(std::string_view(current, address_end - current))) {
+    FAIL(Error::invalidAddress);
   }
   if (address_end == end) {
-    return std::nullopt;
+    FAIL(Error::notEnoughData);
   }
   m_address = std::string_view(current, address_end-current);
   current = address_end + 1; //Move to first symbol after space
 
   auto version_end = find_line_ending(current, end-current);
-  if (!version_end.has_value()) {
-    return std::nullopt;
+  if (version_end.err()) {
+    return version_end.err();
   }
-  auto version = parse_version(current, version_end.value() - current);
-  if (version_end != end && !version.has_value()) {
-    throw std::runtime_error("Protocol version is invalid");
+  auto version = parse_version(current, *version_end - current);
+  
+  if (version.err()) {
+    return version.err();
   }
-  if (!version.has_value() || version_end == end) {
-    return std::nullopt;
+  if (*version_end == end) {
+    FAIL(Error::notEnoughData);
   }
-  m_version = version;
+  m_version = *version;
   //Check for requests ending without line ending
-  if (version_end.value() + 2 == end) {
-    return std::nullopt;
+  if (*version_end + 2 == end) {
+    FAIL(Error::notEnoughData);
   }
 
-  current = version_end.value() + 2; //Move to first symbol after line ending
+  current = *version_end + 2; //Move to first symbol after line ending
 
   auto headers_len = parse_headers(current, end-current, m_headers);
-  if (!headers_len.has_value()) {
-    return std::nullopt;
+  if (headers_len.err()) {
+    return headers_len.err();
   }
 
   std::size_t request_line_size = current - buffer;
 
-  return request_line_size + headers_len.value();
+  return request_line_size + *headers_len;
 }
 
 static char* type_to_string(Request::Type type) {
@@ -136,9 +140,9 @@ static char* type_to_string(Request::Type type) {
 
 }
 
-bool Request::serialize(char* destination, std::size_t size) {
+ErrorOr<bool> Request::serialize(char* destination, std::size_t size) {
   if (!m_type.has_value() || !m_address.has_value() || !m_version.has_value()) {
-    throw std::runtime_error("One of fields is not initialized");
+    FAIL(Error::unitializedField);
   }
 
   Serializer serializer(destination, size);

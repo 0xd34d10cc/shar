@@ -27,9 +27,9 @@ struct Request {
     RECORD
   };
 
-  std::optional<std::size_t> parse(const char* buffer, std::size_t size);
+  ErrorOr<std::size_t> parse(const char* buffer, std::size_t size);
 
-  bool serialize(char* destination, std::size_t);
+  ErrorOr<bool> serialize(char* destination, std::size_t);
 
   std::optional<Type> m_type;
   std::optional<std::string_view> m_address;

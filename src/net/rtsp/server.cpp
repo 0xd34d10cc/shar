@@ -2,7 +2,6 @@
 
 #include <charconv>
 
-
 namespace shar::net::rtsp {
 
 Server::Server(Context context, IpAddress ip, Port port)
@@ -22,8 +21,8 @@ void Server::run(Receiver<Unit> packets) {
   m_acceptor.listen(10);
   start_accepting();
 
-  while (!m_running.expired() ) {
-    while(auto unit = packets.try_receive()){}
+  while (!m_running.expired()) {
+    while (auto unit = packets.try_receive()) {}
     m_context.run_for(Milliseconds(50));
   }
 }
@@ -32,11 +31,11 @@ void Server::shutdown() {
   m_running.cancel();
 }
 
-void Server::start_accepting(){
+void Server::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
       m_logger.error("Acceptor error: {}", ec.message());
-      if (m_clients.empty()){
+      if (m_clients.empty()) {
         shutdown();
       }
       return;
@@ -44,7 +43,7 @@ void Server::start_accepting(){
     auto client_id = static_cast<std::size_t>(m_current_socket.native_handle());
     m_logger.info("Client {} connected.", client_id);
 
-    auto [client_pos, is_emplaced] = m_clients.emplace(client_id,  std::move(m_current_socket));
+    auto [client_pos, is_emplaced] = m_clients.emplace(client_id, std::move(m_current_socket));
     if (is_emplaced) {
       receive_request(client_pos);
     }
@@ -99,34 +98,36 @@ void Server::receive_request(ClientPos client_pos) {
       disconnect_client(client_pos);
       return;
     }
+    auto& client = client_pos->second;
+    Request request({ client.m_headers.data(), client.m_headers.size() });
+    client.m_received_bytes += size;
+    auto parsing_result = request.parse(reinterpret_cast<const char*>(client.m_buffer.data()), client.m_received_bytes);
 
-    try {
+    if (parsing_result.err().value() == static_cast<int>(Error::notEnoughData)) {
 
-      auto& client = client_pos->second;
-      Request request({ client.m_headers.data(), client.m_headers.size() });
-      client.m_received_bytes += size;
-      auto parsing_result = request.parse(reinterpret_cast<const char*>(client.m_buffer.data()), client.m_received_bytes);
-      if (!parsing_result.has_value()) {
-        receive_request(client_pos);
-        return;
-      }
-      client.m_sent_bytes = 0;
-      auto response = proccess_request(client_pos, request);
-
-      if (auto response_size = 
-        response.serialize(reinterpret_cast<char*>(client.m_buffer.data()),
-                                    client.m_buffer.size())) {
-        client.m_response_size = response_size.value();
-        send_response(client_pos);
-        return;
-      }
-      m_logger.error("Buffer overflow at the response serializing. ClientId {}", id);
+      receive_request(client_pos);
+      return;
+    }
+    else if (parsing_result.err()) {
+      m_logger.info("Client {} request parsing error: {}", id, parsing_result.err().message());
       disconnect_client(client_pos);
     }
-    catch (const std::runtime_error& error) {
-      m_logger.info("Client {} request parsing error: {}", id, error.what());
+    client.m_sent_bytes = 0;
+    auto response = proccess_request(client_pos, request);
+    auto response_size =
+      response.serialize(reinterpret_cast<char*>(client.m_buffer.data()), client.m_buffer.size());
+
+    if (response_size.err()) {
+      m_logger.info("Client {} response serializing error: {}", id, parsing_result.err().message());
       disconnect_client(client_pos);
     }
+    if (*response_size) {
+      client.m_response_size = *response_size;
+      send_response(client_pos);
+      return;
+    }
+    m_logger.error("Buffer overflow at the response serializing. ClientId {}", id);
+    disconnect_client(client_pos);
     });
 
 }
@@ -161,7 +162,7 @@ void Server::send_response(ClientPos client_pos) {
 
 Response Server::proccess_request(ClientPos client_pos, Request request) {
   assert(request.m_type.has_value());
-  Response response({client_pos->second.m_headers.data(), client_pos->second.m_headers.size()});
+  Response response({ client_pos->second.m_headers.data(), client_pos->second.m_headers.size() });
   auto  cseq_pos = std::find_if(request.m_headers.data, request.m_headers.data + request.m_headers.len,
     [](const Header& header) {
       return header.key == "CSeq";
@@ -195,7 +196,7 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
       "a = fmtp : 96 packetization - mode = 1";
     auto& buffer = client_pos->second.m_headers_info_buffer;
 
-    auto [num_end_ptr, ec] = std::to_chars(buffer.data(), buffer.data()+buffer.size(), simple_sdp.size());
+    auto [num_end_ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), simple_sdp.size());
     if (ec != std::errc()) {
       m_logger.error("Cannot convert SDP size from number to string");
       assert(false);
@@ -205,9 +206,9 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
     response.m_reason = "0K";
     response.m_headers.data[0] = *cseq_pos;
     response.m_headers.data[1] = Header("Content-type", "application/sdp");
-    response.m_headers.data[2] = Header("Contrent-length", 
-                                        std::string_view(buffer.data(), 
-                                                         num_end_ptr + 1 - buffer.data()));
+    response.m_headers.data[2] = Header("Contrent-length",
+      std::string_view(buffer.data(),
+        num_end_ptr + 1 - buffer.data()));
     response.m_headers.len = 3;
     response.m_body = simple_sdp;
     return response;
@@ -228,7 +229,7 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
     return response;
   }
   default: {
-    assert(false);  
+    assert(false);
     m_logger.error("Unknown request type. {}", static_cast<int>(request.m_type.value()));
     throw std::runtime_error("Unknown request type.");
   }
