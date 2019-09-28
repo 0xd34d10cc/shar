@@ -18,6 +18,8 @@ namespace shar {
 
 namespace fs = std::filesystem;
 
+static const std::size_t HEADER_SIZE = 30;
+
 static Context make_context(Config c) {
   auto config = std::make_shared<Config>(std::move(c));
   auto shar_loglvl = config->log_level;
@@ -51,7 +53,7 @@ App::App(Config config)
   : m_context(make_context(std::move(config)))
   // NOTE: should not be equal to screen size, otherwise some
   //       magical SDL kludge makes window fullscreen
-  , m_window("shar", Size{ 1080 + 30, 1920 })
+  , m_window("shar", Size{ 1080 + HEADER_SIZE, 1920 })
   , m_renderer(ui::OpenGLVTable::load().value())
   , m_ui()
   , m_background(Size{ 1080, 1920 })
@@ -73,12 +75,7 @@ App::App(Config config)
 
   m_url.set_text(m_context.m_config->url);
 
-  Rect area{
-    Point::origin(),
-    Size{ 30, m_window.display_size().width() - 60 /* - X buttons */ }
-  };
-
-  m_window.set_header(30 /* height */);
+  m_window.set_header(HEADER_SIZE);
   m_window.set_border(false);
   m_window.on_move([this] {
     m_ticks.increase(1);
@@ -87,6 +84,7 @@ App::App(Config config)
     // NOTE: otherwise window will be cropped if part of it
     //       was moved from outside of screen
     update_background();
+    check_metrics();
     update_gui();
     render();
   });
@@ -142,7 +140,7 @@ void App::update_title_bar() {
 
   // title bar
   bool active = nk_begin(m_ui.context(), "shar",
-                         nk_rect(-0.0f, -0.0f, (float)size.width(), 30.0f),
+                         nk_rect(0.0f, 0.0f, (float)size.width(), (float)HEADER_SIZE),
                          NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
   nk_end(m_ui.context());
 
@@ -166,8 +164,8 @@ void App::update_metrics() {
   background_style = nk_style_item_hide();
 
   if (nk_begin(m_ui.context(), "metrics",
-               nk_rect((float)size.width() - 200.0f, 30.0f, 200.0f,
-                       (float)size.height() - 500.0f),
+               nk_rect((float)size.width() - 200.0f, (float)HEADER_SIZE,
+                       200.0f, (float)size.height() - 500.0f),
                NK_WINDOW_NO_SCROLLBAR)) {
 
     for (const auto& line : m_metrics_data.text) {
@@ -234,52 +232,54 @@ std::optional<StreamState> App::update_config() {
   return new_state;
 }
 
-void App::render() {
-  m_fps.increase(1);
-
+void App::render_background() {
   const auto win_size = m_window.display_size();
-  {
-  int width = static_cast<int>(win_size.width());
-  int height = static_cast<int>(win_size.height());
-
-  // prepare state
-  glViewport(0, 0, width, height);
-  }
-  glClear(GL_COLOR_BUFFER_BIT);
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-  // render current background (or current frame)
-  const std::size_t header_size = 30;
+  // TODO: unhardcode
   const std::size_t height_ratio = 9;
   const std::size_t width_ratio = 16;
-  const std::size_t max_height = win_size.height() - header_size;
+  const std::size_t max_height = win_size.height() - HEADER_SIZE;
 
-  bool width_bounded = true;
   std::size_t w = win_size.width();
   std::size_t h = (w * height_ratio / width_ratio);
-  if (h > max_height) {
-    width_bounded = false;
+  const bool bounded_by_height = h > max_height;
+  if (bounded_by_height) {
     h = max_height;
     w = h * width_ratio / height_ratio;
   }
 
   // FIXME: x in Point is for horizontal axis, but first
   //        parameter for Size is height which is very confusing
-  auto at = Point{0, header_size};
-  if (width_bounded) {
-    at.y += (max_height - h) / 2;
-  } else {
+  auto at = Point{0, HEADER_SIZE};
+  if (bounded_by_height) {
     at.x += (win_size.width() - w) / 2;
+  } else {
+    at.y += (max_height - h) / 2;
   }
 
-  m_renderer.render(m_background, m_window.size(),
-                    at, Size{h, w});
+  m_renderer.render(m_background, m_window.size(), at, Size{h, w});
+}
 
-  /* IMPORTANT: `Renderer::render()` modifies some global OpenGL state
-   * with blending, scissor, face culling, depth test and viewport and
-   * defaults everything back into a default state.
-   * Make sure to either a.) save and restore or b.) reset your own state after
-   * rendering the UI. */
+void App::render() {
+  m_fps.increase(1);
+
+  const auto win_size = m_window.display_size();
+  int width = static_cast<int>(win_size.width());
+  int height = static_cast<int>(win_size.height());
+
+  // prepare state
+  glViewport(0, 0, width, height);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  // render current background (or current frame)
+  render_background();
+
+  // render ui
+  // IMPORTANT: this call modifies some global OpenGL state
+  // with blending, scissor, face culling, depth test and viewport and
+  // defaults everything back into a default state.
+  // Make sure to either a.) save and restore or b.) reset your own state after
+  // rendering the UI
   m_renderer.render(m_ui, m_window);
 
   // swap buffers
@@ -371,8 +371,8 @@ int App::run() {
     bool updated = process_input();
     updated |= update_background();
 
-    if (m_render_metrics) {
-      updated |= check_metrics();
+    if (check_metrics()) {
+      updated |= m_render_metrics;
     }
 
     if (updated) {

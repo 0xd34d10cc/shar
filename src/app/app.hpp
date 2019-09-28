@@ -45,12 +45,19 @@ private:
   void update_title_bar();
   // update config window
   std::optional<StreamState> update_config();
+  void render_background();
   void render();
 
   void switch_to(StreamState new_state);
-  void stop_stream();
   void start_stream();
+  void stop_stream();
+
+  // poll for stream error
+  // terminates stream if error occured
   void check_stream_state();
+
+  // poll for metrics change
+  // returns true if metrics values were updated
   bool check_metrics();
 
   void save_config();
