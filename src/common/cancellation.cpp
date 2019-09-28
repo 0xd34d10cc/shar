@@ -5,11 +5,12 @@
 
 namespace shar {
 
-Cancellation::Cancellation(Cancellation&& other) {
+Cancellation::Cancellation(Cancellation&& other) noexcept {
+  (void)other;
   assert(!other.expired());
 }
 
-Cancellation& Cancellation::operator=(Cancellation&& other) {
+Cancellation& Cancellation::operator=(Cancellation&& other) noexcept {
   (void)other;
   if (this != &other) {
     assert(!other.expired());

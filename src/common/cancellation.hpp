@@ -8,12 +8,12 @@ namespace shar {
 // movable wrapper around std::atomic<bool> with some debug checks
 class Cancellation {
 public:
-  Cancellation() = default;
+  Cancellation() noexcept = default;
   Cancellation(const Cancellation&) = delete;
-  Cancellation(Cancellation&&);
+  Cancellation(Cancellation&&) noexcept;
   Cancellation& operator=(const Cancellation&) = delete;
-  Cancellation& operator=(Cancellation&&);
-  ~Cancellation() = default;
+  Cancellation& operator=(Cancellation&&) noexcept;
+  ~Cancellation() noexcept = default;
 
   bool expired() const noexcept;
   void cancel() noexcept;
