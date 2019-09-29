@@ -86,6 +86,8 @@ bool State::handle(SDL_Event* event) {
       nk_input_key(m_context.get(), NK_KEY_TEXT_UNDO, down && state[SDL_SCANCODE_LCTRL]);
     else if (sym == SDLK_r)
       nk_input_key(m_context.get(), NK_KEY_TEXT_REDO, down && state[SDL_SCANCODE_LCTRL]);
+    else if (sym == SDLK_a)
+      nk_input_key(m_context.get(), NK_KEY_TEXT_SELECT_ALL, down && state[SDL_SCANCODE_LCTRL]);
     else if (sym == SDLK_c)
       nk_input_key(m_context.get(), NK_KEY_COPY, down && state[SDL_SCANCODE_LCTRL]);
     else if (sym == SDLK_v)

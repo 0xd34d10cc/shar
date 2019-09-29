@@ -60,7 +60,7 @@ App::App(Config config)
   , m_stop_button("stop")
   , m_stream_button("stream")
   , m_view_button("view")
-  , m_url(false, false)
+  , m_url(false, false, true)
   , m_metrics_data{
       std::vector<std::string>(),
       Clock::now(),

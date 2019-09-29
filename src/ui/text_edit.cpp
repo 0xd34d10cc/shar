@@ -7,7 +7,7 @@
 
 namespace shar::ui {
 
-static int get_flags(bool read_only, bool multiline) {
+static int get_flags(bool read_only, bool multiline, bool copyable) {
   nk_flags flags = NK_EDIT_DEFAULT;
   if (read_only) {
     flags |= NK_EDIT_READ_ONLY | NK_EDIT_NO_CURSOR;
@@ -20,11 +20,14 @@ static int get_flags(bool read_only, bool multiline) {
     flags |= NK_EDIT_MULTILINE;
   }
 
+  if (copyable) {
+    flags |= NK_EDIT_FIELD | NK_EDIT_AUTO_SELECT;
+  }
   return flags;
 }
 
-TextEdit::TextEdit(bool read_only, bool multiline)
-  : m_flags(get_flags(read_only, multiline)) {
+TextEdit::TextEdit(bool read_only, bool multiline, bool copyable)
+  : m_flags(get_flags(read_only, multiline, copyable)) {
   std::memset(&m_inner, 0, sizeof(nk_text_edit));
   nk_textedit_init_default(&m_inner);
 }

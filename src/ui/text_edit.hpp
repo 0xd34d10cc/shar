@@ -11,7 +11,7 @@ class State;
 
 class TextEdit {
 public:
-  TextEdit(bool read_only, bool multiline);
+  TextEdit(bool read_only, bool multiline, bool copyable);
   TextEdit(const TextEdit&) = delete;
   TextEdit& operator=(const TextEdit&) = delete;
   ~TextEdit();
