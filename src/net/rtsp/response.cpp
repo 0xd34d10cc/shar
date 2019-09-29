@@ -1,5 +1,6 @@
 #include <charconv>
 #include <stdexcept>
+#include <cassert>
 
 #include "response.hpp"
 #include "serializer.hpp"
@@ -62,10 +63,21 @@ ErrorOr<std::size_t> Response::parse(const char * buffer, std::size_t size)
 ErrorOr<std::size_t> Response::serialize(char* destination, std::size_t size) {
   assert(m_version.has_value() || m_reason.has_value() ||
          m_status_code != std::numeric_limits<std::uint16_t>::max());
+
   Serializer serializer(destination, size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) FAIL(Error::NotEnoughData);
   //serialize version
-  TRY_SERIALIZE(serializer.append_string("RTSP/1.0"));
+
+  if (*m_version == 1) {
+    TRY_SERIALIZE(serializer.append_string("RTSP/1.0"));
+  }
+  else if (*m_version == 2) {
+    TRY_SERIALIZE(serializer.append_string("RTSP/2.0"));
+  }
+  else {
+    assert(false);
+  }
+
   TRY_SERIALIZE(serializer.append_string(" "));
   //serialize status code
   TRY_SERIALIZE(serializer.append_number(m_status_code));
@@ -81,12 +93,12 @@ ErrorOr<std::size_t> Response::serialize(char* destination, std::size_t size) {
     TRY_SERIALIZE(serializer.append_string(m_headers.data[i].value));
     TRY_SERIALIZE(serializer.append_string("\r\n"));
   }
+
+  TRY_SERIALIZE(serializer.append_string("\r\n"));
+
   if (m_body.has_value()) {
     TRY_SERIALIZE(serializer.append_string(m_body.value()));
-    TRY_SERIALIZE(serializer.append_string("\r\n"));
   }
-  //serialize empty line after headers
-  TRY_SERIALIZE(serializer.append_string("\r\n"));
 
   return serializer.written_bytes();
 #undef TRY_SERIALIZE

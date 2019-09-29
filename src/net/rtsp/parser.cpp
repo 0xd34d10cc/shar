@@ -14,6 +14,12 @@ ErrorOr<std::uint8_t> parse_version(const char* begin, std::size_t size) {
   if ((size == 8) && i == 0) {
     return std::uint8_t{ 1 };
   }
+
+  i = std::memcmp(begin, "RTSP/2.0", size);
+  if ((size == 8) && i == 0) {
+    return std::uint8_t{ 2 };
+  }
+
   if (i == 0 && size != 8) {
     FAIL(Error::NotEnoughData);
   }

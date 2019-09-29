@@ -170,7 +170,7 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
 
   if (cseq_pos == request.m_headers.data + request.m_headers.len) {
     m_logger.warning("CSeq header wasn't found. Client {}", client_pos->first);
-    response.m_version = 1;
+    response.m_version = 2;
     response.m_status_code = 400;
     response.m_reason = "Bad request";
 
@@ -180,35 +180,39 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
 
   switch (request.m_type.value()) {
   case Request::Type::OPTIONS: {
-    response.m_version = 1;
+    response.m_version = 2;
     response.m_status_code = 200;
     response.m_reason = "OK";
     response.m_headers.data[0] = *cseq_pos;
-    response.m_headers.data[1] = Header("Public", "DESCRIBE");
+    response.m_headers.data[1] = Header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE");
     response.m_headers.len = 2;
     return response;
   }
   case Request::Type::DESCRIBE: {
-    static std::string_view simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
-      "c = IN IP4 127.0.0.1\r\n"
-      "m = video 1336 RTP / AVP 96\r\n"
-      "a = rtpmap:96 H264 / 90000\r\n"
-      "a = fmtp : 96 packetization - mode = 1";
-    auto& buffer = client_pos->second.m_headers_info_buffer;
+    // TODO: unhardcode
+    static std::string_view simple_sdp =
+      "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
+      "c=IN IP4 127.0.0.1\r\n"
+      "m=video 1336 RTP/AVP 96\r\n"
+      "a=rtpmap:96 H264/90000\r\n"
+      "a=fmtp:96 packetization-mode=1\r\n";
 
+    auto& buffer = client_pos->second.m_headers_info_buffer;
     auto [num_end_ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), simple_sdp.size());
+
     if (ec != std::errc()) {
-      m_logger.error("Cannot convert SDP size from number to string");
       assert(false);
+      m_logger.error("Cannot convert SDP size from number to string");
     }
-    response.m_version = 1;
+
+    response.m_version = 2;
     response.m_status_code = 200;
     response.m_reason = "0K";
     response.m_headers.data[0] = *cseq_pos;
-    response.m_headers.data[1] = Header("Content-type", "application/sdp");
-    response.m_headers.data[2] = Header("Contrent-length",
-      std::string_view(buffer.data(),
-        num_end_ptr + 1 - buffer.data()));
+    response.m_headers.data[1] = Header("Content-Type", "application/sdp");
+    response.m_headers.data[2] = Header("Content-Length",
+                                        std::string_view(buffer.data(),
+                                                         num_end_ptr - buffer.data()));
     response.m_headers.len = 3;
     response.m_body = simple_sdp;
     return response;
@@ -222,7 +226,7 @@ Response Server::proccess_request(ClientPos client_pos, Request request) {
   case Request::Type::REDIRECT:
   case Request::Type::ANNOUNCE:
   case Request::Type::RECORD: {
-    response.m_version = 1;
+    response.m_version = 2;
     response.m_status_code = 501;
     response.m_reason = "Not implemented";
     response.m_headers.len = 0;
