@@ -4,14 +4,16 @@
 #include <optional>
 
 #include "header.hpp"
+#include "rtsp_error.hpp"
+#include "error_or.hpp"
 
 
 namespace shar::net::rtsp {
 
-std::optional<std::uint8_t>  parse_version(const char* begin, std::size_t size);
-Header       parse_header(const char* begin, std::size_t size);
-std::optional<std::size_t>  parse_headers(const char* begin, std::size_t size, Headers headers);
-std::optional<const char *>  find_line_ending(const char* begin, std::size_t size);
-std::uint16_t parse_status_code(const char* begin, std::size_t size);
+ErrorOr<std::uint8_t>  parse_version(const char* begin, std::size_t size);
+ErrorOr<Header>       parse_header(const char* begin, std::size_t size);
+ErrorOr<std::size_t>  parse_headers(const char* begin, std::size_t size, Headers headers);
+ErrorOr<const char *>  find_line_ending(const char* begin, std::size_t size);
+ErrorOr<std::uint16_t>  parse_status_code(const char* begin, std::size_t size);
 }
 
