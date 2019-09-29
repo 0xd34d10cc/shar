@@ -7,8 +7,6 @@
 
 namespace shar::net::rtsp {
 
-#define FAIL(code) return make_error_code(code)
-
 Response::Response(Headers headers)
   : m_headers(std::move(headers))
   , m_status_code(std::numeric_limits<uint16_t>::max()){}

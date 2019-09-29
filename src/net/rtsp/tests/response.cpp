@@ -10,11 +10,12 @@
 
 using namespace shar::net;
 
-static void assert_fails(std::string_view response_text) {
+static void assert_fails(std::string_view response_text, rtsp::Error e) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
-  ASSERT_THROW(response.parse(response_text.data(), response_text.size()), std::runtime_error);
+  ASSERT_EQ(response.parse(response_text.data(), response_text.size()).err().value(), 
+            static_cast<std::size_t>(e));
 
 }
 
@@ -28,8 +29,8 @@ TEST(rtsp_response, simple_response) {
 
   auto response_size =
     response.parse(simple_response.data(), simple_response.size());
-  EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, simple_response.size());
+  EXPECT_FALSE(response_size.err());
+  EXPECT_EQ(*response_size, simple_response.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -38,7 +39,7 @@ TEST(rtsp_response, simple_response) {
 }
 
 TEST(rtsp_response, response_without_version) {
-  assert_fails("451 Invalid Parameter\r\n");
+  assert_fails("451 Invalid Parameter\r\n", rtsp::Error::invalidProtocol);
 }
 
 TEST(rtsp_response, single_header) {
@@ -51,8 +52,8 @@ TEST(rtsp_response, single_header) {
 
   auto response_size =
     response.parse(single_header.data(), single_header.size());
-  EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, single_header.size());
+  EXPECT_FALSE(response_size.err());
+  EXPECT_EQ(*response_size, single_header.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -60,7 +61,7 @@ TEST(rtsp_response, single_header) {
 }
 TEST(rtsp_response, ends_on_single_line_end) {
   assert_fails("RTSP/1.0 200 OK\r\n"
-    "CSeq: 7\r\n");
+    "CSeq: 7\r\n", rtsp::Error::missingCRLF);
 }
 
 TEST(rtsp_response, ends_wo_line_end) {
@@ -72,7 +73,7 @@ TEST(rtsp_response, ends_wo_line_end) {
 
   auto response_size =
     response.parse(response_str.data(), response_str.size());
-  EXPECT_TRUE(!response_size.has_value());
+  EXPECT_TRUE(response_size.err());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -92,8 +93,8 @@ TEST(rtsp_response, response_with_body) {
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
 
   auto response_size = response.parse(base_response.data(), base_response.size());
-  EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, base_response.size());
+  EXPECT_FALSE(response_size.err());
+  EXPECT_EQ(*response_size, base_response.size());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
   EXPECT_EQ(response.m_reason, "OK");
@@ -118,24 +119,24 @@ TEST(rtsp_response, serialization_test) {
 
   auto response_size =
     response.parse(base_response.data(), base_response.size());
-  EXPECT_TRUE(response_size.has_value());
-  EXPECT_EQ(response_size, base_response.size());
+  EXPECT_FALSE(response_size.err());
+  EXPECT_EQ(*response_size, base_response.size());
   std::unique_ptr<char[]> destination = std::make_unique<char[]>(512);
-  EXPECT_TRUE(response.serialize(destination.get(), 512));;
+  EXPECT_TRUE(*(response.serialize(destination.get(), 512)));;
 }
 
 TEST(rtsp_response, version_incomplete) {
   std::array<rtsp::Header, 16> headers;
   std::string_view version = "RTSP";
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse(version.data(), version.size()).has_value());
+  EXPECT_TRUE(response.parse(version.data(), version.size()).err());
 }
 
 TEST(rtsp_response, status_code_incomplete) {
   std::array<rtsp::Header, 16> headers;
   std::string_view response_incomplete = "RTSP/1.0 2";
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse(response_incomplete.data(), response_incomplete.size()).has_value());
+  EXPECT_TRUE(response.parse(response_incomplete.data(), response_incomplete.size()).err());
   EXPECT_EQ(response.m_version, 1);
 }
 
@@ -143,13 +144,13 @@ TEST(rtsp_response, reason_incomplete) {
   std::string_view response_str = "RTSP/1.0 200 O";
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  EXPECT_FALSE(response.parse(response_str.data(), response_str.size()).has_value());
+  EXPECT_TRUE(response.parse(response_str.data(), response_str.size()).err());
   EXPECT_EQ(response.m_version, 1);
   EXPECT_EQ(response.m_status_code, 200);
 }
 
 TEST(rtsp_response, status_code_invalid) {
-  assert_fails("RTSP/1.0 AVS invalid status code");
+  assert_fails("RTSP/1.0 AVS invalid status code", rtsp::Error::invalidStatusCode);
 }
 
 TEST(rtsp_response, too_many_headers) {
@@ -175,12 +176,13 @@ TEST(rtsp_response, too_many_headers) {
     "A: A\r\n"
     "A: A\r\n"
     "\r\n";
-  assert_fails(response_too_many_headers);
+  assert_fails(response_too_many_headers, rtsp::Error::excessHeaders);
 }
 
 TEST(rtsp_response, empty_field) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
   auto ptr = nullptr;
-  ASSERT_THROW(response.serialize(ptr, 0), std::runtime_error);
+  ASSERT_EQ(response.serialize(ptr, 0).err().value(), 
+            static_cast<int>(rtsp::Error::unitializedField));
 }

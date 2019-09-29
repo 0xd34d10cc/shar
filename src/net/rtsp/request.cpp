@@ -10,8 +10,6 @@
 
 namespace shar::net::rtsp {
 
-#define FAIL(code) return make_error_code(code)
-
 Request::Request(Headers headers) : m_headers(std::move(headers)) {}
 
 static ErrorOr<Request::Type> parse_type(const char* begin, std::size_t size) {
