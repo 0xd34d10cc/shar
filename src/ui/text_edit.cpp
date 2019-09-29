@@ -21,8 +21,7 @@ static int get_flags(bool read_only, bool multiline, bool copyable) {
   }
 
   if (copyable) {
-    flags |= NK_EDIT_FIELD |
-      NK_KEY_TEXT_SELECT_ALL;
+    flags |= NK_EDIT_FIELD | NK_EDIT_AUTO_SELECT;
   }
   return flags;
 }
