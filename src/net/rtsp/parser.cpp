@@ -6,20 +6,18 @@
 
 namespace shar::net::rtsp {
 
-#define FAIL(code) return make_error_code(code)
-
 ErrorOr<std::uint8_t> parse_version(const char* begin, std::size_t size) {
   if (size > 8) {
-    FAIL(Error::invalidProtocol);
+    FAIL(Error::InvalidProtocol);
   }
   int i = std::memcmp(begin, "RTSP/1.0", size);
   if ((size == 8) && i == 0) {
     return std::uint8_t{ 1 };
   }
   if (i == 0 && size != 8) {
-    FAIL(Error::notEnoughData);
+    FAIL(Error::NotEnoughData);
   }
-  FAIL(Error::invalidProtocol);
+  FAIL(Error::InvalidProtocol);
 }
 
 ErrorOr<Header> parse_header(const char* begin, std::size_t size) {
@@ -31,7 +29,7 @@ ErrorOr<Header> parse_header(const char* begin, std::size_t size) {
       key_end == end || 
       end - key_end <= 2 ||
       key_end[1] != ' ') {
-    FAIL(Error::invalidHeader);
+    FAIL(Error::InvalidHeader);
   }
 
   auto key = std::string_view(begin, key_end - begin);
@@ -50,16 +48,14 @@ ErrorOr<std::size_t> parse_headers(const char * begin, std::size_t size, Headers
   while (!header_end.err() && header_begin != *header_end) {
 
     if (*header_end == end) {
-      FAIL(Error::notEnoughData);
+      FAIL(Error::NotEnoughData);
     }
     std::size_t header_size = *header_end - header_begin;
 
     auto header = parse_header(header_begin, header_size);
-    if (header.err()) {
-      return header.err();
-    }
+    TRY(header);
     if (index == headers.len) {
-      FAIL(Error::excessHeaders);
+      FAIL(Error::ExcessHeaders);
     }
     auto [key, value] = *header;
     headers.data[index] = Header(std::move(key), std::move(value));
@@ -70,11 +66,9 @@ ErrorOr<std::size_t> parse_headers(const char * begin, std::size_t size, Headers
 
   }
 
-  if (header_end.err()) {
-    return header_end.err();
-  }
-  else if(*header_end == end) {
-    FAIL(Error::notEnoughData);
+  TRY(header_end);
+  if(*header_end == end) {
+    FAIL(Error::NotEnoughData);
   }
 
   return header_begin - begin + 2;
@@ -85,11 +79,11 @@ ErrorOr<const char *> find_line_ending(const char * begin, std::size_t size) {
   const char* it = std::find(begin, end, '\r');
 
   if (it == end - 1) {
-    FAIL(Error::notEnoughData);
+    FAIL(Error::NotEnoughData);
   }
   if (begin == end || (it != end &&
     *it == '\r' && *(it + 1) != '\n')) {
-    FAIL(Error::missingCRLF);
+    FAIL(Error::MissingCRLF);
   }
   return it;
 }
@@ -100,7 +94,7 @@ ErrorOr<std::uint16_t> parse_status_code(const char* begin, std::size_t size) {
   auto[end_ptr, ec] = std::from_chars(begin, begin + size, number);
 
   if (end_ptr != begin + size || ec != std::errc()) {
-    FAIL(Error::invalidStatusCode);
+    FAIL(Error::InvalidStatusCode);
   }
   return number;
 }

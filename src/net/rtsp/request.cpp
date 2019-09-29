@@ -25,7 +25,7 @@ if (size == len && i == 0) {\
 return Request::Type::TYPE;\
 }\
 if (i == 0 && size != len) {\
-FAIL(Error::notEnoughData);\
+FAIL(Error::NotEnoughData);\
 }\
 }
 
@@ -40,7 +40,7 @@ FAIL(Error::notEnoughData);\
   TRY_TYPE(REDIRECT);
   TRY_TYPE(ANNOUNCE);
   TRY_TYPE(RECORD);
-  FAIL(Error::invalidType);
+  FAIL(Error::InvalidType);
 #undef TRY_TYPE
 }
 
@@ -69,11 +69,9 @@ ErrorOr<std::size_t> Request::parse(const char * buffer, const std::size_t size)
 
   std::size_t type_size = type_end - current;
   auto type = parse_type(current, type_size);
-  if (type.err()) {
-    return type.err();
-  }
-  else if(type_end == end) {
-    FAIL(Error::notEnoughData);
+  TRY(type);
+  if(type_end == end) {
+    FAIL(Error::NotEnoughData);
   }
   m_type = *type;
   current += type_size + 1; //Move to first symbol after space
@@ -81,38 +79,32 @@ ErrorOr<std::size_t> Request::parse(const char * buffer, const std::size_t size)
   const char* address_end = std::find(current, end, ' ');
   if (address_end - current >= 512 || 
     !is_valid_address(std::string_view(current, address_end - current))) {
-    FAIL(Error::invalidAddress);
+    FAIL(Error::InvalidAddress);
   }
   if (address_end == end) {
-    FAIL(Error::notEnoughData);
+    FAIL(Error::NotEnoughData);
   }
   m_address = std::string_view(current, address_end-current);
   current = address_end + 1; //Move to first symbol after space
 
   auto version_end = find_line_ending(current, end-current);
-  if (version_end.err()) {
-    return version_end.err();
-  }
+  TRY(version_end);
   auto version = parse_version(current, *version_end - current);
   
-  if (version.err()) {
-    return version.err();
-  }
+  TRY(version);
   if (*version_end == end) {
-    FAIL(Error::notEnoughData);
+    FAIL(Error::NotEnoughData);
   }
   m_version = *version;
   //Check for requests ending without line ending
-  if (*version_end + 2 == end) {
-    FAIL(Error::notEnoughData);
+  if (end - *version_end <= 2) {
+    FAIL(Error::NotEnoughData);
   }
 
   current = *version_end + 2; //Move to first symbol after line ending
 
   auto headers_len = parse_headers(current, end-current, m_headers);
-  if (headers_len.err()) {
-    return headers_len.err();
-  }
+  TRY(headers_len);
 
   std::size_t request_line_size = current - buffer;
 
@@ -139,9 +131,7 @@ static char* type_to_string(Request::Type type) {
 }
 
 ErrorOr<bool> Request::serialize(char* destination, std::size_t size) {
-  if (!m_type.has_value() || !m_address.has_value() || !m_version.has_value()) {
-    FAIL(Error::unitializedField);
-  }
+  assert(m_type.has_value() || m_address.has_value() || m_version.has_value());
 
   Serializer serializer(destination, size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) return false

@@ -12,8 +12,7 @@ enum class Error {
   InvalidStatusCode,
   InvalidType,
   ExcessHeaders,
-  MissingCRLF,
-  UnitializedField
+  MissingCRLF
 };
 
 class ErrorCategory : public std::error_category {
@@ -41,8 +40,6 @@ class ErrorCategory : public std::error_category {
       return "too many headers";
     case Error::MissingCRLF:
       return "no CRLF found";
-    case Error::UnitializedField:
-      return "one of filed is not initialized";
     default:
       return "unknown";
     }

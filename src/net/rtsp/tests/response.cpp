@@ -39,7 +39,7 @@ TEST(rtsp_response, simple_response) {
 }
 
 TEST(rtsp_response, response_without_version) {
-  assert_fails("451 Invalid Parameter\r\n", rtsp::Error::invalidProtocol);
+  assert_fails("451 Invalid Parameter\r\n", rtsp::Error::InvalidProtocol);
 }
 
 TEST(rtsp_response, single_header) {
@@ -61,7 +61,7 @@ TEST(rtsp_response, single_header) {
 }
 TEST(rtsp_response, ends_on_single_line_end) {
   assert_fails("RTSP/1.0 200 OK\r\n"
-    "CSeq: 7\r\n", rtsp::Error::missingCRLF);
+    "CSeq: 7\r\n", rtsp::Error::MissingCRLF);
 }
 
 TEST(rtsp_response, ends_wo_line_end) {
@@ -150,7 +150,7 @@ TEST(rtsp_response, reason_incomplete) {
 }
 
 TEST(rtsp_response, status_code_invalid) {
-  assert_fails("RTSP/1.0 AVS invalid status code", rtsp::Error::invalidStatusCode);
+  assert_fails("RTSP/1.0 AVS invalid status code", rtsp::Error::InvalidStatusCode);
 }
 
 TEST(rtsp_response, too_many_headers) {
@@ -176,13 +176,5 @@ TEST(rtsp_response, too_many_headers) {
     "A: A\r\n"
     "A: A\r\n"
     "\r\n";
-  assert_fails(response_too_many_headers, rtsp::Error::excessHeaders);
-}
-
-TEST(rtsp_response, empty_field) {
-  std::array<rtsp::Header, 16> headers;
-  rtsp::Response response(rtsp::Headers{ headers.data(), headers.size() });
-  auto ptr = nullptr;
-  ASSERT_EQ(response.serialize(ptr, 0).err().value(), 
-            static_cast<int>(rtsp::Error::unitializedField));
+  assert_fails(response_too_many_headers, rtsp::Error::ExcessHeaders);
 }

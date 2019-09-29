@@ -103,8 +103,8 @@ void Server::receive_request(ClientPos client_pos) {
     client.m_received_bytes += size;
     auto parsing_result = request.parse(reinterpret_cast<const char*>(client.m_buffer.data()), client.m_received_bytes);
 
-    if (parsing_result.err().value() == static_cast<int>(Error::notEnoughData)) {
-
+    if (parsing_result.err() &&
+        parsing_result.err().value() == static_cast<int>(Error::NotEnoughData)) {
       receive_request(client_pos);
       return;
     }

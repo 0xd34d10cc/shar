@@ -35,7 +35,7 @@ TEST(rtsp_request, simple_request) {
 }
 
 TEST(rtsp_request, trash_request) {
-  assert_fails("dasdadasdfdcalxaa\r\n\r\n", rtsp::Error::invalidType);
+  assert_fails("dasdadasdfdcalxaa\r\n\r\n", rtsp::Error::InvalidType);
 }
 
 TEST(rtsp_request, empty_request) {
@@ -48,15 +48,15 @@ TEST(rtsp_request, empty_request) {
 }
 
 TEST(rtsp_request, incorrect_type) {
-  assert_fails("OPTI2ONS RTSP/1.0\r\n\r\n", rtsp::Error::invalidType);
+  assert_fails("OPTI2ONS RTSP/1.0\r\n\r\n", rtsp::Error::InvalidType);
 }
 
 TEST(rtsp_request, request_without_address) {
-  assert_fails("TEARDOWN RTSP/1.0\r\n\r\n", rtsp::Error::invalidAddress);
+  assert_fails("TEARDOWN RTSP/1.0\r\n\r\n", rtsp::Error::InvalidAddress);
 }
 
 TEST(rtsp_request, request_without_version) {
-  assert_fails("PAUSE rtsp://address.address \r\n\r\n", rtsp::Error::notEnoughData);
+  assert_fails("PAUSE rtsp://address.address \r\n\r\n", rtsp::Error::NotEnoughData);
 }
 
 TEST(rtsp_request, request_with_header) {
@@ -110,7 +110,7 @@ TEST(rtsp_request, header_without_value) {
     "CSeq: 9\r\n"
     "packets_received\r\n"
     "\r\n",
-    rtsp::Error::invalidHeader
+    rtsp::Error::InvalidHeader
   );
 }
 
@@ -136,7 +136,7 @@ TEST(rtsp_request, incompete_type) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
   EXPECT_EQ(request.parse(request_str.data(), request_str.size()).err().value(),
-             static_cast<std::size_t>(rtsp::Error::notEnoughData)
+             static_cast<std::size_t>(rtsp::Error::NotEnoughData)
     );
 }
 
@@ -145,7 +145,7 @@ TEST(rtsp_request, incomplete_address) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
   EXPECT_EQ(request.parse(request_str.data(), request_str.size()).err().value(),
-             static_cast<std::size_t>(rtsp::Error::notEnoughData));
+             static_cast<std::size_t>(rtsp::Error::NotEnoughData));
   EXPECT_EQ(request.m_type, rtsp::Request::Type::OPTIONS);
 }
 
@@ -154,7 +154,7 @@ TEST(rtsp_request, incomplete_version) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
   EXPECT_EQ(request.parse(request_str.data(), request_str.size()).err().value(),
-             static_cast<std::size_t>(rtsp::Error::notEnoughData));
+             static_cast<std::size_t>(rtsp::Error::NotEnoughData));
   EXPECT_EQ(request.m_type, rtsp::Request::Type::PLAY);
   EXPECT_EQ(request.m_address, "rtsp://server/path/test.mpg");
 }
@@ -167,7 +167,7 @@ TEST(rtsp_request, incomplete_headers) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{ headers.data(),headers.size() });
   EXPECT_EQ(request.parse(request_str.data(), request_str.size()).err().value(),
-             static_cast<std::size_t>(rtsp::Error::notEnoughData));
+             static_cast<std::size_t>(rtsp::Error::NotEnoughData));
   EXPECT_EQ(request.m_type, rtsp::Request::Type::SET_PARAMETER);
   EXPECT_EQ(request.m_address, "rtsp://example.com/media.mp4");
   EXPECT_EQ(request.m_version, 1);

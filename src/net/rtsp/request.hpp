@@ -28,7 +28,7 @@ struct Request {
   };
 
   ErrorOr<std::size_t> parse(const char* buffer, std::size_t size);
-
+  //return false if destination buffer overflows
   ErrorOr<bool> serialize(char* destination, std::size_t);
 
   std::optional<Type> m_type;
