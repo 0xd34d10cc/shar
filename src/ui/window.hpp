@@ -29,7 +29,7 @@ public:
   Size display_size() const;
 
   void set_border(bool active);
-  void set_header(std::size_t height);
+  void set_header(usize height);
 
   void show();
   void minimize();

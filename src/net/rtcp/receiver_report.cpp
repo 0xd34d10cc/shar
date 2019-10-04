@@ -7,7 +7,7 @@
 
 namespace shar::net::rtcp {
 
-ReceiverReport::ReceiverReport(std::uint8_t* data, std::size_t size) noexcept
+ReceiverReport::ReceiverReport(u8* data, usize size) noexcept
   : Header(data, size)
   {}
 
@@ -18,20 +18,20 @@ bool ReceiverReport::valid() const noexcept {
          packet_type() == PacketType::RECEIVER_REPORT;
 }
 
-std::uint32_t ReceiverReport::stream_id() const noexcept {
+u32 ReceiverReport::stream_id() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[4]);
 }
 
-void ReceiverReport::set_stream_id(std::uint32_t stream_id) noexcept {
+void ReceiverReport::set_stream_id(u32 stream_id) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(stream_id);
   std::memcpy(&m_data[4], bytes.data(), bytes.size());
 }
 
-Block ReceiverReport::block(std::size_t index) noexcept {
+Block ReceiverReport::block(usize index) noexcept {
   assert(valid());
-  std::size_t offset = ReceiverReport::MIN_SIZE + Block::MIN_SIZE * index;
+  usize offset = ReceiverReport::MIN_SIZE + Block::MIN_SIZE * index;
   if (offset + Block::MIN_SIZE > m_size) {
     return Block{};
   }

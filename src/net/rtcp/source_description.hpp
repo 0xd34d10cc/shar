@@ -26,11 +26,11 @@ namespace shar::net::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 class SourceDescription: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = Header::NWORDS;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   SourceDescription() noexcept = default;
-  SourceDescription(std::uint8_t* data, std::size_t size);
+  SourceDescription(u8* data, usize size);
   SourceDescription(const SourceDescription&) noexcept = default;
   SourceDescription(SourceDescription&&) noexcept = default;
   SourceDescription& operator=(const SourceDescription&) noexcept = default;

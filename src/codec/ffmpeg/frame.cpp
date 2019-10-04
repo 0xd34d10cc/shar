@@ -13,7 +13,7 @@ extern "C" {
 
 namespace shar::codec::ffmpeg {
 
-Frame::Frame(FramePtr frame, std::unique_ptr<std::uint8_t[]> data)
+Frame::Frame(FramePtr frame, std::unique_ptr<u8[]> data)
   : m_frame(std::move(frame))
   , m_data(std::move(data))
   {}
@@ -40,7 +40,7 @@ Frame Frame::from_bgra(const char* data, Size size) {
   frame->linesize[1] = static_cast<int>(size.width() / 2);
   frame->linesize[2] = static_cast<int>(size.width() / 2);
 
-  std::size_t divisor = std::gcd(size.width(), size.height());
+  usize divisor = std::gcd(size.width(), size.height());
   frame->sample_aspect_ratio.num = static_cast<int>(size.width() / divisor);
   frame->sample_aspect_ratio.den = static_cast<int>(size.height() / divisor);
 
@@ -53,10 +53,10 @@ Slice Frame::to_bgra() const {
     return Slice{};
   }
 
-  std::size_t height = static_cast<std::size_t>(frame->height);
-  std::size_t width = static_cast<std::size_t>(frame->width);
-  std::size_t y_pad = static_cast<std::size_t>(frame->linesize[0]) - width;
-  std::size_t uv_pad = static_cast<std::size_t>(frame->linesize[1]) - width / 2;
+  usize height = static_cast<usize>(frame->height);
+  usize width = static_cast<usize>(frame->width);
+  usize y_pad = static_cast<usize>(frame->linesize[0]) - width;
+  usize uv_pad = static_cast<usize>(frame->linesize[1]) - width / 2;
   uint8_t* y = frame->data[0];
   uint8_t* u = frame->data[1];
   uint8_t* v = frame->data[2];
@@ -70,19 +70,19 @@ Frame Frame::alloc() {
   return Frame(std::move(frame), nullptr);
 }
 
-std::uint8_t* Frame::data() noexcept {
+u8* Frame::data() noexcept {
   return m_data.get();
 }
 
-const std::uint8_t* Frame::data() const noexcept {
+const u8* Frame::data() const noexcept {
   return m_data.get();
 }
 
 // NOTE: expects no padding
-std::size_t Frame::total_size() const noexcept {
-  std::size_t w = width();
-  std::size_t h = height();
-  std::size_t pixels = w * h;
+usize Frame::total_size() const noexcept {
+  usize w = width();
+  usize h = height();
+  usize pixels = w * h;
   // 12 bits per pixel
   return pixels + pixels / 2;
 }
@@ -91,17 +91,17 @@ Size Frame::sizes() const noexcept {
   return Size{height(), width()};
 }
 
-std::size_t Frame::width() const noexcept {
-  return m_frame ? static_cast<std::size_t>(m_frame->width) : 0;
+usize Frame::width() const noexcept {
+  return m_frame ? static_cast<usize>(m_frame->width) : 0;
 }
 
-std::size_t Frame::height() const noexcept {
-  return m_frame ? static_cast<std::size_t>(m_frame->height) : 0;
+usize Frame::height() const noexcept {
+  return m_frame ? static_cast<usize>(m_frame->height) : 0;
 }
 
-static Frame::Channel make_channel(const std::uint8_t* data,
-                                   std::size_t width,
-                                   std::size_t height) {
+static Frame::Channel make_channel(const u8* data,
+                                   usize width,
+                                   usize height) {
   return Frame::Channel{data, width, height, width * height};
 }
 

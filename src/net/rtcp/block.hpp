@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cstdint> // std::uint*_t
-#include <cstdlib> // std::size_t
-
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
@@ -29,13 +26,13 @@ namespace shar::net::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Block: public Slice {
+class Block: public BytesRef {
 public:
-  static const std::size_t NWORDS = 6;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = 6;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   Block() noexcept = default;
-  Block(std::uint8_t* data, std::size_t size) noexcept;
+  Block(u8* data, usize size) noexcept;
   Block(const Block&) noexcept = default;
   Block(Block&&) noexcept = default;
   Block& operator=(const Block&) noexcept = default;
@@ -47,8 +44,8 @@ public:
   // SSRC_n (source identifier): 32 bits
   //  The SSRC identifier of the source to which the information in this
   //  reception report block pertains.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
+  u32 stream_id() const noexcept;
+  void set_stream_id(u32 stream_id) noexcept;
 
   // fraction lost: 8 bits
   //  The fraction of RTP data packets from source SSRC_n lost since the
@@ -63,8 +60,8 @@ public:
   //  that there will be no reception report block issued for a source
   //  if all packets from that source sent during the last reporting
   //  interval have been lost.
-  std::uint8_t fraction_lost() const noexcept;
-  void set_fraction_lost(std::uint8_t lost) noexcept;
+  u8 fraction_lost() const noexcept;
+  void set_fraction_lost(u8 lost) noexcept;
 
   // cumulative number of packets lost: 24 bits
   //  The total number of RTP data packets from source SSRC_n that have
@@ -76,8 +73,8 @@ public:
   //  if there are duplicates.  The number of packets expected is
   //  defined to be the extended last sequence number received, as
   //  defined next, less the initial sequence number received.
-  std::uint32_t packets_lost() const noexcept;
-  void set_packets_lost(std::uint32_t lost) noexcept;
+  u32 packets_lost() const noexcept;
+  void set_packets_lost(u32 lost) noexcept;
 
   // extended highest sequence number received: 32 bits
   //  The low 16 bits contain the highest sequence number received in an
@@ -88,8 +85,8 @@ public:
   //  sequence number if their start times differ significantly.
   //
   // NOTE: split to 2 separate functions? or maybe use tuple?
-  std::uint32_t last_sequence() const noexcept;
-  void set_last_sequence(std::uint32_t seq) noexcept;
+  u32 last_sequence() const noexcept;
+  void set_last_sequence(u32 seq) noexcept;
 
   // interarrival jitter: 32 bits
   //  An estimate of the statistical variance of the RTP data packet
@@ -125,16 +122,16 @@ public:
   //  This algorithm is the optimal first-order estimator and the gain
   //  parameter 1/16 gives a good noise reduction ratio while
   //  maintaining a reasonable rate of convergence.
-  std::uint32_t jitter() const noexcept;
-  void set_jitter(std::uint32_t jitter) noexcept;
+  u32 jitter() const noexcept;
+  void set_jitter(u32 jitter) noexcept;
 
   // last SR timestamp (LSR): 32 bits
   //  The middle 32 bits out of 64 in the NTP timestamp received
   //  as part of the most recent RTCP sender report (SR) packet
   //  from source SSRC_n. If no SR has been received yet, the field
   //  is set to zero.
-  std::uint32_t last_sender_report_timestamp() const noexcept;
-  void set_last_sender_report_timestamp(std::uint32_t timestamp) noexcept;
+  u32 last_sender_report_timestamp() const noexcept;
+  void set_last_sender_report_timestamp(u32 timestamp) noexcept;
 
   // delay since last SR (DLSR): 32 bits
   //  The delay, expressed in units of 1/65536 seconds, between
@@ -175,8 +172,8 @@ public:
   //  delay 0x0006:2000 (    6.125 s)
   //
   //          Figure 2: Example for round-trip time computation
-  std::uint32_t delay_since_last_sender_report() const noexcept;
-  void set_delay_since_last_sender_report(std::uint32_t delay) noexcept;
+  u32 delay_since_last_sender_report() const noexcept;
+  void set_delay_since_last_sender_report(u32 delay) noexcept;
 
   Block next() noexcept;
 };

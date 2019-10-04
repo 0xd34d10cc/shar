@@ -1,14 +1,11 @@
 #pragma once
 
-#include <cstdint> // std::uint*_t
-#include <cstdlib> // std::size_t
-
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
 
-enum PacketType: std::uint8_t {
+enum PacketType: u8 {
   SENDER_REPORT = 200,
   RECEIVER_REPORT = 201,
   SOURCE_DESCRIPTION = 202,
@@ -23,10 +20,10 @@ enum PacketType: std::uint8_t {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // | V |P|    RC   |      PT       |             length            |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Header: public Slice {
+class Header: public BytesRef {
 public:
-  static const std::size_t NWORDS = 1;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = 1;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   // Create empty (invalid) header
   Header() noexcept = default;
@@ -36,7 +33,7 @@ public:
   // NOTE: |data| should be 4-byte aligned
   // NOTE: ownership over |data| remains on the caller side
   //       it will not be deallocated on header destruction
-  Header(std::uint8_t* data, std::size_t size) noexcept;
+  Header(u8* data, usize size) noexcept;
   Header(const Header&) noexcept = default;
   Header(Header&&) noexcept = default;
   Header& operator=(const Header&) noexcept = default;
@@ -49,19 +46,19 @@ public:
   bool valid() const noexcept;
 
   // returns pointer to packet data (header included)
-  const std::uint8_t* data() const noexcept;
-  std::uint8_t* data() noexcept;
+  const u8* data() const noexcept;
+  u8* data() noexcept;
 
   // returns buffer size
   // NOTE: buffer size is not same as packet size
-  //       packet size is (length() + 1) * sizeof(std::uint32_t)
-  std::size_t size() const noexcept;
+  //       packet size is (length() + 1) * sizeof(u32)
+  usize size() const noexcept;
 
   // version (V): 2 bits
   //  Identifies the version of RTP, which is the same in RTCP packets
   //  as in RTP data packets.
-  std::uint8_t version() const noexcept;
-  void set_version(std::uint8_t version) noexcept;
+  u8 version() const noexcept;
+  void set_version(u8 version) noexcept;
 
   // padding (P): 1 bit
   //  If the padding bit is set, this individual RTCP packet contains
@@ -76,13 +73,13 @@ public:
   // report count (RC): 5 bits
   //  The number of report blocks contained in this packet.  A
   //  value of zero is valid.
-  std::uint8_t nblocks() const noexcept;
-  void set_nblocks(std::uint8_t nblocks) noexcept;
+  u8 nblocks() const noexcept;
+  void set_nblocks(u8 nblocks) noexcept;
 
   // packet type (PT): 8 bits
   //  Contains the constant to identify this as an RTCP SR|RR packet.
-  std::uint8_t packet_type() const noexcept;
-  void set_packet_type(std::uint8_t type) noexcept;
+  u8 packet_type() const noexcept;
+  void set_packet_type(u8 type) noexcept;
 
   // length: 16 bits
   //  The length of this RTCP packet in 32-bit words minus one,
@@ -90,11 +87,11 @@ public:
   //  zero a valid length and avoids a possible infinite loop in
   //  scanning a compound RTCP packet, while counting 32-bit words
   //  avoids a validity check for a multiple of 4.)
-  std::uint16_t length() const noexcept;
-  void set_length(std::uint16_t length) noexcept;
+  u16 length() const noexcept;
+  void set_length(u16 length) noexcept;
 
-  // convenience function that returns (length() + 1) * sizeof(std::uint32_t)
-  std::size_t packet_size() const noexcept;
+  // convenience function that returns (length() + 1) * sizeof(u32)
+  usize packet_size() const noexcept;
 
   // returns next header
   // returns invalid header if this header is last

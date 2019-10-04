@@ -5,7 +5,7 @@
 
 namespace shar::net::tcp {
 
-using Port = std::uint16_t;
+using Port = u16;
 
 void forward_port(Port local, Port remote, Logger& logger);
 

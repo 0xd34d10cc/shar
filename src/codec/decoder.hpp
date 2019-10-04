@@ -14,7 +14,7 @@ namespace shar::codec {
 
 class Decoder: protected Context {
 public:
-  Decoder(Context context, Size size, std::size_t fps);
+  Decoder(Context context, Size size, usize fps);
   Decoder(const Decoder&) = delete;
   Decoder(Decoder&&) = default;
   Decoder& operator=(const Decoder&) = delete;

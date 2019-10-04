@@ -1,7 +1,9 @@
 #pragma once
 
-#include <cstdlib>
 #include <string_view>
+
+#include "int.hpp"
+#include "bytes.hpp"
 
 
 namespace shar::net::rtsp {
@@ -9,16 +11,17 @@ namespace shar::net::rtsp {
 class Serializer {
 
 public:
-  Serializer(char* buffer, std::size_t size);
+  Serializer(char* buffer, usize size);
 
-  bool append_string(std::string_view string);
-  bool append_number(std::size_t number);
-  std::size_t written_bytes() const noexcept;
+  bool write(Bytes bytes);
+  bool format(usize number);
+
+  usize written_bytes() const noexcept;
 
 private:
-  char*       m_buffer_begin{ nullptr };
-  std::size_t m_size{ 0 };
-  std::size_t m_written_bytes{ 0 };
+  char* m_data{ nullptr };
+  usize m_size{ 0 };
+  usize m_written_bytes{ 0 };
 };
 
 }

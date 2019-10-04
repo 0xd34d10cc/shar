@@ -13,8 +13,8 @@ Options::~Options() {
   av_dict_free(&m_opts);
 }
 
-std::size_t Options::count() {
-  return static_cast<std::size_t>(av_dict_count(m_opts));
+usize Options::count() {
+  return static_cast<usize>(av_dict_count(m_opts));
 }
 
 bool Options::set(const char* key, const char* value) {

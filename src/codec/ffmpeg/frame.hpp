@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint> // std::uint8_t
-#include <cstdlib> // std::size_t
+#include <cstdint> // u8
+#include <cstdlib> // usize
 #include <memory>  // std::unique_ptr
 #include <tuple>   // std::tuple
 
@@ -30,20 +30,20 @@ public:
   static Frame alloc();
   Slice to_bgra() const;
 
-  std::uint8_t* data() noexcept;
-  const std::uint8_t* data() const noexcept;
-  std::size_t total_size() const noexcept;
+  u8* data() noexcept;
+  const u8* data() const noexcept;
+  usize total_size() const noexcept;
 
   Size sizes() const noexcept;
-  std::size_t width() const noexcept;
-  std::size_t height() const noexcept;
+  usize width() const noexcept;
+  usize height() const noexcept;
 
   struct Channel {
-    const std::uint8_t* data{ nullptr };
+    const u8* data{ nullptr };
 
-    std::size_t width{ 0 };
-    std::size_t height{ 0 };
-    std::size_t size { 0 };
+    usize width{ 0 };
+    usize height{ 0 };
+    usize size { 0 };
   };
 
   Channel y() const noexcept;
@@ -64,10 +64,10 @@ private:
   };
 
   using FramePtr = std::unique_ptr<AVFrame, Deleter>;
-  Frame(FramePtr frame, std::unique_ptr<std::uint8_t[]> data);
+  Frame(FramePtr frame, std::unique_ptr<u8[]> data);
 
   FramePtr m_frame;
-  std::unique_ptr<std::uint8_t[]> m_data;
+  std::unique_ptr<u8[]> m_data;
   TimePoint m_time;
 };
 

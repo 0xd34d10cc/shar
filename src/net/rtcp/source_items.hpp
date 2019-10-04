@@ -1,11 +1,11 @@
 #pragma once
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
 
-enum ItemType: std::uint8_t {
+enum ItemType: u8 {
   END = 0,
   CNAME = 1,
   NAME = 2,
@@ -30,13 +30,13 @@ enum ItemType: std::uint8_t {
 //        |                           SDES items                          |
 //        |                              ...                              |
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-class SourceItems: public Slice {
+class SourceItems: public BytesRef {
 public:
-  static const std::size_t NWORDS = 1;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = 1;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   SourceItems() noexcept = default;
-  SourceItems(std::uint8_t* data, std::size_t size) noexcept;
+  SourceItems(u8* data, usize size) noexcept;
   SourceItems(const SourceItems&) noexcept = default;
   SourceItems(SourceItems&&) noexcept = default;
   SourceItems& operator=(const SourceItems&) noexcept = default;
@@ -48,8 +48,8 @@ public:
   // SSRC: 32 bits
   //  The synchronization source identifier for the
   //  originator of this packet.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
+  u32 stream_id() const noexcept;
+  void set_stream_id(u32 stream_id) noexcept;
 
   // Item
   //
@@ -58,24 +58,24 @@ public:
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   // |    type       |     length    |     item-specific data        |
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  class Item: private Slice {
+  class Item: private BytesRef {
   public:
     Item() noexcept = default;
-    Item(std::uint8_t* data, std::size_t size) noexcept;
+    Item(u8* data, usize size) noexcept;
     Item(const Item&) noexcept = default;
     Item(Item&&) noexcept = default;
     Item& operator=(const Item&) noexcept = default;
     Item& operator=(Item&&) noexcept = default;
     ~Item() = default;
 
-    std::uint8_t type() const noexcept;
-    void set_type(std::uint8_t type) noexcept;
+    u8 type() const noexcept;
+    void set_type(u8 type) noexcept;
 
-    std::uint8_t length() const noexcept;
-    void set_length(std::uint8_t len) noexcept;
+    u8 length() const noexcept;
+    void set_length(u8 len) noexcept;
 
-    std::uint8_t* data() noexcept;
-    const std::uint8_t* data() const noexcept;
+    u8* data() noexcept;
+    const u8* data() const noexcept;
   };
 
   // move to next item
@@ -83,14 +83,14 @@ public:
   Item next() noexcept;
 
   // write Item with |type| and |len| at current position
-  Item set(std::uint8_t type, std::uint8_t len) noexcept;
+  Item set(u8 type, u8 len) noexcept;
 
   // reset poistion to start of items list
   void reset() noexcept;
-  std::size_t position() const noexcept;
+  usize position() const noexcept;
 
 protected:
-  std::size_t m_position{MIN_SIZE};
+  usize m_position{MIN_SIZE};
 };
 
 }

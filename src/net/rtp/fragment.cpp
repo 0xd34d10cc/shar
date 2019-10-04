@@ -5,16 +5,16 @@
 
 namespace shar::net::rtp {
 
-Fragment::Fragment(std::uint8_t* data, std::size_t size) noexcept
+Fragment::Fragment(u8* data, usize size) noexcept
   : m_data(data)
   , m_size(size)
 {}
 
-std::uint8_t* Fragment::data() const noexcept {
+u8* Fragment::data() const noexcept {
   return m_data;
 }
 
-std::size_t Fragment::size() const noexcept {
+usize Fragment::size() const noexcept {
   return m_size;
 }
 
@@ -26,16 +26,16 @@ Fragment::operator bool() const noexcept {
   return valid();
 }
 
-std::uint8_t Fragment::indicator() const noexcept {
+u8 Fragment::indicator() const noexcept {
   assert(valid());
   return m_data[0];
 }
 
-std::uint8_t Fragment::nri() const noexcept {
+u8 Fragment::nri() const noexcept {
   return (indicator() & NRI_MASK) >> 5;
 }
 
-void Fragment::set_nri(std::uint8_t nri) noexcept {
+void Fragment::set_nri(u8 nri) noexcept {
   assert(valid());
   assert(nri < 4);
 
@@ -43,11 +43,11 @@ void Fragment::set_nri(std::uint8_t nri) noexcept {
   m_data[0] |= nri << 5;
 }
 
-std::uint8_t Fragment::packet_type() const noexcept {
+u8 Fragment::packet_type() const noexcept {
   return indicator() & PACKET_TYPE_MASK;
 }
 
-void Fragment::set_packet_type(std::uint8_t type) noexcept {
+void Fragment::set_packet_type(u8 type) noexcept {
   assert(valid());
   assert(type < 32);
 
@@ -55,7 +55,7 @@ void Fragment::set_packet_type(std::uint8_t type) noexcept {
   m_data[0] |= type;
 }
 
-std::uint8_t Fragment::header() const noexcept {
+u8 Fragment::header() const noexcept {
   assert(valid());
   return m_data[1];
 }
@@ -88,11 +88,11 @@ void Fragment::set_last(bool flag) noexcept {
   }
 }
 
-std::uint8_t Fragment::nal_type() const noexcept {
+u8 Fragment::nal_type() const noexcept {
   return header() & NAL_TYPE_MASK;
 }
 
-void Fragment::set_nal_type(std::uint8_t type) noexcept {
+void Fragment::set_nal_type(u8 type) noexcept {
   assert(valid());
   assert(type < 32);
 
@@ -100,17 +100,17 @@ void Fragment::set_nal_type(std::uint8_t type) noexcept {
   m_data[1] |= type;
 }
 
-std::uint8_t* Fragment::payload() noexcept {
+u8* Fragment::payload() noexcept {
   assert(valid());
   return m_data + MIN_SIZE;
 }
 
-const std::uint8_t* Fragment::payload() const noexcept {
+const u8* Fragment::payload() const noexcept {
   assert(valid());
   return m_data + MIN_SIZE;
 }
 
-std::size_t Fragment::payload_size() const noexcept {
+usize Fragment::payload_size() const noexcept {
   return size() - MIN_SIZE;
 }
 

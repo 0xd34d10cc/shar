@@ -1,6 +1,6 @@
 #pragma once
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::stun {
@@ -17,17 +17,17 @@ namespace shar::net::stun {
 //
 // RFC 5389 Section 15
 struct Attribute {
-  std::uint16_t type{ 0 };
-  std::uint16_t length{ 0 };
-  std::uint8_t* data{ nullptr };
+  u16 type{ 0 };
+  u16 length{ 0 };
+  u8* data{ nullptr };
 };
 
-class Attributes: public Slice {
+class Attributes: public BytesRef {
 public:
-  static const std::size_t MIN_SIZE = 0;
+  static const usize MIN_SIZE = 0;
 
   Attributes() noexcept = default;
-  Attributes(std::uint8_t* data, std::size_t size) noexcept;
+  Attributes(u8* data, usize size) noexcept;
   Attributes(const Attributes&) noexcept = default;
   Attributes(Attributes&&) noexcept = default;
   Attributes& operator=(const Attributes&) noexcept = default;
@@ -42,7 +42,7 @@ public:
 private:
   bool valid() const noexcept;
 
-  std::size_t m_pos{ 0 };
+  usize m_pos{ 0 };
 };
 
 }

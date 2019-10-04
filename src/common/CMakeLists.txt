@@ -14,8 +14,8 @@ add_library(common
             disable_warnings_pop.hpp
             cancellation.hpp
             cancellation.cpp
-            slice.hpp
-            slice.cpp
+            bytes.hpp
+            bytes_ref.hpp
             byteorder.hpp
             byteorder.cpp
             atomic_string.hpp

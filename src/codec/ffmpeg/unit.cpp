@@ -19,7 +19,7 @@ Unit Unit::allocate() noexcept {
   return Unit(av_packet_alloc());
 }
 
-Unit Unit::from_data(const std::uint8_t* data, std::size_t size) {
+Unit Unit::from_data(const u8* data, usize size) {
   auto unit = Unit::allocate();
   AVBufferRef* buffer = av_buffer_alloc(static_cast<int>(size));
   std::memcpy(buffer->data, data, size);
@@ -36,20 +36,20 @@ bool Unit::empty() const noexcept {
          m_packet->size == 0;
 }
 
-std::uint8_t* Unit::data() noexcept {
+u8* Unit::data() noexcept {
   return m_packet ? m_packet->data : nullptr;
 }
 
-const std::uint8_t* Unit::data() const noexcept {
+const u8* Unit::data() const noexcept {
   return m_packet ? m_packet->data : nullptr;
 }
 
-std::size_t Unit::size() const noexcept {
-  return m_packet ? static_cast<std::size_t>(m_packet->size) : 0;
+usize Unit::size() const noexcept {
+  return m_packet ? static_cast<usize>(m_packet->size) : 0;
 }
 
-std::uint32_t Unit::timestamp() const noexcept {
-  return m_packet ? static_cast<std::uint32_t>(m_packet->pts) : 0;
+u32 Unit::timestamp() const noexcept {
+  return m_packet ? static_cast<u32>(m_packet->pts) : 0;
 }
 
 Unit::Type Unit::type() const noexcept {

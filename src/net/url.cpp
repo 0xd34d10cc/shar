@@ -38,8 +38,8 @@ Url Url::from_string(const std::string& str) {
   const char* begin = str.data();
   const char* end = str.data() + str.size();
 
-  const auto find = [&](const char* substring, std::size_t from_index=0) {
-    std::size_t index = str.find(substring, from_index);
+  const auto find = [&](const char* substring, usize from_index=0) {
+    usize index = str.find(substring, from_index);
     if (index == std::string::npos) {
       return end;
     }
@@ -68,7 +68,7 @@ Url Url::from_string(const std::string& str) {
     throw std::runtime_error("Unknown protocol");
   }();
 
-  const std::size_t offset = static_cast<std::size_t>(proto_end+3 - begin);
+  const usize offset = static_cast<usize>(proto_end+3 - begin);
   const char* host_end = find(":", offset); // could be |end|
   const auto host = std::string(proto_end+3, host_end);
   const auto port = [&] {
@@ -88,7 +88,7 @@ Url Url::from_string(const std::string& str) {
     }
 
     // parse port
-    std::uint16_t port_number = 0;
+    u16 port_number = 0;
     auto[ptr, err] = std::from_chars(host_end+1, end, port_number);
     if (err != std::errc()) {
       throw std::runtime_error("Failed to parse port");

@@ -19,11 +19,11 @@ namespace shar::net::rtcp {
 //       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class Bye: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = Header::NWORDS;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   Bye() noexcept = default;
-  Bye(std::uint8_t* data, std::size_t size) noexcept;
+  Bye(u8* data, usize size) noexcept;
   Bye(const Bye&) noexcept = default;
   Bye(Bye&&) noexcept = default;
   Bye& operator=(const Bye&) noexcept = default;
@@ -34,12 +34,12 @@ public:
 
   // return stream id by index
   // the number of ids in this message is equal to nblocks()
-  std::uint32_t stream_id(std::size_t index) noexcept;
+  u32 stream_id(usize index) noexcept;
 
   bool has_reason() const noexcept;
-  std::uint8_t* reason() noexcept;
-  std::uint8_t reason_len() const noexcept;
-  void set_reason_len(std::uint8_t len) noexcept;
+  u8* reason() noexcept;
+  u8 reason_len() const noexcept;
+  void set_reason_len(u8 len) noexcept;
 };
 
 }

@@ -1,34 +1,33 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include <optional>
 
+#include "bytes.hpp"
 #include "parser.hpp"
+
 
 namespace shar::net::rtsp {
 
-//Response = Status - Line; 
-//* (general - header; 
-//  | response - header; 
+//Response = Status - Line;
+//* (general - header;
+//  | response - header;
 //  | entity - header);
 //  CRLF
-//  [message - body]; 
+//  [message - body];
 
 //Status - Line = RTSP - Version SP Status - Code SP Reason - Phrase CRLF
 struct Response {
-
   explicit Response(Headers headers);
 
-  ErrorOr<std::size_t> parse(const char* buffer, std::size_t size);
-  ErrorOr<std::size_t> serialize(char* destination, std::size_t size);
+  ErrorOr<usize> parse(Bytes bytes);
+  ErrorOr<usize> serialize(unsigned char* destination, usize size);
 
-  std::optional<std::size_t> m_version;
-  std::uint16_t  m_status_code;
-  std::optional<std::string_view> m_reason; // Reason-Phrase 
+  std::optional<usize> m_version;
+  u16 m_status_code;
+  std::optional<Bytes> m_reason; // Reason-Phrase
 
   Headers m_headers;
-
-  std::optional<std::string_view> m_body;
+  std::optional<Bytes> m_body;
 };
 
 }

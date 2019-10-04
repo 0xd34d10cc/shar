@@ -6,6 +6,7 @@
 #include "request.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 // google public STUN servers
@@ -44,12 +45,12 @@ int main(int argc, char* argv[]) {
       return EXIT_FAILURE;
     }
 
-    std::array<std::uint8_t, 2048> buffer;
-    std::fill_n(buffer.data(), 2048, static_cast<std::uint8_t>(0));
+    std::array<u8, 2048> buffer;
+    std::fill_n(buffer.data(), 2048, static_cast<u8>(0));
     udp::Endpoint responder;
 
     // FIXME: no timeout
-    std::size_t n = socket.receive_from(span(buffer.data(), buffer.size()), responder);
+    usize n = socket.receive_from(span(buffer.data(), buffer.size()), responder);
     assert(stun::is_message(buffer.data(), n));
 
     stun::Message response{ buffer.data(), n };

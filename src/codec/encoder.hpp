@@ -16,7 +16,7 @@ namespace shar::codec {
 
 class Encoder: protected Context {
 public:
-  Encoder(Context context, Size frame_size, std::size_t fps);
+  Encoder(Context context, Size frame_size, usize fps);
   Encoder(const Encoder&) = delete;
   Encoder(Encoder&&) = default;
   Encoder& operator=(const Encoder&) = delete;

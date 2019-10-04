@@ -27,7 +27,7 @@ struct OnMoveData {
 
 struct HitTestData {
   SDL_Window* window{ nullptr };
-  std::size_t header_height{ 0 };
+  usize header_height{ 0 };
 };
 
 
@@ -136,7 +136,7 @@ static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* 
     Point::origin(),
     // -60 for - X buttons
     // TODO: unhardcode
-    Size{data->header_height, static_cast<std::size_t>(width - 60)}
+    Size{data->header_height, static_cast<usize>(width - 60)}
   };
 
   if (header.contains(Point{ area->x, area->y })) {
@@ -218,16 +218,16 @@ Size Window::size() const {
   int width;
   int height;
   SDL_GetWindowSize(m_window.get(), &width, &height);
-  return Size{static_cast<std::size_t>(height),
-              static_cast<std::size_t>(width)};
+  return Size{static_cast<usize>(height),
+              static_cast<usize>(width)};
 }
 
 Size Window::display_size() const {
   int width;
   int height;
   SDL_GL_GetDrawableSize(m_window.get(), &width, &height);
-  return Size{static_cast<std::size_t>(height),
-              static_cast<std::size_t>(width)};
+  return Size{static_cast<usize>(height),
+              static_cast<usize>(width)};
 }
 
 void Window::on_move(std::function<void()> callback) {
@@ -246,7 +246,7 @@ void Window::set_border(bool active) {
   SDL_SetWindowBordered(m_window.get(), active ? SDL_TRUE : SDL_FALSE);
 }
 
-void Window::set_header(std::size_t height) {
+void Window::set_header(usize height) {
   m_hittest_data->header_height = height;
 }
 

@@ -2,7 +2,8 @@
 
 #include <string>
 #include <vector>
-#include <cstdlib> // std::size_t
+
+#include "int.hpp"
 
 
 namespace shar {
@@ -31,10 +32,10 @@ struct Config {
 
   bool p2p{ false };                                 // enable p2p mode, used only for sender
   std::string url{ "tcp://127.0.0.1:1337" };         // url to stream to
-  std::size_t monitor{ 0 };                          // which monitor to capture
-  std::size_t fps{ 30 };                             // desired fps (for encoder)
+  usize monitor{ 0 };                          // which monitor to capture
+  usize fps{ 30 };                             // desired fps (for encoder)
   std::string codec;                                 // which codec to use
-  std::size_t bitrate{ 5000 };                       // target bitrate (in kbits)
+  usize bitrate{ 5000 };                       // target bitrate (in kbits)
   std::string metrics{ "127.0.0.1:3228" };           // where to expose metrics
   LogLevel log_level{ DEFAULT_LOG_LEVEL };           // common log level
   std::string logs_location{ "" };                   // logs location, set to ~/.shar/logs

@@ -21,8 +21,8 @@ bool Depacketizer::push(const Fragment& fragment) {
     m_buffer.push_back(0x01);
 
     // recover nal header
-    std::uint8_t nri = fragment.nri() << 5;
-    std::uint8_t nt = fragment.nal_type();
+    u8 nri = fragment.nri() << 5;
+    u8 nt = fragment.nal_type();
     m_buffer.push_back(nri | nt);
   }
 

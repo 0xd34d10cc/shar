@@ -8,10 +8,11 @@
 #include "net/rtcp/bye.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 TEST(rtcp_bye, empty) {
-  std::array<std::uint8_t, rtcp::Bye::MIN_SIZE> buffer{};
+  std::array<u8, rtcp::Bye::MIN_SIZE> buffer{};
   rtcp::Bye bye{buffer.data(), buffer.size()};
   bye.set_packet_type(rtcp::PacketType::BYE);
   bye.set_length(rtcp::Bye::NWORDS - 1);
@@ -21,7 +22,7 @@ TEST(rtcp_bye, empty) {
 }
 
 TEST(rtcp_bye, set_fields) {
-  std::array<std::uint8_t, rtcp::Bye::MIN_SIZE + 4> buffer{};
+  std::array<u8, rtcp::Bye::MIN_SIZE + 4> buffer{};
   rtcp::Bye bye{buffer.data(), buffer.size()};
   bye.set_packet_type(rtcp::PacketType::BYE);
   bye.set_length(rtcp::Bye::NWORDS - 1 + 1);
@@ -33,7 +34,7 @@ TEST(rtcp_bye, set_fields) {
 }
 
 TEST(rtcp_bye, deserialize) {
-  std::size_t size = 16;
+  usize size = 16;
   const char* data =
       // header
       "\x82\xcb\x00\x03"\
@@ -44,9 +45,9 @@ TEST(rtcp_bye, deserialize) {
       // reason for leaving
       "\x03\x61\x62\x63";;
 
-  std::vector<std::uint8_t> buffer{
-    reinterpret_cast<const std::uint8_t*>(data),
-    reinterpret_cast<const std::uint8_t*>(data) + size
+  std::vector<u8> buffer{
+    reinterpret_cast<const u8*>(data),
+    reinterpret_cast<const u8*>(data) + size
   };
 
   rtcp::Bye bye{buffer.data(), buffer.size()};

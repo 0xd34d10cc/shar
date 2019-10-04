@@ -1,16 +1,15 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include <optional>
 
+#include "bytes.hpp"
+#include "int.hpp"
 #include "parser.hpp"
 
 
 namespace shar::net::rtsp {
 
 struct Request {
-
   explicit Request(Headers headers);
 
   enum class Type {
@@ -27,13 +26,15 @@ struct Request {
     RECORD
   };
 
-  ErrorOr<std::size_t> parse(const char* buffer, std::size_t size);
-  //return false if destination buffer overflows
-  ErrorOr<bool> serialize(char* destination, std::size_t);
+  ErrorOr<usize> parse(Bytes bytes);
+
+  // returns false if destination buffer overflows
+  ErrorOr<bool> serialize(unsigned char* destination, usize);
 
   std::optional<Type> m_type;
-  std::optional<std::string_view> m_address;
-  std::optional<std::uint8_t> m_version;
+  std::optional<Bytes> m_address;
+  std::optional<u8> m_version;
+
   Headers m_headers;
 };
 

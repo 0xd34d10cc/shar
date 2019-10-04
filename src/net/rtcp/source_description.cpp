@@ -6,7 +6,7 @@ bool SourceDescription::valid() const noexcept {
   return Header::valid() && Header::packet_type() == PacketType::SOURCE_DESCRIPTION;
 }
 
-SourceDescription::SourceDescription(std::uint8_t* data, std::size_t size)
+SourceDescription::SourceDescription(u8* data, usize size)
   : Header(data, size)
   {}
 

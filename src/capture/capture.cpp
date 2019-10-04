@@ -7,8 +7,8 @@ using namespace shar;
 using Frame = codec::ffmpeg::Frame;
 
 Frame convert(const sc::Image& image) noexcept {
-  const auto width  = static_cast<std::size_t>(Width(image));
-  const auto height = static_cast<std::size_t>(Height(image));
+  const auto width  = static_cast<usize>(Width(image));
+  const auto height = static_cast<usize>(Height(image));
   auto size  = Size{ height, width };
 
   // Frame::from_bgra expects no padding, for now
@@ -21,11 +21,11 @@ Frame convert(const sc::Image& image) noexcept {
 BGRAFrame to_bgra(const sc::Image& image) noexcept {
   BGRAFrame frame;
 
-  const auto width = static_cast<std::size_t>(Width(image));
-  const auto height = static_cast<std::size_t>(Height(image));
-  std::size_t n = width * height * 4;
+  const auto width = static_cast<usize>(Width(image));
+  const auto height = static_cast<usize>(Height(image));
+  usize n = width * height * 4;
 
-  frame.data = std::make_unique<std::uint8_t[]>(n);
+  frame.data = std::make_unique<u8[]>(n);
   frame.size = Size{ height, width };
 
   assert(sc::isDataContiguous(image));

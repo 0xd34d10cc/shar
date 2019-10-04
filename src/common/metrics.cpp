@@ -10,6 +10,7 @@
 
 namespace {
 
+using shar::usize;
 using Suffixes = std::array<const char*, 6>;
 
 static const Suffixes bytes_suffixes = {
@@ -31,17 +32,17 @@ static const Suffixes bits_suffixes = {
 };
 
 struct FormatData {
-  std::size_t value;
-  std::size_t rem;
+  usize value;
+  usize rem;
   const char* suffix;
 };
 
-FormatData human_readable(std::size_t value, const Suffixes& suffixes) {
-  std::size_t i   = 0;
-  std::size_t rem = 0;
+FormatData human_readable(usize value, const Suffixes& suffixes) {
+  usize i   = 0;
+  usize rem = 0;
 
-  static const std::size_t MAX  = 1u << 10u;
-  static const std::size_t MASK = MAX - 1;
+  static const usize MAX  = 1u << 10u;
+  static const usize MASK = MAX - 1;
 
   while (value >= MAX) {
     rem = value & MASK;
@@ -50,7 +51,7 @@ FormatData human_readable(std::size_t value, const Suffixes& suffixes) {
   }
 
   const char* suffix = i < suffixes.size() ? suffixes[i] : "too much for you";
-  const auto fraction = static_cast<std::size_t>((rem / 1024.0) * 10.0);
+  const auto fraction = static_cast<usize>((rem / 1024.0) * 10.0);
   return {value, fraction, suffix};
 };
 
@@ -59,7 +60,7 @@ FormatData human_readable(std::size_t value, const Suffixes& suffixes) {
 
 namespace shar {
 
-Metrics::Metrics(std::size_t size)
+Metrics::Metrics(usize size)
     : m_metrics(size) {}
 
 bool Metrics::valid(shar::MetricId id) const noexcept {
@@ -69,7 +70,7 @@ bool Metrics::valid(shar::MetricId id) const noexcept {
 MetricId Metrics::add(std::string name, Format format) noexcept {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  for (std::size_t i = 0; i < m_metrics.size(); ++i) {
+  for (usize i = 0; i < m_metrics.size(); ++i) {
     if (!m_metrics[i]) {
       m_metrics[i].emplace(std::move(name), format);
       return MetricId(i);
@@ -87,14 +88,14 @@ void Metrics::remove(MetricId id) noexcept {
   }
 }
 
-void Metrics::increase(shar::MetricId id, std::size_t delta) {
+void Metrics::increase(shar::MetricId id, usize delta) {
   assert(valid(id));
   if (valid(id)) {
     m_metrics[id.get()]->m_value.fetch_add(delta, std::memory_order_relaxed);
   }
 }
 
-void Metrics::decrease(shar::MetricId id, std::size_t delta) {
+void Metrics::decrease(shar::MetricId id, usize delta) {
   assert(valid(id));
   if (valid(id)) {
     m_metrics[id.get()]->m_value.fetch_sub(delta, std::memory_order_relaxed);
@@ -137,11 +138,11 @@ Metric::~Metric() {
   }
 }
 
-void Metric::increase(std::size_t delta) {
+void Metric::increase(usize delta) {
   m_metrics->increase(m_id, delta);
 }
 
-void Metric::decrease(std::size_t delta) {
+void Metric::decrease(usize delta) {
   m_metrics->decrease(m_id, delta);
 }
 

@@ -4,7 +4,7 @@
 
 namespace shar::net::rtp {
 
-static const std::uint16_t MTU = 1000;
+static const u16 MTU = 1000;
 
 PacketSender::PacketSender(Context context, IpAddress ip, Port port)
     : Context(std::move(context))
@@ -25,8 +25,8 @@ void PacketSender::run(Receiver<Unit> packets) {
     auto endpoint = udp::Endpoint(ip, Port{44444});
     m_socket.bind(endpoint);
 
-    std::size_t sent = 0;
-    std::size_t total_sent = 0;
+    usize sent = 0;
+    usize total_sent = 0;
     auto last_report_time = Clock::now();
 
     while (auto packet = packets.receive()) {
@@ -67,9 +67,9 @@ void PacketSender::set_packet(Unit packet) {
 }
 
 void PacketSender::send() {
-  static const std::size_t HEADER_SIZE = rtp::Packet::MIN_SIZE;
+  static const usize HEADER_SIZE = rtp::Packet::MIN_SIZE;
 
-  std::array<std::uint8_t, MTU + HEADER_SIZE> buffer;
+  std::array<u8, MTU + HEADER_SIZE> buffer;
 
   while (auto fragment = m_packetizer.next()) {
     // sleep for 1ms every 128 fragments

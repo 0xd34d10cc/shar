@@ -5,8 +5,8 @@
 
 namespace shar::net::tcp {
 
-static const std::size_t PACKETS_HIGH_WATERMARK = 120;
-static const std::size_t PACKETS_LOW_WATERMARK  = 80;
+static const usize PACKETS_HIGH_WATERMARK = 120;
+static const usize PACKETS_LOW_WATERMARK  = 80;
 
 
 P2PSender::Client::Client(Socket socket)
@@ -124,15 +124,15 @@ void P2PSender::run_client(ClientId id) {
     case Client::State::SendingLength: {
       const auto size = packet->size();
       client.m_length = {
-          static_cast<std::uint8_t>((size >> 0) & 0xff),
-          static_cast<std::uint8_t>((size >> 8) & 0xff),
-          static_cast<std::uint8_t>((size >> 16) & 0xff),
-          static_cast<std::uint8_t>((size >> 24) & 0xff)
+          static_cast<u8>((size >> 0) & 0xff),
+          static_cast<u8>((size >> 8) & 0xff),
+          static_cast<u8>((size >> 16) & 0xff),
+          static_cast<u8>((size >> 24) & 0xff)
       };
 
       auto buffer = span(client.m_length.data() + client.m_bytes_sent,
                          client.m_length.size() - client.m_bytes_sent);
-      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
+      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, usize bytes_sent) {
         if (ec) {
           m_logger.error("Client {}: failed to send packet length ({})", id, ec.message());
           reset_overflown_state(id);
@@ -148,7 +148,7 @@ void P2PSender::run_client(ClientId id) {
     case Client::State::SendingContent: {
       auto buffer = span(packet->data() + client.m_bytes_sent,
                          packet->size() - client.m_bytes_sent);
-      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, std::size_t bytes_sent) {
+      client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, usize bytes_sent) {
         if (ec) {
           m_logger.error("Client {}: failed to send packet ({})", id, ec.message());
           reset_overflown_state(id);
@@ -164,7 +164,7 @@ void P2PSender::run_client(ClientId id) {
 
 }
 
-void P2PSender::handle_write(std::size_t bytes_sent, ClientId id) {
+void P2PSender::handle_write(usize bytes_sent, ClientId id) {
   const auto it = m_clients.find(id);
   if (it == m_clients.end()) {
     // can this even happen?
@@ -189,7 +189,7 @@ void P2PSender::handle_write(std::size_t bytes_sent, ClientId id) {
 
     case Client::State::SendingContent:
       assert(client.m_bytes_sent <= client.m_packets.front()->size());
-      std::size_t packet_size = client.m_packets.front()->size();
+      usize packet_size = client.m_packets.front()->size();
       if (packet_size == client.m_bytes_sent) {
         client.m_bytes_sent = 0;
         if (client.m_overflown && client.m_packets.size() == PACKETS_LOW_WATERMARK) {

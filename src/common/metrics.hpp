@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdlib> // std::size_t
 #include <atomic>
 #include <vector>
 #include <optional>
@@ -8,6 +7,7 @@
 #include <mutex>
 
 #include "newtype.hpp"
+#include "int.hpp"
 
 
 namespace shar {
@@ -16,8 +16,8 @@ class Metrics;
 
 using MetricsPtr = std::shared_ptr<Metrics>;
 
-class MetricId : protected NewType<std::size_t> {
-  static const std::size_t INVALID_ID = std::numeric_limits<std::size_t>::max();
+class MetricId : protected NewType<usize> {
+  static const usize INVALID_ID = std::numeric_limits<usize>::max();
 
 public:
   MetricId()
@@ -30,7 +30,7 @@ public:
   friend class Metrics;
 
 protected:
-  MetricId(std::size_t index)
+  MetricId(usize index)
     : NewType(index) {}
 };
 
@@ -42,14 +42,14 @@ public:
     Bits
   };
 
-  Metrics(std::size_t size);
+  Metrics(usize size);
 
   MetricId add(std::string name, Format format) noexcept;
   void remove(MetricId id) noexcept;
 
   // Modify metric value. Does nothing if |id| is invalid
-  void increase(MetricId id, std::size_t delta);
-  void decrease(MetricId id, std::size_t delta);
+  void increase(MetricId id, usize delta);
+  void decrease(MetricId id, usize delta);
 
   template <typename Fn>
   void for_each(Fn&& f) {
@@ -69,9 +69,9 @@ public:
   struct alignas(64) MetricData {
     MetricData(std::string name, Format format);
 
-    std::string              m_name;
-    Format                   m_format;
-    std::atomic<std::size_t> m_value;
+    std::string m_name;
+    Format m_format;
+    std::atomic<usize> m_value;
 
     std::string format();
   };
@@ -93,8 +93,8 @@ public:
   Metric& operator=(Metric&&) = default;
   ~Metric();
 
-  void increase(std::size_t delta);
-  void decrease(std::size_t delta);
+  void increase(usize delta);
+  void decrease(usize delta);
 
 private:
   MetricsPtr m_metrics;

@@ -1,19 +1,46 @@
+#include <algorithm>
+
 #include "header.hpp"
+
 
 namespace shar::net::rtsp {
 
-Header::Header(std::string_view key, std::string_view value)
-  : key(std::move(key))
-  , value(std::move(value)) {}
+Header::Header(Bytes name, Bytes value)
+  : name(std::move(name))
+  , value(std::move(value))
+{}
 
 bool Header::operator==(const Header& rhs) const{
-
-  return key == rhs.key && value == rhs.value;
+  return name == rhs.name && value == rhs.value;
 }
 
 bool Header::empty() const noexcept {
+  return name.empty() && value.empty();
+}
 
-  return key.empty() && value.empty();
+Headers::Headers(Header* ptr, usize size)
+  : data(ptr)
+  , len(size)
+  {}
+
+Header* Headers::begin() {
+  return data;
+}
+
+Header* Headers::end() {
+  return data + len;
+}
+
+std::optional<Header> Headers::get(Bytes name) {
+  auto it = std::find_if(begin(), end(), [name](const auto& h) {
+    return h.name == name;
+  });
+
+  if (it == end()) {
+    return std::nullopt;
+  }
+
+  return *it;
 }
 
 }

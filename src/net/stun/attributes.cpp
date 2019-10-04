@@ -6,8 +6,8 @@
 
 namespace shar::net::stun {
 
-Attributes::Attributes(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+Attributes::Attributes(u8* data, usize size) noexcept
+  : BytesRef(data, size)
   {}
 
 void Attributes::reset() noexcept {
@@ -20,12 +20,12 @@ bool Attributes::read(Attribute& attr) noexcept {
     return false;
   }
 
-  std::uint8_t* p = m_data + m_pos;
+  u8* p = m_data + m_pos;
   attr.type = read_u16_big_endian(p);
   attr.length = read_u16_big_endian(p + 2);
   attr.data = p + 4;
 
-  std::size_t padding = (attr.length & 0b11) == 0 ? 0 : (4 - attr.length & 0b11);
+  usize padding = (attr.length & 0b11) == 0 ? 0 : (4 - attr.length & 0b11);
   m_pos += 4 + attr.length + padding;
   assert(valid());
   return true;
@@ -37,7 +37,7 @@ bool Attributes::append(Attribute attr) noexcept {
     return false;
   }
 
-  std::uint8_t* p = m_data + m_pos;
+  u8* p = m_data + m_pos;
   auto bytes = to_big_endian(attr.type);
   std::memcpy(p, bytes.data(), bytes.size());
   bytes = to_big_endian(attr.length);
@@ -46,7 +46,7 @@ bool Attributes::append(Attribute attr) noexcept {
     std::memcpy(p + 4, attr.data, attr.length);
   }
 
-  std::size_t padding = (attr.length & 0b11) == 0 ? 0 : (4 - attr.length & 0b11);
+  usize padding = (attr.length & 0b11) == 0 ? 0 : (4 - attr.length & 0b11);
   m_pos = 4 + attr.length + padding;
   assert(valid());
   return true;

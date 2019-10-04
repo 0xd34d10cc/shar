@@ -8,6 +8,7 @@
 #include "net/rtp/packet.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 TEST(rtp, invalid) {
@@ -19,7 +20,7 @@ TEST(rtp, invalid) {
 }
 
 TEST(rtp, empty) {
-    std::array<std::uint8_t, rtp::Packet::MIN_SIZE> buffer{};
+    std::array<u8, rtp::Packet::MIN_SIZE> buffer{};
     rtp::Packet packet{buffer.data(), buffer.size()};
 
     EXPECT_EQ(packet.version(), 0);
@@ -35,7 +36,7 @@ TEST(rtp, empty) {
 }
 
 TEST(rtp, set_fields) {
-    std::array<std::uint8_t, rtp::Packet::MIN_SIZE> buffer{};
+    std::array<u8, rtp::Packet::MIN_SIZE> buffer{};
     rtp::Packet packet{buffer.data(), buffer.size()};
 
     packet.set_version(2);
@@ -60,7 +61,7 @@ TEST(rtp, set_fields) {
 
 TEST(rtp, deserialize) {
     // copy-pasted from wireshark
-    const std::size_t packet_size = 1123 - 8;
+    const usize packet_size = 1123 - 8;
     const char* raw_data =
         "\x80\x60\x32\x3a\x03\x4a" \
         "\x34\xc5\xd0\x1b\x17\xc4\x7c\x05\x97\x82\xcf\x39\xfc\xf3\xa8\xcf" \
@@ -134,9 +135,9 @@ TEST(rtp, deserialize) {
         "\xb5\x45\x84\xdd\xfb\x5f\x29\x49\x93\xcd\xb9\x09\x66\xa0\xbe\xda" \
         "\x2d\xa4\xbf\xab\x14";
 
-    std::vector<std::uint8_t> buffer {
-        reinterpret_cast<const std::uint8_t*>(raw_data),
-        reinterpret_cast<const std::uint8_t*>(raw_data) + packet_size
+    std::vector<u8> buffer {
+        reinterpret_cast<const u8*>(raw_data),
+        reinterpret_cast<const u8*>(raw_data) + packet_size
     };
 
     rtp::Packet packet{buffer.data(), buffer.size()};
