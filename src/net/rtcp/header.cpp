@@ -7,7 +7,7 @@
 
 namespace shar::net::rtcp {
 
-Header::Header(std::uint8_t* data, std::size_t size) noexcept
+Header::Header(u8* data, usize size) noexcept
   : BytesRef(data, size)
   {}
 
@@ -15,24 +15,24 @@ bool Header::valid() const noexcept {
   return (m_data != nullptr) && (m_size >= Header::MIN_SIZE);
 }
 
-const std::uint8_t* Header::data() const noexcept {
+const u8* Header::data() const noexcept {
   return m_data;
 }
 
-std::uint8_t* Header::data() noexcept {
+u8* Header::data() noexcept {
   return m_data;
 }
 
-std::size_t Header::size() const noexcept {
+usize Header::size() const noexcept {
   return m_size;
 }
 
-std::uint8_t Header::version() const noexcept {
+u8 Header::version() const noexcept {
   assert(valid());
   return m_data[0] >> 6;
 }
 
-void Header::set_version(std::uint8_t version) noexcept {
+void Header::set_version(u8 version) noexcept {
   assert(valid());
   assert(version < 4);
   m_data[0] &= 0b111111;
@@ -47,53 +47,53 @@ bool Header::has_padding() const noexcept {
 void Header::set_has_padding(bool has_padding) noexcept {
   assert(valid());
   if (has_padding) {
-    m_data[0] |= std::uint8_t{1 << 5};
+    m_data[0] |= u8{1 << 5};
   } else {
-    m_data[0] &= ~std::uint8_t{1 << 5};
+    m_data[0] &= ~u8{1 << 5};
   }
 }
 
-std::uint8_t Header::nblocks() const noexcept {
+u8 Header::nblocks() const noexcept {
   assert(valid());
   return m_data[0] & 0b11111;
 }
 
-void Header::set_nblocks(std::uint8_t nblocks) noexcept {
+void Header::set_nblocks(u8 nblocks) noexcept {
   assert(valid());
   assert(nblocks < 32);
   m_data[0] &= 0b11100000;
   m_data[0] |= nblocks;
 }
 
-std::uint8_t Header::packet_type() const noexcept {
+u8 Header::packet_type() const noexcept {
   assert(valid());
   return m_data[1];
 }
 
-void Header::set_packet_type(std::uint8_t type) noexcept {
+void Header::set_packet_type(u8 type) noexcept {
   assert(valid());
   m_data[1] = type;
 }
 
-std::uint16_t Header::length() const noexcept {
+u16 Header::length() const noexcept {
   assert(valid());
   return read_u16_big_endian(&m_data[2]);
 }
 
-void Header::set_length(std::uint16_t length) noexcept {
+void Header::set_length(u16 length) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(length);
   std::memcpy(&m_data[2], bytes.data(), bytes.size());
 }
 
-std::size_t Header::packet_size() const noexcept {
+usize Header::packet_size() const noexcept {
   assert(valid());
-  return (std::size_t{length()} + 1) * sizeof(std::uint32_t);
+  return (usize{length()} + 1) * sizeof(u32);
 }
 
 Header Header::next() noexcept {
   assert(valid());
-  std::uint16_t len = static_cast<std::uint16_t>(packet_size());
+  u16 len = static_cast<u16>(packet_size());
   if (len + Header::MIN_SIZE > m_size) {
     return Header{};
   }

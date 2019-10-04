@@ -42,7 +42,7 @@ void Server::start_accepting() {
       }
       return;
     }
-    auto client_id = static_cast<std::size_t>(m_current_socket.native_handle());
+    auto client_id = static_cast<usize>(m_current_socket.native_handle());
     m_logger.info("Client {} connected.", client_id);
 
     auto [client_pos, is_emplaced] = m_clients.emplace(client_id, std::move(m_current_socket));
@@ -88,7 +88,7 @@ void Server::receive_request(ClientPos pos) {
   }
 
   auto buffer = span(client.m_buffer.data() + client.m_received_bytes, 4096 - client.m_received_bytes);
-  client.m_socket.async_receive(buffer, [this, id](const ErrorCode& ec, const std::size_t size) {
+  client.m_socket.async_receive(buffer, [this, id](const ErrorCode& ec, const usize size) {
     auto pos = m_clients.find(id);
     if (pos == m_clients.end()) {
       assert(false);

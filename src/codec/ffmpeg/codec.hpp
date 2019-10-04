@@ -24,7 +24,7 @@ class Codec : protected Context {
 public:
   Codec(Context context,
         Size frame_size,
-        std::size_t fps);
+        usize fps);
   Codec(const Codec&) = delete;
   Codec(Codec&& rhs) = default;
   Codec& operator=(const Codec&) = delete;
@@ -38,7 +38,7 @@ private:
   int next_pts();
   AVCodec* select_codec(ffmpeg::Options& opts,
                         Size frame_size,
-                        std::size_t fps);
+                        usize fps);
 
   struct Deleter {
     void operator()(AVCodecContext* context) {
@@ -47,15 +47,15 @@ private:
   };
 
   using AVContextPtr = std::unique_ptr<AVCodecContext, Deleter>;
-  static AVContextPtr create_context(std::size_t kbits, AVCodec* codec,
-                                     Size frame_size, std::size_t fps);
+  static AVContextPtr create_context(usize kbits, AVCodec* codec,
+                                     Size frame_size, usize fps);
 
   AVContextPtr       m_context;
   AVCodec*           m_codec; // static lifetime
   
   //TODO: implement Format::Histogram or rewrite this to Format::Count
   //metrics::Histogram m_full_delay;
-  std::uint32_t      m_frame_counter;
+  u32      m_frame_counter;
 
 };
 

@@ -1,5 +1,5 @@
 #include <array>
-#include <cstdlib> // std::size_t
+#include <cstdlib> // usize
 
 #include "context.hpp"
 #include "net/sender.hpp"
@@ -54,9 +54,9 @@ private:
 
   State m_state;
 
-  using U32LE = std::array<std::uint8_t, 4>;
+  using U32LE = std::array<u8, 4>;
   U32LE m_length;
-  std::size_t m_bytes_sent;
+  usize m_bytes_sent;
 };
 
 }

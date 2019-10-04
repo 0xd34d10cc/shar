@@ -5,8 +5,6 @@
 #include "mocks.hpp"
 #else
 
-#include <cstdint>
-
 #include "disable_warnings_push.hpp"
 #include <asio/io_context.hpp>
 #include <asio/ip/address.hpp>
@@ -17,19 +15,20 @@
 #include "disable_warnings_pop.hpp"
 
 #include "error_or.hpp"
+#include "int.hpp"
 
 
 namespace shar::net {
 
 using IpAddress = asio::ip::address;
 using IPv4 = asio::ip::address_v4;
-using Port = std::uint16_t;
+using Port = u16;
 
 using IOContext = asio::io_context;
 using Timer = asio::steady_timer;
 
-inline auto span(const void* data, std::size_t size) { return asio::buffer(data, size); }
-inline auto span(void* data, std::size_t size) { return asio::buffer(data, size); }
+inline auto span(const void* data, usize size) { return asio::buffer(data, size); }
+inline auto span(void* data, usize size) { return asio::buffer(data, size); }
 
 namespace udp {
   using Protocol = asio::ip::udp;

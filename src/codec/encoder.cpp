@@ -3,7 +3,7 @@
 
 namespace shar::codec {
 
-Encoder::Encoder(Context context, Size frame_size, std::size_t fps)
+Encoder::Encoder(Context context, Size frame_size, usize fps)
   : Context(context)
   , m_codec(std::move(context), frame_size, fps) {
 }

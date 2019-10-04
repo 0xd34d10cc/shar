@@ -24,7 +24,7 @@ using CaptureManagerPtr = std::shared_ptr<sc::IScreenCaptureManager>;
 namespace shar {
 
 struct BGRAFrame {
-  std::unique_ptr<std::uint8_t[]> data{ nullptr };
+  std::unique_ptr<u8[]> data{ nullptr };
   Size size{ Size::empty() };
 };
 

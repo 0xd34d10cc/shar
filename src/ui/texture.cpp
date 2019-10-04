@@ -43,14 +43,14 @@ void Texture::unbind() noexcept {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::set(Size size, const std::uint8_t* data) noexcept {
+void Texture::set(Size size, const u8* data) noexcept {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()), 0,
                GL_BGRA, GL_UNSIGNED_BYTE, data);
 }
 
 void Texture::update(Point offset, Size size,
-                     const std::uint8_t* data) noexcept {
+                     const u8* data) noexcept {
   glTexSubImage2D(GL_TEXTURE_2D, 0,
                   static_cast<GLint>(offset.x), static_cast<GLint>(offset.y),
                   static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()),

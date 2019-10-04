@@ -13,11 +13,11 @@ Request::Request() {
 }
 
 stun::Message::Transaction Request::generate_id() {
-  std::uniform_int_distribution<std::uint32_t> dist;
+  std::uniform_int_distribution<u32> dist;
   stun::Message::Transaction id;
 
-  for (std::size_t i = 0; i < id.size(); ++i) {
-    id[i] = static_cast<std::uint8_t>(dist(m_gen));
+  for (usize i = 0; i < id.size(); ++i) {
+    id[i] = static_cast<u8>(dist(m_gen));
   }
 
   return id;
@@ -27,7 +27,7 @@ ErrorCode Request::send(udp::Socket& socket, udp::Endpoint server_address) {
   assert(!m_id.has_value());
   auto id = generate_id();
 
-  std::array<std::uint8_t, stun::Message::MIN_SIZE> buffer;
+  std::array<u8, stun::Message::MIN_SIZE> buffer;
   stun::Message request{ buffer.data(), buffer.size() };
   request.set_message_type(0x01); // request
   request.set_length(0);          // no attributes
@@ -58,14 +58,14 @@ ErrorOr<udp::Endpoint> Request::process_response(stun::Message& response) {
     FAIL(stun::Error::RequestFailed);
   }
 
-  const auto to_endpoint = [](std::uint32_t ip, std::uint16_t port) {
+  const auto to_endpoint = [](u32 ip, u16 port) {
     return udp::Endpoint{
       IpAddress{
         IPv4({
-          static_cast<std::uint8_t>(ip >> 24),
-          static_cast<std::uint8_t>(ip >> 16),
-          static_cast<std::uint8_t>(ip >> 8),
-          static_cast<std::uint8_t>(ip >> 0)
+          static_cast<u8>(ip >> 24),
+          static_cast<u8>(ip >> 16),
+          static_cast<u8>(ip >> 8),
+          static_cast<u8>(ip >> 0)
         })
       },
       Port{ port }
@@ -77,26 +77,26 @@ ErrorOr<udp::Endpoint> Request::process_response(stun::Message& response) {
   std::optional<udp::Endpoint> endpoint;
   while (attributes.read(attribute)) {
     if (attribute.type == 0x0001 /* MAPPED_ADDRESS */) {
-      std::uint8_t family = attribute.data[1];
+      u8 family = attribute.data[1];
       if (family != 1 /* IPv4 */) {
         continue;
       }
 
-      std::uint16_t port = shar::read_u16_big_endian(attribute.data + 2);
-      std::uint32_t ip = shar::read_u32_big_endian(attribute.data + 4);
+      u16 port = shar::read_u16_big_endian(attribute.data + 2);
+      u32 ip = shar::read_u32_big_endian(attribute.data + 4);
       endpoint = to_endpoint(ip, port);
 
     }
     else if (attribute.type == 0x0020 /* XOR_MAPPED_ADDRESS_TYPE */) {
-      // std::uint8_t reserved = attribute.data[0];
-      std::uint8_t family = attribute.data[1];
+      // u8 reserved = attribute.data[0];
+      u8 family = attribute.data[1];
       if (family != 1 /* IPv4 */) {
         continue;
       }
 
-      std::uint16_t port = shar::read_u16_big_endian(attribute.data + 2)
-        ^ static_cast<std::uint16_t>(stun::Message::MAGIC >> 16);
-      std::uint32_t ip = shar::read_u32_big_endian(attribute.data + 4) ^ stun::Message::MAGIC;
+      u16 port = shar::read_u16_big_endian(attribute.data + 2)
+        ^ static_cast<u16>(stun::Message::MAGIC >> 16);
+      u32 ip = shar::read_u32_big_endian(attribute.data + 4) ^ stun::Message::MAGIC;
       endpoint = to_endpoint(ip, port);
     }
   }

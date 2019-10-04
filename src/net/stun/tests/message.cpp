@@ -9,6 +9,7 @@
 #include "net/stun/attributes.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 TEST(stun, invalid) {
@@ -20,7 +21,7 @@ TEST(stun, invalid) {
 }
 
 TEST(stun, empty) {
-  std::array<std::uint8_t, stun::Message::MIN_SIZE> buffer{};
+  std::array<u8, stun::Message::MIN_SIZE> buffer{};
   stun::Message message{buffer.data(), buffer.size()};
 
   EXPECT_TRUE(message.valid());
@@ -31,7 +32,7 @@ TEST(stun, empty) {
 }
 
 TEST(stun, set_fields) {
-  std::array<std::uint8_t, stun::Message::MIN_SIZE + 8> buffer{};
+  std::array<u8, stun::Message::MIN_SIZE + 8> buffer{};
   stun::Message message{ buffer.data(), buffer.size() };
   stun::Message::Transaction id{
     0xd3, 0x4d, 0x10, 0xcc,
@@ -59,9 +60,9 @@ TEST(stun, deserialize_request) {
     "\x8f\x37\x3e\x3a"\
     "\x4e\xb8\x9f\x65";
 
-  std::array<std::uint8_t, 20> buffer;
-  std::copy(reinterpret_cast<const std::uint8_t*>(data),
-            reinterpret_cast<const std::uint8_t*>(data) + 20,
+  std::array<u8, 20> buffer;
+  std::copy(reinterpret_cast<const u8*>(data),
+            reinterpret_cast<const u8*>(data) + 20,
             buffer.data());
   stun::Message message{ buffer.data(), buffer.size() };
 
@@ -86,9 +87,9 @@ TEST(stun, deserialize_response) {
     "\x00\x01\x8c\x8e"\
     "\xd3\x4d\x10\xcc";
 
-  std::array<std::uint8_t, 32> buffer;
-  std::copy(reinterpret_cast<const std::uint8_t*>(data),
-            reinterpret_cast<const std::uint8_t*>(data) + 32,
+  std::array<u8, 32> buffer;
+  std::copy(reinterpret_cast<const u8*>(data),
+            reinterpret_cast<const u8*>(data) + 32,
             buffer.data());
 
   stun::Message message{ buffer.data(), buffer.size() };
@@ -108,9 +109,9 @@ TEST(stun, deserialize_response) {
   EXPECT_EQ(attribute.type, 0x0020 /* XOR-MAPPED_ADDRESS */);
   EXPECT_EQ(attribute.length, 8);
 
-  std::uint16_t port = shar::read_u16_big_endian(attribute.data + 2)
-    ^ static_cast<std::uint16_t>(stun::Message::MAGIC >> 16);
-  std::uint32_t ip = shar::read_u32_big_endian(attribute.data + 4);
+  u16 port = shar::read_u16_big_endian(attribute.data + 2)
+    ^ static_cast<u16>(stun::Message::MAGIC >> 16);
+  u32 ip = shar::read_u32_big_endian(attribute.data + 4);
   EXPECT_EQ(44444, port);
   EXPECT_EQ(0xd34d10cc, ip);
 }

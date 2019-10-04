@@ -29,11 +29,11 @@ struct Request {
   ErrorOr<usize> parse(Bytes bytes);
 
   // returns false if destination buffer overflows
-  ErrorOr<bool> serialize(unsigned char* destination, std::size_t);
+  ErrorOr<bool> serialize(unsigned char* destination, usize);
 
   std::optional<Type> m_type;
   std::optional<Bytes> m_address;
-  std::optional<std::uint8_t> m_version;
+  std::optional<u8> m_version;
 
   Headers m_headers;
 };

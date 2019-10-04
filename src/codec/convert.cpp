@@ -3,34 +3,34 @@
 
 namespace shar::codec {
 
-static Slice alloc(std::size_t size) {
-  return {std::make_unique<std::uint8_t[]>(size), size};
+static Slice alloc(usize size) {
+  return {std::make_unique<u8[]>(size), size};
 }
 
 
 YUVImage bgra_to_yuv420(const char* data, Size size) {
   Slice buffer = alloc(size.total_pixels() + size.total_pixels() / 2);
 
-  std::uint8_t* ys = buffer.data.get();
-  std::size_t ys_size = size.total_pixels();
+  u8* ys = buffer.data.get();
+  usize ys_size = size.total_pixels();
 
-  std::uint8_t* us = ys + ys_size;
-  std::size_t us_size = size.total_pixels() / 4;
+  u8* us = ys + ys_size;
+  usize us_size = size.total_pixels() / 4;
 
-  std::uint8_t* vs = us + us_size;
-  std::size_t vs_size = us_size;
+  u8* vs = us + us_size;
+  usize vs_size = us_size;
 
   const auto luma = [](uint8_t r, uint8_t g, uint8_t b) {
     return static_cast<uint8_t >(((66 * r + 129 * g + 25 * b) >> 8) + 16);
   };
 
-  const std::uint8_t* raw_image = reinterpret_cast<const std::uint8_t*>(data);
-  std::size_t i  = 0;
-  std::size_t ui = 0;
+  const u8* raw_image = reinterpret_cast<const u8*>(data);
+  usize i  = 0;
+  usize ui = 0;
 
-  for (std::size_t line = 0; line < size.height(); ++line) {
+  for (usize line = 0; line < size.height(); ++line) {
     if (line % 2 == 0) {
-      for (std::size_t x = 0; x < size.width(); x += 2) {
+      for (usize x = 0; x < size.width(); x += 2) {
         uint8_t r = raw_image[4 * i + 2];
         uint8_t g = raw_image[4 * i + 1];
         uint8_t b = raw_image[4 * i];
@@ -84,20 +84,20 @@ static T clamp(T v, T lo, T hi) {
                   v;
 }
 
-Slice yuv420_to_bgra(const std::uint8_t* ys,
-                     const std::uint8_t* us,
-                     const std::uint8_t* vs,
-                     std::size_t height, std::size_t width,
-                     std::size_t y_pad, std::size_t uv_pad) {
+Slice yuv420_to_bgra(const u8* ys,
+                     const u8* us,
+                     const u8* vs,
+                     usize height, usize width,
+                     usize y_pad, usize uv_pad) {
 
-  std::size_t y_width = width + y_pad;
-  std::size_t u_width = width / 2 + uv_pad;
-  std::size_t i       = 0;
+  usize y_width = width + y_pad;
+  usize u_width = width / 2 + uv_pad;
+  usize i       = 0;
 
   auto bgra = alloc(height * width * 4);
 
-  for (std::size_t line = 0; line < height; ++line) {
-    for (std::size_t coll = 0; coll < width; ++coll) {
+  for (usize line = 0; line < height; ++line) {
+    for (usize coll = 0; coll < width; ++coll) {
 
       uint8_t y = ys[line * y_width + coll];
       uint8_t u = us[(line / 2) * u_width + (coll / 2)];

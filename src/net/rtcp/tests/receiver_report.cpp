@@ -8,10 +8,11 @@
 #include "net/rtcp/receiver_report.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 TEST(rtcp_receiver_report, empty) {
-  std::array<std::uint8_t, rtcp::ReceiverReport::MIN_SIZE> buffer{};
+  std::array<u8, rtcp::ReceiverReport::MIN_SIZE> buffer{};
   rtcp::ReceiverReport report{buffer.data(), buffer.size()};
   report.set_packet_type(rtcp::PacketType::RECEIVER_REPORT);
   report.set_length(rtcp::ReceiverReport::NWORDS - 1);
@@ -25,7 +26,7 @@ TEST(rtcp_receiver_report, empty) {
 
 TEST(rtcp_receiver_report, deserialize) {
   // copy-pasted from wireshark
-  const std::size_t size = 40;
+  const usize size = 40;
   const char* data =
     // first packet, receiver report
     "\x80\xc9\x00\x01\xe6\x91\xb6\xa9"\
@@ -34,9 +35,9 @@ TEST(rtcp_receiver_report, deserialize) {
     "\x50\x31\x2e\x30\x2e\x30\x40\x73\x6f\x6d\x65\x77\x68\x65\x72\x65" \
     "\x00\x00";
 
-  std::vector<std::uint8_t> buffer {
-      reinterpret_cast<const std::uint8_t*>(data),
-      reinterpret_cast<const std::uint8_t*>(data) + size
+  std::vector<u8> buffer {
+      reinterpret_cast<const u8*>(data),
+      reinterpret_cast<const u8*>(data) + size
   };
 
   rtcp::Header header{buffer.data(), buffer.size()};

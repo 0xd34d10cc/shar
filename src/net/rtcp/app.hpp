@@ -22,11 +22,11 @@ namespace shar::net::rtcp {
 //    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class App: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS + 2;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = Header::NWORDS + 2;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   App() noexcept = default;
-  App(std::uint8_t* data, std::size_t size) noexcept;
+  App(u8* data, usize size) noexcept;
   App(const App&) noexcept = default;
   App(App&&) noexcept = default;
   App& operator=(const App&) noexcept = default;
@@ -38,15 +38,15 @@ public:
   // SSRC: 32 bits
   //  The synchronization source identifier for the
   //  originator of this packet.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
+  u32 stream_id() const noexcept;
+  void set_stream_id(u32 stream_id) noexcept;
 
   // subtype: 5 bits
   //  May be used as a subtype to allow a set of APP packets to be
   //  defined under one unique name, or for any application-dependent
   //  data.
-  std::uint8_t subtype() const noexcept;
-  void set_subtype(std::uint8_t subtype) noexcept;
+  u8 subtype() const noexcept;
+  void set_subtype(u8 subtype) noexcept;
 
   // name: 4 octets
   //  A name chosen by the person defining the set of APP packets to be
@@ -59,15 +59,15 @@ public:
   //  of the name within that entity.  The name is interpreted as a
   //  sequence of four ASCII characters, with uppercase and lowercase
   //  characters treated as distinct.
-  std::array<std::uint8_t, 4> name() const noexcept;
-  void set_name(std::array<std::uint8_t, 4> name) noexcept;
+  std::array<u8, 4> name() const noexcept;
+  void set_name(std::array<u8, 4> name) noexcept;
 
   // application-dependent data: variable length
   //  Application-dependent data may or may not appear in an APP packet.
   //  It is interpreted by the application and not RTP itself.  It MUST
   //  be a multiple of 32 bits long.
-  std::uint8_t* payload() noexcept;
-  std::uint8_t payload_size() const noexcept;
+  u8* payload() noexcept;
+  u8 payload_size() const noexcept;
 };
 
 }

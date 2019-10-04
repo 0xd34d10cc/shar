@@ -7,7 +7,7 @@
 
 namespace shar::net::rtcp {
 
-SenderReport::SenderReport(std::uint8_t* data, std::size_t size) noexcept
+SenderReport::SenderReport(u8* data, usize size) noexcept
   : Header(data, size)
   {}
 
@@ -18,64 +18,64 @@ bool SenderReport::valid() const noexcept {
          packet_type() == PacketType::SENDER_REPORT;
 }
 
-std::uint32_t SenderReport::stream_id() const noexcept {
+u32 SenderReport::stream_id() const noexcept {
   assert(valid());
   return read_u32_big_endian(m_data + Header::MIN_SIZE);
 }
 
-void SenderReport::set_stream_id(std::uint32_t stream_id) noexcept {
+void SenderReport::set_stream_id(u32 stream_id) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(stream_id);
   std::memcpy(m_data + Header::MIN_SIZE, bytes.data(), bytes.size());
 }
 
-std::uint64_t SenderReport::ntp_timestamp() const noexcept {
+u64 SenderReport::ntp_timestamp() const noexcept {
   assert(valid());
   return read_u64_big_endian(m_data + Header::MIN_SIZE + 4);
 }
 
-void SenderReport::set_ntp_timestamp(std::uint64_t timestamp) noexcept {
+void SenderReport::set_ntp_timestamp(u64 timestamp) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(timestamp);
   std::memcpy(m_data + Header::MIN_SIZE + 4, bytes.data(), bytes.size());
 }
 
-std::uint32_t SenderReport::rtp_timestamp() const noexcept {
+u32 SenderReport::rtp_timestamp() const noexcept {
   assert(valid());
   return read_u32_big_endian(m_data + Header::MIN_SIZE + 12);
 }
 
-void SenderReport::set_rtp_timestamp(std::uint32_t timestamp) noexcept {
+void SenderReport::set_rtp_timestamp(u32 timestamp) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(timestamp);
   std::memcpy(m_data + Header::MIN_SIZE + 12, bytes.data(), bytes.size());
 }
 
-std::uint32_t SenderReport::npackets() const noexcept {
+u32 SenderReport::npackets() const noexcept {
   assert(valid());
   return read_u32_big_endian(m_data + Header::MIN_SIZE + 16);
 }
 
-void SenderReport::set_npackets(std::uint32_t npackets) noexcept {
+void SenderReport::set_npackets(u32 npackets) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(npackets);
   std::memcpy(m_data + Header::MIN_SIZE + 16, bytes.data(), bytes.size());
 }
 
-std::uint32_t SenderReport::nbytes() const noexcept {
+u32 SenderReport::nbytes() const noexcept {
   assert(valid());
   return read_u32_big_endian(m_data + Header::MIN_SIZE + 20);
 }
 
-void SenderReport::set_nbytes(std::uint32_t nbytes) noexcept {
+void SenderReport::set_nbytes(u32 nbytes) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(nbytes);
   std::memcpy(m_data + Header::MIN_SIZE + 20, bytes.data(), bytes.size());
 }
 
-Block SenderReport::block(std::size_t index) noexcept {
+Block SenderReport::block(usize index) noexcept {
   assert(valid());
-  std::size_t offset = SenderReport::MIN_SIZE + Block::MIN_SIZE * index;
+  usize offset = SenderReport::MIN_SIZE + Block::MIN_SIZE * index;
   if (offset + Block::MIN_SIZE > m_size) {
     return Block{};
   }

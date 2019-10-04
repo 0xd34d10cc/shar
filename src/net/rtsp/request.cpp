@@ -11,7 +11,7 @@ namespace shar::net::rtsp {
 
 Request::Request(Headers headers) : m_headers(std::move(headers)) {}
 
-static ErrorOr<Request::Type> parse_type(const char* begin, std::size_t size) {
+static ErrorOr<Request::Type> parse_type(const char* begin, usize size) {
   /*
   static std::array<std::pair<BytesRef, Request::Type>, 11> types{
     {"OPTIONS"_b,  Request::Type::OPTIONS},
@@ -73,14 +73,14 @@ static bool is_valid_address(Bytes address) {
   return true;
 }
 
-ErrorOr<std::size_t> Request::parse(Bytes bytes) {
+ErrorOr<usize> Request::parse(Bytes bytes) {
   const char* current = bytes.char_ptr();
   const char* begin = current;
   const char* end = current + bytes.len();
 
   const char* type_end = std::find(current, end, ' ');
 
-  std::size_t type_size = type_end - current;
+  usize type_size = type_end - current;
   auto type = parse_type(current, type_size);
   TRY(type);
   if(type_end == end) {
@@ -123,7 +123,7 @@ ErrorOr<std::size_t> Request::parse(Bytes bytes) {
   auto headers_len = parse_headers(current, end-current, m_headers);
   TRY(headers_len);
 
-  std::size_t request_line_size = current - begin;
+  usize request_line_size = current - begin;
   return request_line_size + *headers_len;
 }
 
@@ -157,7 +157,7 @@ static Bytes type_to_string(Request::Type type) {
   }
 }
 
-ErrorOr<bool> Request::serialize(unsigned char* dst, std::size_t size) {
+ErrorOr<bool> Request::serialize(unsigned char* dst, usize size) {
   assert(m_type.has_value() || m_address.has_value() || m_version.has_value());
 
   Serializer serializer(reinterpret_cast<char*>(dst), size);
@@ -171,7 +171,7 @@ ErrorOr<bool> Request::serialize(unsigned char* dst, std::size_t size) {
   //serialize version
   TRY_SERIALIZE(serializer.write("RTSP/1.0\r\n"));
   //serialize headers
-  for (std::size_t i = 0; i < m_headers.len; ++i) {
+  for (usize i = 0; i < m_headers.len; ++i) {
     TRY_SERIALIZE(serializer.write(m_headers.data[i].name));
     TRY_SERIALIZE(serializer.write(": "));
     TRY_SERIALIZE(serializer.write(m_headers.data[i].value));

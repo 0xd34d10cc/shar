@@ -2,10 +2,12 @@
 
 #include <string>
 
+#include "int.hpp"
+
 
 namespace shar::net {
 
-using Port = std::uint16_t;
+using Port = u16;
 
 enum class Protocol {
   TCP,

@@ -15,17 +15,17 @@ PacketParser::PacketParser()
     , m_remaining(4) // we need to read 4 more bytes to get length of first packet
     , m_buffer(4096, 0) {}
 
-std::vector<Unit> PacketParser::update(const Buffer& buffer, std::size_t size) {
+std::vector<Unit> PacketParser::update(const Buffer& buffer, usize size) {
   std::vector<Unit> packets;
-  std::size_t       bytes_read = 0;
+  usize       bytes_read = 0;
 
   while (bytes_read != size) {
-    std::size_t bytes_to_read = std::min(size - bytes_read, m_remaining);
+    usize bytes_to_read = std::min(size - bytes_read, m_remaining);
     switch (m_state) {
       case State::ReadingLength:
-        for (std::size_t i = 0; i < bytes_to_read; ++i) {
-          std::size_t offset = 8 * (4 - m_remaining);
-          m_packet_size |= static_cast<std::size_t>(buffer[bytes_read] << offset);
+        for (usize i = 0; i < bytes_to_read; ++i) {
+          usize offset = 8 * (4 - m_remaining);
+          m_packet_size |= static_cast<usize>(buffer[bytes_read] << offset);
           ++bytes_read;
           --m_remaining;
         }
@@ -38,7 +38,7 @@ std::vector<Unit> PacketParser::update(const Buffer& buffer, std::size_t size) {
         break;
 
       case State::ReadingContent:
-        std::size_t already_read = m_packet_size - m_remaining;
+        usize already_read = m_packet_size - m_remaining;
         if (already_read + bytes_to_read >= m_buffer.size()) {
           m_buffer.resize(already_read + bytes_to_read, 0);
         }

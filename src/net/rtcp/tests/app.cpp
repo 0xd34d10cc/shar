@@ -8,10 +8,11 @@
 #include "net/rtcp/app.hpp"
 
 
+using namespace shar;
 using namespace shar::net;
 
 TEST(rtcp_app, empty) {
-  std::array<std::uint8_t, rtcp::App::MIN_SIZE> buffer{};
+  std::array<u8, rtcp::App::MIN_SIZE> buffer{};
   rtcp::App app{buffer.data(), buffer.size()};
   app.set_packet_type(rtcp::PacketType::APP);
   app.set_length(rtcp::App::NWORDS - 1);
@@ -19,12 +20,12 @@ TEST(rtcp_app, empty) {
   EXPECT_TRUE(app.valid());
   EXPECT_EQ(app.stream_id(), 0);
   EXPECT_EQ(app.subtype(), 0);
-  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0, 0, 0, 0}));
+  EXPECT_EQ(app.name(), (std::array<u8, 4>{0, 0, 0, 0}));
   EXPECT_EQ(app.payload_size(), 0);
 }
 
 TEST(rtcp_app, set_fields) {
-  std::array<std::uint8_t, rtcp::App::MIN_SIZE + 4> buffer{};
+  std::array<u8, rtcp::App::MIN_SIZE + 4> buffer{};
   rtcp::App app{buffer.data(), buffer.size()};
 
   app.set_version(2);
@@ -40,12 +41,12 @@ TEST(rtcp_app, set_fields) {
   EXPECT_EQ(app.packet_type(), rtcp::PacketType::APP);
   EXPECT_EQ(app.length(), rtcp::App::NWORDS - 1 + 1);
   EXPECT_EQ(app.stream_id(), 0xd34d10cc);
-  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0xd3, 0x4d, 0x10, 0xcc}));
+  EXPECT_EQ(app.name(), (std::array<u8, 4>{0xd3, 0x4d, 0x10, 0xcc}));
   EXPECT_EQ(app.payload_size(), 4);
 }
 
 TEST(rtcp_app, deserialize) {
-  std::size_t size = 16;
+  usize size = 16;
   const char* data =
       // header
       "\x80\xcc\x00\x03"\
@@ -56,9 +57,9 @@ TEST(rtcp_app, deserialize) {
       // app data
       "\xab\xcd\xef\x01";
 
-  std::vector<std::uint8_t> buffer{
-    reinterpret_cast<const std::uint8_t*>(data),
-    reinterpret_cast<const std::uint8_t*>(data) + size
+  std::vector<u8> buffer{
+    reinterpret_cast<const u8*>(data),
+    reinterpret_cast<const u8*>(data) + size
   };
 
   rtcp::App app{buffer.data(), buffer.size()};
@@ -68,7 +69,7 @@ TEST(rtcp_app, deserialize) {
   EXPECT_EQ(app.packet_size(), size);
   EXPECT_EQ(app.packet_type(), rtcp::PacketType::APP);
   EXPECT_EQ(app.stream_id(), 0x42);
-  EXPECT_EQ(app.name(), (std::array<std::uint8_t, 4>{0xd3, 0x4d, 0x10, 0xcc}));
+  EXPECT_EQ(app.name(), (std::array<u8, 4>{0xd3, 0x4d, 0x10, 0xcc}));
   EXPECT_EQ(app.payload_size(), 4);
   EXPECT_EQ(app.payload()[0], 0xab);
   EXPECT_EQ(app.payload()[1], 0xcd);

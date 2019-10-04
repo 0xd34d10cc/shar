@@ -11,7 +11,7 @@ namespace shar::net::rtsp {
 class Serializer {
 
 public:
-  Serializer(char* buffer, std::size_t size);
+  Serializer(char* buffer, usize size);
 
   bool write(Bytes bytes);
   bool format(usize number);

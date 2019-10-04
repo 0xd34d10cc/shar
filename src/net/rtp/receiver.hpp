@@ -34,8 +34,8 @@ private:
   std::optional<Unit> accept(const Packet& packet, const Fragment& fragment);
 
   // metrics
-  std::size_t m_received{ 0 };
-  std::size_t m_dropped{ 0 };
+  usize m_received{ 0 };
+  usize m_dropped{ 0 };
 
   Cancellation m_running;
 
@@ -45,8 +45,8 @@ private:
 
   // rtp session state
   std::optional<udp::Endpoint> m_sender;
-  std::uint16_t m_sequence{ 0 };
-  std::uint32_t m_timestamp{ 0 }; // current timestamp
+  u16 m_sequence{ 0 };
+  u32 m_timestamp{ 0 }; // current timestamp
   bool m_drop{ true }; // true if drop occured
   Depacketizer m_depacketizer;
 };

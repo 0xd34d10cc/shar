@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <cstdlib>
+
+#include "int.hpp"
 
 
 struct AVDictionary;
@@ -15,7 +16,7 @@ public:
   Options& operator=(const Options&) = delete;
   ~Options();
 
-  std::size_t count();
+  usize count();
   bool set(const char* key, const char* value);
   AVDictionary*& get_ptr();
   std::string to_string();

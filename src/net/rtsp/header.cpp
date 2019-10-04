@@ -18,7 +18,7 @@ bool Header::empty() const noexcept {
   return name.empty() && value.empty();
 }
 
-Headers::Headers(Header* ptr, std::size_t size)
+Headers::Headers(Header* ptr, usize size)
   : data(ptr)
   , len(size)
   {}

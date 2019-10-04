@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <cstdlib> // std::size_t
+#include <cstdlib> // usize
 
 #include "context.hpp"
 #include "net/sender.hpp"
@@ -44,9 +44,9 @@ private:
     Unit       m_current_packet;
     Packetizer m_packetizer;
 
-    std::uint16_t  m_sequence;
-    std::size_t    m_bytes_sent;
-    std::size_t    m_fragments_sent;
+    u16  m_sequence;
+    usize    m_bytes_sent;
+    usize    m_fragments_sent;
 };
 
 }

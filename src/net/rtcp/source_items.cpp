@@ -7,7 +7,7 @@
 
 namespace shar::net::rtcp {
 
-SourceItems::SourceItems(std::uint8_t* data, std::size_t size) noexcept
+SourceItems::SourceItems(u8* data, usize size) noexcept
   : BytesRef(data, size)
   {}
 
@@ -17,12 +17,12 @@ bool SourceItems::valid() const noexcept {
          m_position < m_size;
 }
 
-std::uint32_t SourceItems::stream_id() const noexcept {
+u32 SourceItems::stream_id() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[0]);
 }
 
-void SourceItems::set_stream_id(std::uint32_t stream_id) noexcept {
+void SourceItems::set_stream_id(u32 stream_id) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(stream_id);
   std::memcpy(&m_data[0], bytes.data(), bytes.size());
@@ -41,46 +41,46 @@ SourceItems::Item SourceItems::next() noexcept {
   return item;
 }
 
-SourceItems::Item SourceItems::set(std::uint8_t type, std::uint8_t size) noexcept {
+SourceItems::Item SourceItems::set(u8 type, u8 size) noexcept {
   assert(valid());
   m_data[m_position] = type;
   m_data[m_position + 1] = size;
-  return Item{m_data + m_position, std::size_t{size} + 2};
+  return Item{m_data + m_position, usize{size} + 2};
 }
 
 void SourceItems::reset() noexcept {
   m_position = SourceItems::MIN_SIZE;
 }
 
-std::size_t SourceItems::position() const noexcept {
+usize SourceItems::position() const noexcept {
   return m_position;
 }
 
-SourceItems::Item::Item(std::uint8_t* data, std::size_t size) noexcept
+SourceItems::Item::Item(u8* data, usize size) noexcept
   : BytesRef(data, size)
   {}
 
-std::uint8_t SourceItems::Item::type() const noexcept {
+u8 SourceItems::Item::type() const noexcept {
   return m_data[0];
 }
 
-void SourceItems::Item::set_type(std::uint8_t type) noexcept {
+void SourceItems::Item::set_type(u8 type) noexcept {
   m_data[0] = type;
 }
 
-std::uint8_t SourceItems::Item::length() const noexcept {
+u8 SourceItems::Item::length() const noexcept {
   return m_data[1];
 }
 
-void SourceItems::Item::set_length(std::uint8_t len) noexcept {
+void SourceItems::Item::set_length(u8 len) noexcept {
   m_data[1] = len;
 }
 
-std::uint8_t* SourceItems::Item::data() noexcept {
+u8* SourceItems::Item::data() noexcept {
   return m_data + 2;
 }
 
-const std::uint8_t* SourceItems::Item::data() const noexcept {
+const u8* SourceItems::Item::data() const noexcept {
   return m_data + 2;
 }
 

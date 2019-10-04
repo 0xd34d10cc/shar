@@ -8,25 +8,25 @@
 
 namespace shar::codec {
 
-using Bytes = std::unique_ptr<std::uint8_t[]>;
+using Bytes = std::unique_ptr<u8[]>;
 
 struct Slice {
   Bytes       data{ nullptr };
-  std::size_t size{ 0 };
+  usize size{ 0 };
 };
 
 struct YUVImage: Slice {
-  std::size_t y_size{ 0 };
-  std::size_t u_size{ 0 };
-  std::size_t v_size{ 0 };
+  usize y_size{ 0 };
+  usize u_size{ 0 };
+  usize v_size{ 0 };
 };
 
 
-Slice yuv420_to_bgra(const std::uint8_t* ys,
-                     const std::uint8_t* us,
-                     const std::uint8_t* vs,
-                     std::size_t height, std::size_t width,
-                     std::size_t y_pad, std::size_t uv_pad);
+Slice yuv420_to_bgra(const u8* ys,
+                     const u8* us,
+                     const u8* vs,
+                     usize height, usize width,
+                     usize y_pad, usize uv_pad);
 
 
 YUVImage bgra_to_yuv420(const char* data, Size size);

@@ -24,7 +24,7 @@ public:
 private:
   void start_read();
 
-  using Buffer = std::vector<std::uint8_t>;
+  using Buffer = std::vector<u8>;
 
   // NOTE: only valid inside run() call
   Sender<codec::ffmpeg::Unit>* m_sender{ nullptr };

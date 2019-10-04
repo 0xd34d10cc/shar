@@ -5,9 +5,9 @@
 
 namespace shar::net::rtp {
 
-static const std::uint8_t PACKET_TYPE_FU_A = 28;
+static const u8 PACKET_TYPE_FU_A = 28;
 
-Packetizer::Packetizer(std::uint16_t mtu) noexcept
+Packetizer::Packetizer(u16 mtu) noexcept
   : m_mtu(mtu)
 {}
 
@@ -18,7 +18,7 @@ bool Packetizer::valid() const noexcept {
          m_nal_start <= m_position && m_position <= m_nal_end;
 }
 
-void Packetizer::set(std::uint8_t* data, std::size_t size) noexcept {
+void Packetizer::set(u8* data, usize size) noexcept {
   m_data = data;
   m_size = size;
 
@@ -48,7 +48,7 @@ Fragment Packetizer::next() noexcept {
     return Fragment{start - 1, 2};
   }
 
-  std::uint8_t* start = next_fragment();
+  u8* start = next_fragment();
   if (start == nullptr) {
     return Fragment();
   }
@@ -75,13 +75,13 @@ Fragment Packetizer::next() noexcept {
   //
   // ...with that covered, it is up to reader to understand the
   //  reasons behind magic offsets in code below
-  std::uint8_t first = start == m_nal_start ? 1 : 0;
-  std::uint8_t nri = *(m_nal_start - 1 + first) & Fragment::NRI_MASK;
-  std::uint8_t nal_type = *m_nal_start & Fragment::NAL_TYPE_MASK;
+  u8 first = start == m_nal_start ? 1 : 0;
+  u8 nri = *(m_nal_start - 1 + first) & Fragment::NRI_MASK;
+  u8 nal_type = *m_nal_start & Fragment::NAL_TYPE_MASK;
 
-  std::uint8_t last = 0;
+  u8 last = 0;
 
-  std::uint8_t* end = start - 2 + first + m_mtu;
+  u8* end = start - 2 + first + m_mtu;
   if (end >= m_nal_end) {
     end = m_nal_end;
 
@@ -95,20 +95,20 @@ Fragment Packetizer::next() noexcept {
     }
   }
 
-  std::uint8_t indicator = nri | PACKET_TYPE_FU_A;
-  std::uint8_t header = static_cast<std::uint8_t>(first << std::uint8_t{7}) |
-                        static_cast<std::uint8_t>(last << std::uint8_t{6}) |
+  u8 indicator = nri | PACKET_TYPE_FU_A;
+  u8 header = static_cast<u8>(first << u8{7}) |
+                        static_cast<u8>(last << u8{6}) |
                         nal_type;
 
-  std::uint8_t* fragment = start - 2 + first;
+  u8* fragment = start - 2 + first;
   fragment[0] = indicator;
   fragment[1] = header;
 
   m_position = end;
-  return Fragment{fragment, static_cast<std::size_t>(end - fragment)};
+  return Fragment{fragment, static_cast<usize>(end - fragment)};
 }
 
-std::uint8_t* Packetizer::next_fragment() noexcept {
+u8* Packetizer::next_fragment() noexcept {
   if (m_position == m_nal_end) {
     if (!next_nal()) {
       return nullptr;
@@ -118,12 +118,12 @@ std::uint8_t* Packetizer::next_fragment() noexcept {
 }
 
 bool Packetizer::next_nal() noexcept {
-  std::uint8_t* data_end = m_data + m_size;
+  u8* data_end = m_data + m_size;
   if (m_nal_end == data_end) {
     return false;
   }
 
-  std::uint8_t* start = m_nal_end;
+  u8* start = m_nal_end;
 
   // skip pattern
   while ((start < data_end) && *start == 0) {
@@ -137,7 +137,7 @@ bool Packetizer::next_nal() noexcept {
   ++start; // skip 0x01
 
   // find 0x00 0x00 0x01 pattern
-  std::uint8_t* end = start;
+  u8* end = start;
   while (end + 2 < data_end && (end[0] != 0 || end[1] != 0 || end[2] != 1)) {
     ++end;
   }

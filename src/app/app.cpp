@@ -18,7 +18,7 @@ namespace shar {
 
 namespace fs = std::filesystem;
 
-static const std::size_t HEADER_SIZE = 30;
+static const usize HEADER_SIZE = 30;
 
 static Context make_context(Config c) {
   auto config = std::make_shared<Config>(std::move(c));
@@ -235,12 +235,12 @@ std::optional<StreamState> App::update_config() {
 void App::render_background() {
   const auto win_size = m_window.display_size();
   // TODO: unhardcode
-  const std::size_t height_ratio = 9;
-  const std::size_t width_ratio = 16;
-  const std::size_t max_height = win_size.height() - HEADER_SIZE;
+  const usize height_ratio = 9;
+  const usize width_ratio = 16;
+  const usize max_height = win_size.height() - HEADER_SIZE;
 
-  std::size_t w = win_size.width();
-  std::size_t h = (w * height_ratio / width_ratio);
+  usize w = win_size.width();
+  usize h = (w * height_ratio / width_ratio);
   const bool bounded_by_height = h > max_height;
   if (bounded_by_height) {
     h = max_height;

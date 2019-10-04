@@ -8,6 +8,8 @@
 #include <atomic>
 #include <cassert>
 
+#include "int.hpp"
+
 
 namespace shar {
 
@@ -18,11 +20,11 @@ template<typename T>
 struct Buffer {
   std::unique_ptr<std::optional<T>[]> ptr;
 
-  std::size_t start{0};
-  std::size_t size{0};
-  std::size_t capacity{0};
+  usize start{0};
+  usize size{0};
+  usize capacity{0};
 
-  static Buffer with_capacity(std::size_t capacity) {
+  static Buffer with_capacity(usize capacity) {
     Buffer buffer;
     buffer.ptr      = std::make_unique<std::optional<T>[]>(capacity);
     buffer.start    = 0;
@@ -43,7 +45,7 @@ struct Buffer {
   void push(T value) {
     assert(!full());
 
-    std::size_t end = (start + size) % capacity;
+    usize end = (start + size) % capacity;
     ptr[end] = std::move(value);
     size += 1;
   }
@@ -201,7 +203,7 @@ private:
 };
 
 template<typename T>
-inline static std::pair<Sender<T>, Receiver<T>> channel(std::size_t capacity) {
+inline static std::pair<Sender<T>, Receiver<T>> channel(usize capacity) {
   using detail::Buffer;
   using detail::State;
 

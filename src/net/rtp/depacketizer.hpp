@@ -10,7 +10,7 @@ namespace shar::net::rtp {
 
 class Depacketizer {
 public:
-  using Buffer = std::vector<std::uint8_t>;
+  using Buffer = std::vector<u8>;
 
   Depacketizer() = default;
 

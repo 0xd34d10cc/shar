@@ -40,8 +40,8 @@ static codec::Encoder create_encoder(Context context, const sc::Monitor& monitor
   return codec::Encoder{
     std::move(context),
     Size{
-      static_cast<std::size_t>(monitor.Height),
-      static_cast<std::size_t>(monitor.Width)
+      static_cast<usize>(monitor.Height),
+      static_cast<usize>(monitor.Width)
     },
     fps
   };

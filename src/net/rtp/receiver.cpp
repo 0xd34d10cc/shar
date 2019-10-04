@@ -7,7 +7,7 @@
 
 namespace shar::net::rtp {
 
-static const std::uint16_t MAX_MTU = 2048;
+static const u16 MAX_MTU = 2048;
 
 Receiver::Receiver(Context context, IpAddress ip, Port port)
   : Context(std::move(context))
@@ -26,8 +26,8 @@ void Receiver::run(Output units) {
   }
 
   auto last_report_time = Clock::now();
-  std::size_t total_received = 0;
-  std::size_t total_dropped = 0;
+  usize total_received = 0;
+  usize total_dropped = 0;
 
   while (!m_running.expired() && units.connected()) {
     if (auto unit = receive()) {
@@ -108,12 +108,12 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
 }
 
 std::optional<Unit> Receiver::receive() {
-  static const std::size_t HEADER_SIZE = rtp::Packet::MIN_SIZE;
-  std::array<std::uint8_t, MAX_MTU + HEADER_SIZE> buffer;
+  static const usize HEADER_SIZE = rtp::Packet::MIN_SIZE;
+  std::array<u8, MAX_MTU + HEADER_SIZE> buffer;
 
   udp::Endpoint endpoint;
   ErrorCode ec;
-  std::size_t n = m_socket.receive_from(
+  usize n = m_socket.receive_from(
     span(buffer.data(), buffer.size()),
     endpoint,
     0 /* flags */, ec

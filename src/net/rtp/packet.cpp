@@ -42,23 +42,23 @@ bool Packet::valid() const noexcept {
   return (m_data != nullptr) &&
          (m_size >= MIN_SIZE) &&
          // NOTE: this check is required only for contributors() method
-         is_aligned<std::uint32_t>(m_data);
+         is_aligned<u32>(m_data);
 }
 
-const std::uint8_t* Packet::data() const noexcept {
+const u8* Packet::data() const noexcept {
   return m_data;
 }
 
-std::size_t Packet::size() const noexcept {
+usize Packet::size() const noexcept {
   return m_size;
 }
 
-std::uint8_t Packet::version() const noexcept {
+u8 Packet::version() const noexcept {
   assert(valid());
   return m_data[0] >> 6;
 }
 
-void Packet::set_version(std::uint8_t version) noexcept {
+void Packet::set_version(u8 version) noexcept {
   assert(valid());
   assert(version < 4);
   m_data[0] &= 0b111111; // reset top 2 bits
@@ -73,9 +73,9 @@ bool Packet::has_padding() const noexcept {
 void Packet::set_has_padding(bool has_padding) noexcept {
   assert(valid());
   if (has_padding) {
-    m_data[0] |= std::uint8_t{1 << 5};
+    m_data[0] |= u8{1 << 5};
   } else {
-    m_data[0] &= ~std::uint8_t{1 << 5};
+    m_data[0] &= ~u8{1 << 5};
   }
 }
 
@@ -87,18 +87,18 @@ bool Packet::has_extensions() const noexcept {
 void Packet::set_has_extensions(bool has_extensions) noexcept {
   assert(valid());
   if (has_extensions) {
-    m_data[0] |= std::uint8_t{1 << 4};
+    m_data[0] |= u8{1 << 4};
   } else {
-    m_data[0] &= ~std::uint8_t{1 << 4};
+    m_data[0] &= ~u8{1 << 4};
   }
 }
 
-std::uint8_t Packet::contributors_count() const noexcept {
+u8 Packet::contributors_count() const noexcept {
   assert(valid());
   return m_data[0] & 0b1111;
 }
 
-void Packet::set_contributors_count(std::uint8_t cc) noexcept {
+void Packet::set_contributors_count(u8 cc) noexcept {
   assert(valid());
   assert(cc < 16);
   m_data[0] &= 0b11110000;
@@ -113,73 +113,73 @@ bool Packet::marked() const noexcept {
 void Packet::set_marked(bool mark) noexcept {
   assert(valid());
   if (mark) {
-    m_data[1] |= std::uint8_t{1 << 7};
+    m_data[1] |= u8{1 << 7};
   } else {
-    m_data[1] &= ~std::uint8_t{1 << 7};
+    m_data[1] &= ~u8{1 << 7};
   }
 }
 
-std::uint8_t Packet::payload_type() const noexcept {
+u8 Packet::payload_type() const noexcept {
   assert(valid());
   return m_data[1] & 0b1111111;
 }
 
-void Packet::set_payload_type(std::uint8_t type) noexcept {
+void Packet::set_payload_type(u8 type) noexcept {
   assert(valid());
   assert(type < 128);
   m_data[1] &= 0b10000000;
   m_data[1] |= type;
 }
 
-std::uint16_t Packet::sequence() const noexcept {
+u16 Packet::sequence() const noexcept {
   assert(valid());
   return read_u16_big_endian(&m_data[2]);
 }
 
-void Packet::set_sequence(std::uint16_t seq) noexcept {
+void Packet::set_sequence(u16 seq) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(seq);
   std::memcpy(&m_data[2], bytes.data(), bytes.size());
 }
 
-std::uint32_t Packet::timestamp() const noexcept {
+u32 Packet::timestamp() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[4]);
 }
 
-void Packet::set_timestamp(std::uint32_t t) noexcept {
+void Packet::set_timestamp(u32 t) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(t);
   std::memcpy(&m_data[4], bytes.data(), bytes.size());
 }
 
-std::uint32_t Packet::stream_id() const noexcept {
+u32 Packet::stream_id() const noexcept {
   assert(valid());
   return read_u32_big_endian(&m_data[8]);
 }
 
-void Packet::set_stream_id(std::uint32_t id) noexcept {
+void Packet::set_stream_id(u32 id) noexcept {
   assert(valid());
   const auto bytes = to_big_endian(id);
   std::memcpy(&m_data[8], bytes.data(), bytes.size());
 }
 
-std::uint32_t* Packet::contributors() noexcept {
+u32* Packet::contributors() noexcept {
   assert(valid());
   auto *ptr = m_data + MIN_SIZE;
-  return reinterpret_cast<std::uint32_t *>(ptr);
+  return reinterpret_cast<u32 *>(ptr);
 }
 
-std::size_t Packet::payload_size() const noexcept {
+usize Packet::payload_size() const noexcept {
   assert(valid());
   return m_size - MIN_SIZE;
 }
 
 // FIXME: this implementation assumes that has_extensions() is always false
-std::uint8_t* Packet::payload() noexcept {
+u8* Packet::payload() noexcept {
   assert(valid());
   return m_data + MIN_SIZE +
-         contributors_count() * sizeof(std::uint32_t);
+         contributors_count() * sizeof(u32);
 }
 
 } // namespace shar::rtp

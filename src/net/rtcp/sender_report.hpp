@@ -45,8 +45,8 @@ namespace shar::net::rtcp {
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 class SenderReport: public Header {
 public:
-  static const std::size_t NWORDS = Header::NWORDS + 6;
-  static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
+  static const usize NWORDS = Header::NWORDS + 6;
+  static const usize MIN_SIZE = NWORDS * sizeof(u32);
 
   // Create empty (invalid) sender report
   SenderReport() noexcept = default;
@@ -57,7 +57,7 @@ public:
   // NOTE: ownership over |data| remains on the caller side
   //       it will not be deallocated on header destruction
   // NOTE: |size| SHOULD be equal to Base::packet_size()
-  SenderReport(std::uint8_t* data, std::size_t size) noexcept;
+  SenderReport(u8* data, usize size) noexcept;
   SenderReport(const SenderReport&) noexcept = default;
   SenderReport(SenderReport&&) noexcept = default;
   SenderReport& operator=(const SenderReport&) noexcept = default;
@@ -72,8 +72,8 @@ public:
   // SSRC: 32 bits
   //  The synchronization source identifier for the
   //  originator of this packet.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
+  u32 stream_id() const noexcept;
+  void set_stream_id(u32 stream_id) noexcept;
 
   // NTP timestamp: 64 bits
   //  Indicates the wallclock time when this report was
@@ -95,8 +95,8 @@ public:
   //  hopes relative timestamps will no longer be needed.  A sender that
   //  has no notion of wallclock or elapsed time MAY set the NTP
   //  timestamp to zero.
-  std::uint64_t ntp_timestamp() const noexcept;
-  void set_ntp_timestamp(std::uint64_t timestamp) noexcept;
+  u64 ntp_timestamp() const noexcept;
+  void set_ntp_timestamp(u64 timestamp) noexcept;
 
   // RTP timestamp: 32 bits
   //  Corresponds to the same time as the NTP timestamp (above), but in
@@ -111,16 +111,16 @@ public:
   //  relationship between the RTP timestamp counter and real time as
   //  maintained by periodically checking the wallclock time at a
   //  sampling instant.
-  std::uint32_t rtp_timestamp() const noexcept;
-  void set_rtp_timestamp(std::uint32_t timestamp) noexcept;
+  u32 rtp_timestamp() const noexcept;
+  void set_rtp_timestamp(u32 timestamp) noexcept;
 
   // sender's packet count: 32 bits
   //  The total number of RTP data packets transmitted by the sender
   //  since starting transmission up until the time this SR packet was
   //  generated.  The count SHOULD be reset if the sender changes its
   //  SSRC identifier.
-  std::uint32_t npackets() const noexcept;
-  void set_npackets(std::uint32_t npackets) noexcept;
+  u32 npackets() const noexcept;
+  void set_npackets(u32 npackets) noexcept;
 
   // sender's octet count: 32 bits
   //  The total number of payload octets (i.e., not including header or
@@ -129,12 +129,12 @@ public:
   //  generated.  The count SHOULD be reset if the sender changes its
   //  SSRC identifier.  This field can be used to estimate the average
   //  payload data rate.
-  std::uint32_t nbytes() const noexcept;
-  void set_nbytes(std::uint32_t nbytes) noexcept;
+  u32 nbytes() const noexcept;
+  void set_nbytes(u32 nbytes) noexcept;
 
   // return report block by index
   // see Block class for more info
-  Block block(std::size_t index=0) noexcept;
+  Block block(usize index=0) noexcept;
 };
 
 }

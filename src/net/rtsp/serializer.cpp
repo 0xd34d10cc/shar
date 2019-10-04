@@ -6,7 +6,7 @@
 
 namespace shar::net::rtsp {
 
-Serializer::Serializer(char * buffer, std::size_t size)
+Serializer::Serializer(char * buffer, usize size)
     : m_data(buffer)
     , m_size(size)
     {}
@@ -34,7 +34,7 @@ bool Serializer::format(usize number) {
   return success;
 }
 
-std::size_t Serializer::written_bytes() const noexcept {
+usize Serializer::written_bytes() const noexcept {
   return m_written_bytes;
 }
 

@@ -14,17 +14,17 @@ public:
   ~Texture() noexcept;
 
   // this method reallocates and resizes texture
-  void set(Size size, const std::uint8_t* data) noexcept;
+  void set(Size size, const u8* data) noexcept;
 
   void bind() noexcept;
   void unbind() noexcept;
 
   // update part of texture
   void update(Point offset, Size size,
-              const std::uint8_t* data) noexcept;
+              const u8* data) noexcept;
 
 private:
-  std::size_t m_id;
+  usize m_id;
 };
 
 }

@@ -109,7 +109,7 @@ namespace shar::codec::ffmpeg {
 // Clock rate (number of ticks in 1 second) for H264 video. (RFC 6184 Section 8.2.1)
 static const int CLOCK_RATE = 90000;
 
-Codec::Codec(Context context, Size frame_size, std::size_t fps)
+Codec::Codec(Context context, Size frame_size, usize fps)
   : Context(std::move(context))
   , m_frame_counter(0) {
 
@@ -140,8 +140,8 @@ Codec::Codec(Context context, Size frame_size, std::size_t fps)
 
 std::vector<Unit> Codec::encode(Frame image) {
   auto* context = m_context.get();
-  assert(static_cast<std::size_t>(context->width) == image.width());
-  assert(static_cast<std::size_t>(context->height) == image.height());
+  assert(static_cast<usize>(context->width) == image.width());
+  assert(static_cast<usize>(context->height) == image.height());
 
   int pts = next_pts();
   image.raw()->pts = pts;
@@ -201,7 +201,7 @@ int Codec::next_pts() {
   return pts;
 }
 
-Codec::AVContextPtr Codec::create_context(std::size_t kbits, AVCodec* codec, shar::Size frame_size, std::size_t fps) {
+Codec::AVContextPtr Codec::create_context(usize kbits, AVCodec* codec, shar::Size frame_size, usize fps) {
   auto context = AVContextPtr(avcodec_alloc_context3(codec));
   assert(context);
 
@@ -216,7 +216,7 @@ Codec::AVContextPtr Codec::create_context(std::size_t kbits, AVCodec* codec, sha
   context->get_buffer2 = avcodec_default_get_buffer2;
   context->get_format = get_format;
 
-  std::size_t divisor = std::gcd(frame_size.width(), frame_size.height());
+  usize divisor = std::gcd(frame_size.width(), frame_size.height());
   context->sample_aspect_ratio.num = static_cast<int>(frame_size.width() / divisor);
   context->sample_aspect_ratio.den = static_cast<int>(frame_size.height() / divisor);
 
@@ -225,7 +225,7 @@ Codec::AVContextPtr Codec::create_context(std::size_t kbits, AVCodec* codec, sha
 
 AVCodec* Codec::select_codec(ffmpeg::Options& opts,
                              Size frame_size,
-                             std::size_t fps)
+                             usize fps)
 {
   const auto find_codec_by_name = [this](const char* name) {
     if (m_config->connect) {
@@ -246,7 +246,7 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
   };
 
   const std::string codec_name = m_config->codec;
-  const std::size_t kbits = m_config->bitrate;
+  const usize kbits = m_config->bitrate;
 
   if (!codec_name.empty()) {
     if (auto* codec = find_codec_by_name(codec_name.c_str())) {

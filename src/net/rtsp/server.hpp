@@ -1,5 +1,5 @@
 #include <vector>
-#include <cstdlib> // std::size_t
+#include <cstdlib> // usize
 #include <unordered_map>
 
 #include "context.hpp"
@@ -34,18 +34,18 @@ private:
     explicit Client(tcp::Socket&& socket);
 
     tcp::Socket m_socket;
-    std::vector<std::uint8_t> m_buffer;
-    std::size_t m_received_bytes;
-    std::size_t m_sent_bytes;
+    std::vector<u8> m_buffer;
+    usize m_received_bytes;
+    usize m_sent_bytes;
 
-    std::size_t m_response_size;
+    usize m_response_size;
 
     std::vector<Header> m_headers;
     // buffer to store headers values
     std::vector<char> m_headers_info_buffer;
   };
 
-  using ClientId = std::size_t;
+  using ClientId = usize;
   using Clients = std::unordered_map<ClientId, Client>;
   using ClientPos = Clients::iterator;
 

@@ -1,22 +1,20 @@
 #pragma once
 
 #include <vector>
-#include <cstdint>
-#include <cstdlib>
 
+#include "int.hpp"
 #include "codec/ffmpeg/unit.hpp"
 
 
 namespace shar::net::tcp {
 
 using codec::ffmpeg::Unit;
-using Buffer = std::vector<std::uint8_t>;
+using Buffer = std::vector<u8>;
 
 class PacketParser {
 public:
   PacketParser();
-
-  std::vector<Unit> update(const Buffer& buffer, std::size_t size);
+  std::vector<Unit> update(const Buffer& buffer, usize size);
 
 private:
   enum class State {
@@ -24,10 +22,10 @@ private:
     ReadingContent
   };
 
-  State       m_state;
-  std::size_t m_packet_size;
-  std::size_t m_remaining;
-  Buffer      m_buffer;
+  State m_state;
+  usize m_packet_size;
+  usize m_remaining;
+  Buffer m_buffer;
 };
 
 }

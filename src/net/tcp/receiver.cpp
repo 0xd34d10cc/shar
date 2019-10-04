@@ -44,7 +44,7 @@ void PacketReceiver::shutdown() {
 void PacketReceiver::start_read() {
   m_receiver.async_read_some(
       span(m_buffer.data(), m_buffer.size()),
-      [this](const ErrorCode& ec, std::size_t received) {
+      [this](const ErrorCode& ec, usize received) {
         if (ec) {
           m_logger.error("Receiver failed: {}", ec.message());
           shutdown();

@@ -46,10 +46,10 @@ void PacketSender::set_packet(Unit packet) {
 
   const auto size = m_current_packet.size();
   m_length = {
-      static_cast<std::uint8_t>((size >> 0) & 0xffu),
-      static_cast<std::uint8_t>((size >> 8) & 0xffu),
-      static_cast<std::uint8_t>((size >> 16) & 0xffu),
-      static_cast<std::uint8_t>((size >> 24) & 0xffu)
+      static_cast<u8>((size >> 0) & 0xffu),
+      static_cast<u8>((size >> 8) & 0xffu),
+      static_cast<u8>((size >> 16) & 0xffu),
+      static_cast<u8>((size >> 24) & 0xffu)
   };
   m_bytes_sent = 0;
 }
@@ -120,7 +120,7 @@ void PacketSender::send_length() {
   auto buffer = span(m_length.data() + m_bytes_sent,
                      m_length.size() - m_bytes_sent);
 
-  m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
+  m_socket.async_send(buffer, [this](const ErrorCode& ec, usize bytes_sent) {
     if (ec || bytes_sent == 0) {
       on_connection_close(ec);
       return;
@@ -144,7 +144,7 @@ void PacketSender::send_content() {
   auto buffer = span(m_current_packet.data() + m_bytes_sent,
                      m_current_packet.size() - m_bytes_sent);
 
-  m_socket.async_send(buffer, [this](const ErrorCode& ec, std::size_t bytes_sent) {
+  m_socket.async_send(buffer, [this](const ErrorCode& ec, usize bytes_sent) {
     if (ec || bytes_sent == 0) {
       on_connection_close(ec);
       return;

@@ -35,7 +35,7 @@ private:
   void teardown();
 
   using SharedPacket = std::shared_ptr<Unit>;
-  using ClientId = std::size_t;
+  using ClientId = usize;
 
   struct Client {
     enum class StreamState {
@@ -54,12 +54,12 @@ private:
 
     bool is_running() const;
 
-    using U32LE = std::array<std::uint8_t, 4>;
+    using U32LE = std::array<u8, 4>;
     using PacketsQueue = std::queue<SharedPacket>;
 
     U32LE       m_length;
     State       m_state;
-    std::size_t m_bytes_sent;
+    usize m_bytes_sent;
 
     bool         m_is_running;
     bool         m_overflown;
@@ -71,7 +71,7 @@ private:
   using Clients = std::unordered_map<ClientId, Client>;
   void start_accepting();
   void run_client(ClientId id);
-  void handle_write(std::size_t bytes_sent, ClientId to_client);
+  void handle_write(usize bytes_sent, ClientId to_client);
   void reset_overflown_state(ClientId id);
 
 
@@ -84,7 +84,7 @@ private:
   Socket    m_current_socket;
   Acceptor  m_acceptor;
 
-  std::size_t m_overflown_count;
+  usize m_overflown_count;
 
   Metric m_packets_sent;
   Metric m_bytes_sent;

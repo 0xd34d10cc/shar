@@ -8,7 +8,7 @@
 
 #include "net/rtcp/source_description.hpp"
 
-
+using namespace shar;
 using namespace shar::net;
 
 static const char* data =
@@ -21,10 +21,10 @@ static const char* data =
   "\x65\x77\x68\x65"\
   "\x72\x65\x00\x00";
 
-static const std::size_t size = 48;
+static const usize size = 48;
 
 TEST(rtcp_source_description, empty) {
-  std::array<std::uint8_t, rtcp::SourceDescription::MIN_SIZE> buffer{};
+  std::array<u8, rtcp::SourceDescription::MIN_SIZE> buffer{};
 
   rtcp::SourceDescription packet{buffer.data(), buffer.size()};
   EXPECT_FALSE(packet.valid());
@@ -34,7 +34,7 @@ TEST(rtcp_source_description, empty) {
 }
 
 TEST(rtcp_source_description, deserialize) {
-  std::vector<std::uint8_t> buffer{data, data + size};
+  std::vector<u8> buffer{data, data + size};
 
   rtcp::SourceDescription packet{buffer.data(), buffer.size()};
   EXPECT_TRUE(packet.valid());

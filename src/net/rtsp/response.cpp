@@ -13,7 +13,7 @@ Response::Response(Headers headers)
   , m_status_code(std::numeric_limits<uint16_t>::max())
 {}
 
-ErrorOr<std::size_t> Response::parse(Bytes bytes) {
+ErrorOr<usize> Response::parse(Bytes bytes) {
   const char* current = bytes.char_ptr();
   const char* begin = current;
   const char* end = begin + bytes.len();
@@ -56,13 +56,13 @@ ErrorOr<std::size_t> Response::parse(Bytes bytes) {
   auto headers_len = parse_headers(current, end - current, m_headers);
   TRY(headers_len);
 
-  std::size_t response_line_size = current - begin;
+  usize response_line_size = current - begin;
   return response_line_size + *headers_len;
 }
 
-ErrorOr<std::size_t> Response::serialize(unsigned char* dst, std::size_t size) {
+ErrorOr<usize> Response::serialize(unsigned char* dst, usize size) {
   assert(m_version.has_value() || m_reason.has_value() ||
-         m_status_code != std::numeric_limits<std::uint16_t>::max());
+         m_status_code != std::numeric_limits<u16>::max());
 
   Serializer serializer(reinterpret_cast<char*>(dst), size);
 #define TRY_SERIALIZE(EXP) if(!(EXP)) FAIL(Error::NotEnoughData);
@@ -87,7 +87,7 @@ ErrorOr<std::size_t> Response::serialize(unsigned char* dst, std::size_t size) {
   //serialize end of line
   TRY_SERIALIZE(serializer.write("\r\n"));
   //serialize headers
-  for (std::size_t i = 0; i < m_headers.len; ++i) {
+  for (usize i = 0; i < m_headers.len; ++i) {
     TRY_SERIALIZE(serializer.write(m_headers.data[i].name));
     TRY_SERIALIZE(serializer.write(": "));
     TRY_SERIALIZE(serializer.write(m_headers.data[i].value));

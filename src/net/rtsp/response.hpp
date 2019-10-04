@@ -20,9 +20,9 @@ struct Response {
   explicit Response(Headers headers);
 
   ErrorOr<usize> parse(Bytes bytes);
-  ErrorOr<usize> serialize(unsigned char* destination, std::size_t size);
+  ErrorOr<usize> serialize(unsigned char* destination, usize size);
 
-  std::optional<std::size_t> m_version;
+  std::optional<usize> m_version;
   u16 m_status_code;
   std::optional<Bytes> m_reason; // Reason-Phrase
 

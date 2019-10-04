@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstdint>
-#include <cstddef>
 #include <memory>
+
+#include "int.hpp"
 
 
 // forward declarations from avcodec.h
@@ -32,14 +32,14 @@ public:
   static Unit allocate() noexcept;
 
   // create unit from data (NOTE: memcopy)
-  static Unit from_data(const std::uint8_t* data, std::size_t size);
+  static Unit from_data(const u8* data, usize size);
 
   bool empty() const noexcept;
-  const std::uint8_t* data() const noexcept;
-  std::uint8_t* data() noexcept;
+  const u8* data() const noexcept;
+  u8* data() noexcept;
 
-  std::size_t size() const noexcept;
-  std::uint32_t timestamp() const noexcept;
+  usize size() const noexcept;
+  u32 timestamp() const noexcept;
   Type type() const noexcept;
 
   AVPacket* raw() noexcept;

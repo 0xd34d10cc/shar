@@ -25,7 +25,7 @@ struct Header {
 };
 
 struct Headers {
-  Headers(Header* ptr, std::size_t size);
+  Headers(Header* ptr, usize size);
   Headers(const Headers&) = default;
 
   Header* begin();
