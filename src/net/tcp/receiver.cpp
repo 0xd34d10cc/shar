@@ -53,8 +53,8 @@ void PacketReceiver::start_read() {
 
         auto packets = m_reader.update(m_buffer, received);
 
-        m_bytes_received.increase(received);
-        m_packets_received.increase(packets.size());
+        m_bytes_received += received;
+        m_packets_received += packets.size();
         for (auto& packet: packets) {
           m_sender->send(std::move(packet));
         }

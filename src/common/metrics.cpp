@@ -138,11 +138,11 @@ Metric::~Metric() {
   }
 }
 
-void Metric::increase(usize delta) {
+void Metric::operator+=(usize delta) {
   m_metrics->increase(m_id, delta);
 }
 
-void Metric::decrease(usize delta) {
+void Metric::operator-=(usize delta) {
   m_metrics->decrease(m_id, delta);
 }
 

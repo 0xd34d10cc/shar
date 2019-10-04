@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cstring>
 #include <cassert>
-#include <cmath>
 
+#include "error.hpp"
 #include "request.hpp"
 #include "serializer.hpp"
 

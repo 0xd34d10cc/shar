@@ -25,10 +25,7 @@ void PacketSender::run(Receiver<Unit> packets) {
     auto endpoint = udp::Endpoint(ip, Port{44444});
     m_socket.bind(endpoint);
 
-    usize sent = 0;
-    usize total_sent = 0;
-    auto last_report_time = Clock::now();
-
+    auto sent = Metric(m_metrics, "bytes sent", Metrics::Format::Bytes);
     while (auto packet = packets.receive()) {
       if (m_running.expired()) {
         break;
@@ -37,19 +34,7 @@ void PacketSender::run(Receiver<Unit> packets) {
       sent += packet->size();
       set_packet(std::move(*packet));
       send();
-
-      const auto now = Clock::now();
-      if (last_report_time + Seconds(1) < now) {
-        m_logger.info("RTP sender rate: {}kb/s", sent / 1024);
-
-        total_sent += sent;
-        sent = 0;
-
-        last_report_time = now;
-      }
     }
-
-    m_logger.info("RTP sender total sent {}kb", total_sent/1024);
 
     shutdown();
     m_socket.close();
@@ -95,8 +80,7 @@ void PacketSender::send() {
     packet.set_stream_id(0);
 
     ErrorCode ec;
-    m_socket.send_to(span(packet.data(), packet.size()),
-                     m_endpoint, 0, ec);
+    m_socket.send_to(span(packet), m_endpoint, 0, ec);
 
     if (ec) {
       m_logger.error("Failed to send rtp packet: {}", ec.message());

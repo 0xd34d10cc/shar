@@ -15,6 +15,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "error_or.hpp"
+#include "bytes_ref.hpp"
 #include "int.hpp"
 
 
@@ -29,6 +30,7 @@ using Timer = asio::steady_timer;
 
 inline auto span(const void* data, usize size) { return asio::buffer(data, size); }
 inline auto span(void* data, usize size) { return asio::buffer(data, size); }
+inline auto span(BytesRef bytes) { return asio::buffer(bytes.data(), bytes.size()); }
 
 namespace udp {
   using Protocol = asio::ip::udp;

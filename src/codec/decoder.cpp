@@ -19,10 +19,10 @@ void Decoder::run(Receiver<ffmpeg::Unit> input, Sender<ffmpeg::Frame> output) {
       break;
     }
 
-    bytes_in.increase(unit->size());
+    bytes_in += unit->size();
     auto frame = m_codec.decode(std::move(*unit));
     if (frame) {
-      bytes_out.increase(frame->total_size());
+      bytes_out += frame->total_size();
       output.send(std::move(*frame));
     }
   }

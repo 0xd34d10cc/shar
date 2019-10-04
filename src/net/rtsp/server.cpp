@@ -1,6 +1,7 @@
 #include <charconv>
 
 #include "server.hpp"
+#include "error.hpp"
 #include "int.hpp"
 
 
@@ -181,30 +182,22 @@ void Server::send_response(ClientPos client_pos) {
 
 Response Server::proccess_request(ClientPos pos, Request request) {
   assert(request.m_type.has_value());
-
   auto& [id, client] = *pos;
-  Response response({ client.m_headers.data(), client.m_headers.size() });
+  Headers headers{ client.m_headers.data(), client.m_headers.size() };
 
   auto cseq = request.m_headers.get("CSeq");
   if (!cseq) {
     m_logger.warning("CSeq header wasn't found. Client {}", id);
-    response.m_version = 2;
-    response.m_status_code = 400;
-    response.m_reason = "Bad request";
-    response.m_headers.len = 0;
-    return response;
+    return response(headers).with_status(400, "Bad Request");
   }
 
   switch (request.m_type.value()) {
     case Request::Type::OPTIONS: {
-      response.m_version = 2;
-      response.m_status_code = 200;
-      response.m_reason = "OK";
-      response.m_headers.data[0] = *cseq;
-      response.m_headers.data[1] =
-          Header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE");
-      response.m_headers.len = 2;
-      return response;
+      return response(headers)
+        .with_status(200, "OK")
+        // FIXME: cseq points to a buffer which we are going to overwrite
+        .with_header(*cseq)
+        .with_header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE");
     }
 
     case Request::Type::DESCRIBE: {
@@ -225,18 +218,22 @@ Response Server::proccess_request(ClientPos pos, Request request) {
         throw std::runtime_error("Failed to convert SDP size to string");
       }
 
-      response.m_version = 2;
-      response.m_status_code = 200;
-      response.m_reason = "0K";
-      response.m_headers.data[0] = *cseq;
-      response.m_headers.data[1] = Header("Content-Type", "application/sdp");
-      response.m_headers.data[2] = Header("Content-Length", Bytes(buffer.data(), size_end));
-      response.m_headers.len = 3;
-      response.m_body = simple_sdp;
-      return response;
+      return response(headers)
+        .with_status(200, "OK")
+        .with_header(*cseq)
+        .with_header("Content-Type", "application/json")
+        .with_header("Content-Length", Bytes(buffer.data(), size_end))
+        .with_body(simple_sdp);
     }
 
-    case Request::Type::SETUP:
+    case Request::Type::SETUP: {
+      return response(headers)
+        .with_status(200, "OK")
+        .with_header(*cseq)
+          // FIXME: unhardcode
+        .with_header("Transport", "RTP;unicast;client_port=8000;server_port=9000;ssrc=D34D10CC");
+    }
+
     case Request::Type::TEARDOWN:
     case Request::Type::PLAY:
     case Request::Type::PAUSE:
@@ -245,12 +242,9 @@ Response Server::proccess_request(ClientPos pos, Request request) {
     case Request::Type::REDIRECT:
     case Request::Type::ANNOUNCE:
     case Request::Type::RECORD: {
-      response.m_version = 2;
-      response.m_status_code = 501;
-      response.m_reason = "Not implemented";
-      response.m_headers.len = 0;
-      return response;
+      return response(headers).with_status(501, "Not implemented");
     }
+
     default: {
       assert(false);
       throw std::runtime_error("Unknown request type.");
