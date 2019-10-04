@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdlib> // size_t
 #include <cstdint> // [u]intN_t
 #include <cstddef> // ptrdiff_t
 
