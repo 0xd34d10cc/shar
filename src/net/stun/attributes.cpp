@@ -7,7 +7,7 @@
 namespace shar::net::stun {
 
 Attributes::Attributes(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+  : BytesRef(data, size)
   {}
 
 void Attributes::reset() noexcept {

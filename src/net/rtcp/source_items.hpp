@@ -1,6 +1,6 @@
 #pragma once
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
@@ -30,7 +30,7 @@ enum ItemType: std::uint8_t {
 //        |                           SDES items                          |
 //        |                              ...                              |
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-class SourceItems: public Slice {
+class SourceItems: public BytesRef {
 public:
   static const std::size_t NWORDS = 1;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
@@ -58,7 +58,7 @@ public:
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   // |    type       |     length    |     item-specific data        |
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  class Item: private Slice {
+  class Item: private BytesRef {
   public:
     Item() noexcept = default;
     Item(std::uint8_t* data, std::size_t size) noexcept;

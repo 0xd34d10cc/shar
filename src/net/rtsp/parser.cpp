@@ -1,5 +1,4 @@
 #include <charconv>
-#include <stdexcept>
 
 #include "parser.hpp"
 
@@ -10,6 +9,7 @@ ErrorOr<std::uint8_t> parse_version(const char* begin, std::size_t size) {
   if (size > 8) {
     FAIL(Error::InvalidProtocol);
   }
+
   int i = std::memcmp(begin, "RTSP/1.0", size);
   if ((size == 8) && i == 0) {
     return std::uint8_t{ 1 };
@@ -23,6 +23,7 @@ ErrorOr<std::uint8_t> parse_version(const char* begin, std::size_t size) {
   if (i == 0 && size != 8) {
     FAIL(Error::NotEnoughData);
   }
+
   FAIL(Error::InvalidProtocol);
 }
 
@@ -31,17 +32,17 @@ ErrorOr<Header> parse_header(const char* begin, std::size_t size) {
   const char* end = begin + size;
   const char* key_end = std::find(begin, end, ':');
 
-  if (key_end == begin || 
-      key_end == end || 
+  if (key_end == begin ||
+      key_end == end ||
       end - key_end <= 2 ||
       key_end[1] != ' ') {
     FAIL(Error::InvalidHeader);
   }
 
-  auto key = std::string_view(begin, key_end - begin);
-  auto value = std::string_view(key_end + 2, end - key_end - 2);
+  auto key = Bytes(begin, key_end - begin);
+  auto value = Bytes(key_end + 2, end - key_end - 2);
 
-  return Header(key, value);
+  return Header{key, value};
 }
 
 ErrorOr<std::size_t> parse_headers(const char * begin, std::size_t size, Headers headers) {

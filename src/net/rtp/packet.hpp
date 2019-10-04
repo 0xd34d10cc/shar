@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint> // std::uint8_t
-#include <cstdlib> // std::size_t
+#include "int.hpp"
 
 
 namespace shar::net::rtp {
@@ -23,7 +22,7 @@ namespace shar::net::rtp {
 // list of CSRC identifiers is present only when inserted by a mixer.
 class Packet {
 public:
-  static const std::size_t MIN_SIZE = sizeof(std::uint32_t) * 3;
+  static const usize MIN_SIZE = sizeof(u32) * 3;
 
   // Create empty (invalid) packet
   Packet() noexcept = default;
@@ -33,7 +32,7 @@ public:
   // NOTE: |size| should be greater or equal to |MIN_SIZE|
   // NOTE: ownership over |data| remains on caller side.
   //       it will not be deallocated on packet destruction
-  Packet(std::uint8_t* data, std::size_t size) noexcept;
+  Packet(u8* data, usize size) noexcept;
   Packet(const Packet&) noexcept = default;
   Packet(Packet&&) noexcept;
   Packet& operator=(const Packet&) noexcept = default;
@@ -44,18 +43,18 @@ public:
   bool valid() const noexcept;
 
   // returns pointer to packet data (header included)
-  const std::uint8_t* data() const noexcept;
+  const u8* data() const noexcept;
 
   // returns packet total size (including header)
-  std::size_t size() const noexcept;
+  usize size() const noexcept;
 
   // version (V): 2 bits
   //  This field identifies the version of RTP.  The version defined by
   //  this library is two (2).  (The value 1 is used by the first
   //  draft version of RTP and the value 0 is used by the protocol
   //  initially implemented in the "vat" audio tool.)
-  std::uint8_t version() const noexcept;
-  void set_version(std::uint8_t version) noexcept;
+  u8 version() const noexcept;
+  void set_version(u8 version) noexcept;
 
   // padding (P): 1 bit
   //  If the padding bit is set, the packet contains one or more
@@ -77,8 +76,8 @@ public:
   // CSRC count (CC): 4 bits
   //  The CSRC count contains the number of CSRC identifiers that follow
   //  the fixed header.
-  std::uint8_t contributors_count() const noexcept;
-  void set_contributors_count(std::uint8_t cc) noexcept;
+  u8 contributors_count() const noexcept;
+  void set_contributors_count(u8 cc) noexcept;
 
   // marker (M): 1 bit
   //  The interpretation of the marker is defined by a profile.  It is
@@ -92,15 +91,15 @@ public:
   // payload type (PT): 7 bits
   //  This field identifies the format of the RTP payload and determines
   //  its interpretation by the application.
-  std::uint8_t payload_type() const noexcept;
-  void set_payload_type(std::uint8_t type) noexcept;
+  u8 payload_type() const noexcept;
+  void set_payload_type(u8 type) noexcept;
 
   // sequence number: 16 bits
   //  The sequence number increments by one for each RTP data packet
   //  sent, and may be used by the receiver to detect packet loss and to
   //  restore packet sequence.
-  std::uint16_t sequence() const noexcept;
-  void set_sequence(std::uint16_t seq) noexcept;
+  u16 sequence() const noexcept;
+  void set_sequence(u16 seq) noexcept;
 
   // timestamp: 32 bits
   //  The timestamp reflects the sampling instant of the first octet in
@@ -114,32 +113,32 @@ public:
   //  and is specified statically in the profile or payload format
   //  specification that defines the format, or MAY be specified
   //  dynamically for payload formats defined through non-RTP means.
-  std::uint32_t timestamp() const noexcept;
-  void set_timestamp(std::uint32_t timestamp) noexcept;
+  u32 timestamp() const noexcept;
+  void set_timestamp(u32 timestamp) noexcept;
 
   // SSRC: 32 bits
   //  The SSRC field identifies the synchronization source.  This
   //  identifier SHOULD be chosen randomly, with the intent that no two
   //  synchronization sources within the same RTP session will have the
   //  same SSRC identifier.
-  std::uint32_t stream_id() const noexcept;
-  void set_stream_id(std::uint32_t stream_id) noexcept;
+  u32 stream_id() const noexcept;
+  void set_stream_id(u32 stream_id) noexcept;
 
   // returns pointer to array of CSRC, 0 to 15 items
   // depending on value of contributors_count()
-  std::uint32_t* contributors() noexcept;
+  u32* contributors() noexcept;
 
   // TODO (?)
   // ExtensionsIterator extensions();
 
-  std::size_t payload_size() const noexcept;
+  usize payload_size() const noexcept;
 
   // pointer to start of payload
-  std::uint8_t* payload() noexcept;
+  u8* payload() noexcept;
 
 private:
   // pointer to buffer containing the packet
-  std::uint8_t* m_data{nullptr};
-  std::size_t   m_size{0};
+  u8* m_data{nullptr};
+  usize m_size{0};
 };
 }

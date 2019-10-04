@@ -3,7 +3,7 @@
 #include <cstdlib> // std::size_t
 #include <array>
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::stun {
@@ -26,7 +26,7 @@ bool is_message(const std::uint8_t* data, std::size_t size) noexcept;
 //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //
 // RFC 5389 Section 6
-class Message: public Slice {
+class Message: public BytesRef {
 public:
   static const std::size_t MIN_SIZE = 20;
   static const std::uint32_t MAGIC = 0x2112A442;

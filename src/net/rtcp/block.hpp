@@ -3,7 +3,7 @@
 #include <cstdint> // std::uint*_t
 #include <cstdlib> // std::size_t
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
@@ -29,7 +29,7 @@ namespace shar::net::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Block: public Slice {
+class Block: public BytesRef {
 public:
   static const std::size_t NWORDS = 6;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);

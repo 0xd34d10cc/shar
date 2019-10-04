@@ -1,6 +1,6 @@
 #pragma once
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::stun {
@@ -22,7 +22,7 @@ struct Attribute {
   std::uint8_t* data{ nullptr };
 };
 
-class Attributes: public Slice {
+class Attributes: public BytesRef {
 public:
   static const std::size_t MIN_SIZE = 0;
 

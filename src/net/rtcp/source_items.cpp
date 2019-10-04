@@ -8,7 +8,7 @@
 namespace shar::net::rtcp {
 
 SourceItems::SourceItems(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+  : BytesRef(data, size)
   {}
 
 bool SourceItems::valid() const noexcept {
@@ -57,7 +57,7 @@ std::size_t SourceItems::position() const noexcept {
 }
 
 SourceItems::Item::Item(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+  : BytesRef(data, size)
   {}
 
 std::uint8_t SourceItems::Item::type() const noexcept {

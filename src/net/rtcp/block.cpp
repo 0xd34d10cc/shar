@@ -8,7 +8,7 @@
 namespace shar::net::rtcp {
 
 Block::Block(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+  : BytesRef(data, size)
   {}
 
 bool Block::valid() const noexcept {

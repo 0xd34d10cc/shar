@@ -16,7 +16,7 @@ bool is_message(const std::uint8_t* data, std::size_t size) noexcept {
 }
 
 Message::Message(std::uint8_t* data, std::size_t size) noexcept
-  : Slice(data, size)
+  : BytesRef(data, size)
 {}
 
 bool Message::valid() const noexcept {

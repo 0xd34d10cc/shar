@@ -1,16 +1,15 @@
 #pragma once
 
-#include <string_view>
-#include <vector>
+#include <optional>
+
+#include "bytes.hpp"
 
 
 namespace shar::net::rtsp {
 
 struct Header {
   Header() = default;
-
-  Header(std::string_view key, std::string_view value);
-
+  Header(Bytes name, Bytes value);
   Header(const Header&) = default;
   Header(Header&&) = default;
 
@@ -21,14 +20,21 @@ struct Header {
 
   bool empty() const noexcept;
 
-  std::string_view key;
-  std::string_view value;
+  Bytes name;
+  Bytes value;
 };
 
 struct Headers {
+  Headers(Header* ptr, std::size_t size);
+  Headers(const Headers&) = default;
+
+  Header* begin();
+  Header* end();
+
+  std::optional<Header> get(Bytes name);
 
   Header* data{ nullptr };
-  std::size_t len{ 0 };
+  usize len{ 0 };
 };
 
 }

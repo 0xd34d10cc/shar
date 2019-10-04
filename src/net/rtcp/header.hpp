@@ -3,7 +3,7 @@
 #include <cstdint> // std::uint*_t
 #include <cstdlib> // std::size_t
 
-#include "slice.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtcp {
@@ -23,7 +23,7 @@ enum PacketType: std::uint8_t {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // | V |P|    RC   |      PT       |             length            |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Header: public Slice {
+class Header: public BytesRef {
 public:
   static const std::size_t NWORDS = 1;
   static const std::size_t MIN_SIZE = NWORDS * sizeof(std::uint32_t);
