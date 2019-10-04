@@ -197,8 +197,8 @@ void P2PSender::handle_write(usize bytes_sent, ClientId id) {
           client.m_overflown = false;
         }
 
-        m_packets_sent.increase(1);
-        m_bytes_sent.increase(packet_size + client.m_length.size());
+        m_packets_sent += 1;
+        m_bytes_sent += packet_size + client.m_length.size();
 
         client.m_packets.pop();
         client.m_state = Client::State::SendingLength;

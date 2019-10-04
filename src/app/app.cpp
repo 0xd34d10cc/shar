@@ -78,7 +78,7 @@ App::App(Config config)
   m_window.set_header(HEADER_SIZE);
   m_window.set_border(false);
   m_window.on_move([this] {
-    m_ticks.increase(1);
+    m_ticks += 1;
 
     // render unconditionally
     // NOTE: otherwise window will be cropped if part of it
@@ -251,16 +251,16 @@ void App::render_background() {
   //        parameter for Size is height which is very confusing
   auto at = Point{0, HEADER_SIZE};
   if (bounded_by_height) {
-    at.x += (win_size.width() - w) / 2;
+    at.x += static_cast<int>(win_size.width() - w) / 2;
   } else {
-    at.y += (max_height - h) / 2;
+    at.y += static_cast<int>(max_height - h) / 2;
   }
 
   m_renderer.render(m_background, m_window.size(), at, Size{h, w});
 }
 
 void App::render() {
-  m_fps.increase(1);
+  m_fps += 1;
 
   const auto win_size = m_window.display_size();
   int width = static_cast<int>(win_size.width());
@@ -366,7 +366,7 @@ void App::update_gui() {
 
 int App::run() {
   while (!m_running.expired()) {
-    m_ticks.increase(1);
+    m_ticks += 1;
 
     bool updated = process_input();
     updated |= update_background();

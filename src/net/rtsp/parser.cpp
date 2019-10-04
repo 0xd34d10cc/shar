@@ -1,5 +1,6 @@
 #include <charconv>
 
+#include "error.hpp"
 #include "parser.hpp"
 
 
@@ -28,7 +29,6 @@ ErrorOr<u8> parse_version(const char* begin, usize size) {
 }
 
 ErrorOr<Header> parse_header(const char* begin, usize size) {
-
   const char* end = begin + size;
   const char* key_end = std::find(begin, end, ':');
 
@@ -46,7 +46,6 @@ ErrorOr<Header> parse_header(const char* begin, usize size) {
 }
 
 ErrorOr<usize> parse_headers(const char * begin, usize size, Headers headers) {
-
   const char* header_begin = begin;
   const char* end = begin + size;
   auto header_end = find_line_ending(header_begin, size);
@@ -96,13 +95,13 @@ ErrorOr<const char *> find_line_ending(const char * begin, usize size) {
 }
 
 ErrorOr<u16> parse_status_code(const char* begin, usize size) {
-
   u16 number;
   auto[end_ptr, ec] = std::from_chars(begin, begin + size, number);
 
   if (end_ptr != begin + size || ec != std::errc()) {
     FAIL(Error::InvalidStatusCode);
   }
+
   return number;
 }
 

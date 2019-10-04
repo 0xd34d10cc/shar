@@ -6,6 +6,7 @@
 #include "disable_warnings_pop.hpp"
 
 #include "bytes.hpp"
+#include "net/rtsp/error.hpp"
 #include "net/rtsp/request.hpp"
 
 

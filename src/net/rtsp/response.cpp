@@ -1,17 +1,42 @@
-#include <charconv>
-#include <stdexcept>
 #include <cassert>
+#include <charconv>
 
+#include "error.hpp"
 #include "response.hpp"
 #include "serializer.hpp"
 
-
 namespace shar::net::rtsp {
+
+static const auto INVALID_STATUS_CODE = std::numeric_limits<uint16_t>::max();
 
 Response::Response(Headers headers)
   : m_headers(std::move(headers))
-  , m_status_code(std::numeric_limits<uint16_t>::max())
+  , m_status_code(INVALID_STATUS_CODE)
 {}
+
+Response::Response(const ResponseBuilder& builder)
+  : Response(builder.finish())
+{}
+
+std::optional<usize> Response::version() const noexcept {
+  return m_version;
+}
+
+u16 Response::status_code() const noexcept {
+  return m_status_code;
+}
+
+std::optional<Bytes> Response::reason() const noexcept {
+  return m_reason;
+}
+
+Headers Response::headers() const noexcept {
+  return m_headers;
+}
+
+std::optional<Bytes> Response::body() const noexcept {
+  return m_body;
+}
 
 ErrorOr<usize> Response::parse(Bytes bytes) {
   const char* current = bytes.char_ptr();
@@ -25,7 +50,7 @@ ErrorOr<usize> Response::parse(Bytes bytes) {
     FAIL(Error::NotEnoughData);
   }
   m_version = *version;
-  current = version_end + 1; //Move to first symbol after space
+  current = version_end + 1;  // Move to first symbol after space
 
   const char* status_code_end = std::find(current, end, ' ');
   if (status_code_end == end) {
@@ -38,7 +63,7 @@ ErrorOr<usize> Response::parse(Bytes bytes) {
     FAIL(Error::InvalidStatusCode);
   }
   m_status_code = *status_code;
-  current = status_code_end + 1; //Move to first symbol after space
+  current = status_code_end + 1;  // Move to first symbol after space
 
   auto reason_end = find_line_ending(current, end - current);
   TRY(reason_end);
@@ -65,28 +90,27 @@ ErrorOr<usize> Response::serialize(unsigned char* dst, usize size) {
          m_status_code != std::numeric_limits<u16>::max());
 
   Serializer serializer(reinterpret_cast<char*>(dst), size);
-#define TRY_SERIALIZE(EXP) if(!(EXP)) FAIL(Error::NotEnoughData);
-  //serialize version
+#define TRY_SERIALIZE(EXP) \
+  if (!(EXP)) FAIL(Error::NotEnoughData);
+  // serialize version
 
   if (*m_version == 1) {
     TRY_SERIALIZE(serializer.write("RTSP/1.0"));
-  }
-  else if (*m_version == 2) {
+  } else if (*m_version == 2) {
     TRY_SERIALIZE(serializer.write("RTSP/2.0"));
-  }
-  else {
+  } else {
     assert(false);
   }
 
   TRY_SERIALIZE(serializer.write(" "));
-  //serialize status code
+  // serialize status code
   TRY_SERIALIZE(serializer.format(m_status_code));
   TRY_SERIALIZE(serializer.write(" "));
-  //serialize reason-phrase
+  // serialize reason-phrase
   TRY_SERIALIZE(serializer.write(m_reason.value()));
-  //serialize end of line
+  // serialize end of line
   TRY_SERIALIZE(serializer.write("\r\n"));
-  //serialize headers
+  // serialize headers
   for (usize i = 0; i < m_headers.len; ++i) {
     TRY_SERIALIZE(serializer.write(m_headers.data[i].name));
     TRY_SERIALIZE(serializer.write(": "));
@@ -103,4 +127,51 @@ ErrorOr<usize> Response::serialize(unsigned char* dst, usize size) {
   return serializer.written_bytes();
 #undef TRY_SERIALIZE
 }
+
+ResponseBuilder response(Headers headers) {
+  return ResponseBuilder{ headers };
 }
+
+ResponseBuilder::ResponseBuilder(Headers headers)
+ : m_response(headers) {
+  m_response.m_version = 2;
+  m_headers = m_response.m_headers.len;
+  m_response.m_headers.len = 0;
+}
+
+ResponseBuilder ResponseBuilder::with_status(u16 code, Bytes reason) {
+  assert(m_response.m_status_code == INVALID_STATUS_CODE);
+  assert(!m_response.m_reason.has_value());
+
+  m_response.m_status_code = code;
+  m_response.m_reason = reason;
+  return *this;
+}
+
+ResponseBuilder ResponseBuilder::with_header(Header header) {
+  assert(m_response.m_headers.len < m_headers);
+  assert(m_response.m_headers.data);
+
+  m_response.m_headers.data[m_response.m_headers.len] = header;
+  m_response.m_headers.len++;
+  return *this;
+}
+
+ResponseBuilder ResponseBuilder::with_header(Bytes name, Bytes value) {
+  return with_header(Header{name, value});
+}
+
+ResponseBuilder ResponseBuilder::with_body(Bytes body) {
+  assert(!m_response.m_body.has_value());
+  m_response.m_body = body;
+  return *this;
+}
+
+Response ResponseBuilder::finish() const {
+  assert(m_response.m_version.has_value());
+  assert(m_response.m_status_code != INVALID_STATUS_CODE);
+  assert(m_response.m_reason.has_value());
+  return m_response;
+}
+
+}  // namespace shar::net::rtsp

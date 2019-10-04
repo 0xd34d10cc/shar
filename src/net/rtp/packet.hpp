@@ -1,6 +1,7 @@
 #pragma once
 
 #include "int.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtp {
@@ -20,7 +21,7 @@ namespace shar::net::rtp {
 //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // The first twelve octets are present in every RTP packet, while the
 // list of CSRC identifiers is present only when inserted by a mixer.
-class Packet {
+class Packet: public BytesRef {
 public:
   static const usize MIN_SIZE = sizeof(u32) * 3;
 
@@ -34,19 +35,11 @@ public:
   //       it will not be deallocated on packet destruction
   Packet(u8* data, usize size) noexcept;
   Packet(const Packet&) noexcept = default;
-  Packet(Packet&&) noexcept;
   Packet& operator=(const Packet&) noexcept = default;
-  Packet& operator=(Packet&&) noexcept;
   ~Packet() = default;
 
   // check if packet is valid
   bool valid() const noexcept;
-
-  // returns pointer to packet data (header included)
-  const u8* data() const noexcept;
-
-  // returns packet total size (including header)
-  usize size() const noexcept;
 
   // version (V): 2 bits
   //  This field identifies the version of RTP.  The version defined by
@@ -135,10 +128,5 @@ public:
 
   // pointer to start of payload
   u8* payload() noexcept;
-
-private:
-  // pointer to buffer containing the packet
-  u8* m_data{nullptr};
-  usize m_size{0};
 };
 }

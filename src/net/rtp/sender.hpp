@@ -1,15 +1,14 @@
 #pragma once
 
 #include <array>
-#include <cstdlib> // usize
 
+#include "cancellation.hpp"
+#include "channel.hpp"
 #include "context.hpp"
 #include "net/sender.hpp"
 #include "net/types.hpp"
 #include "codec/ffmpeg/unit.hpp"
-#include "channel.hpp"
 #include "packetizer.hpp"
-#include "cancellation.hpp"
 
 
 namespace shar::net::rtp {
@@ -45,8 +44,9 @@ private:
     Packetizer m_packetizer;
 
     u16  m_sequence;
-    usize    m_bytes_sent;
-    usize    m_fragments_sent;
+
+    usize m_bytes_sent;
+    usize m_fragments_sent;
 };
 
 }

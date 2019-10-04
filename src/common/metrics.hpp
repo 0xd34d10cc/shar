@@ -93,8 +93,8 @@ public:
   Metric& operator=(Metric&&) = default;
   ~Metric();
 
-  void increase(usize delta);
-  void decrease(usize delta);
+  void operator+=(usize delta);
+  void operator-=(usize delta);
 
 private:
   MetricsPtr m_metrics;

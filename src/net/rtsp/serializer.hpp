@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string_view>
-
 #include "int.hpp"
 #include "bytes.hpp"
 

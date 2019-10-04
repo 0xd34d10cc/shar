@@ -14,28 +14,9 @@ static bool is_aligned(const void *ptr) noexcept {
 namespace shar::net::rtp {
 
 Packet::Packet(u8* data, usize size) noexcept
-  : m_data(data)
-  , m_size(size) {
+  : BytesRef(data, size)
+{
   assert(valid());
-}
-
-Packet::Packet(Packet&& other) noexcept
-  : m_data(other.m_data)
-  , m_size(other.m_size) {
-  other.m_data = nullptr;
-  other.m_size = 0;
-}
-
-Packet& Packet::operator=(Packet&& other) noexcept {
-  if (this != &other) {
-    m_data = other.m_data;
-    m_size = other.m_size;
-
-    other.m_data = nullptr;
-    other.m_size = 0;
-  }
-
-  return *this;
 }
 
 bool Packet::valid() const noexcept {
@@ -43,14 +24,6 @@ bool Packet::valid() const noexcept {
          (m_size >= MIN_SIZE) &&
          // NOTE: this check is required only for contributors() method
          is_aligned<u32>(m_data);
-}
-
-const u8* Packet::data() const noexcept {
-  return m_data;
-}
-
-usize Packet::size() const noexcept {
-  return m_size;
 }
 
 u8 Packet::version() const noexcept {

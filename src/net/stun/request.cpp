@@ -35,7 +35,7 @@ ErrorCode Request::send(udp::Socket& socket, udp::Endpoint server_address) {
   request.set_transaction(id);
 
   ErrorCode ec;
-  socket.send_to(span(buffer.data(), buffer.size()), server_address, 0, ec);
+  socket.send_to(span(request), server_address, 0, ec);
   if (ec) {
     return ec;
   }
