@@ -221,7 +221,7 @@ Response Server::proccess_request(ClientPos pos, Request request) {
       return response(headers)
         .with_status(200, "OK")
         .with_header(*cseq)
-        .with_header("Content-Type", "application/json")
+        .with_header("Content-Type", "application/sdp")
         .with_header("Content-Length", Bytes(buffer.data(), size_end))
         .with_body(simple_sdp);
     }
