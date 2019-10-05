@@ -14,9 +14,9 @@ namespace shar::net::rtsp {
 
 using codec::ffmpeg::Unit;
 
-class Server :
-  public IPacketSender,
-  protected Context
+class Server
+  : public IPacketSender
+  , protected Context
 {
 public:
   Server(Context context, IpAddress ip, Port port);
@@ -33,16 +33,17 @@ private:
   struct Client {
     explicit Client(tcp::Socket&& socket);
 
-    tcp::Socket m_socket;
-    std::vector<u8> m_buffer;
-    usize m_received_bytes;
-    usize m_sent_bytes;
+    tcp::Socket m_socket;   // client socket
 
-    usize m_response_size;
+    std::vector<u8> m_in;   // buffer for incoming messages
+    usize m_received_bytes; // how many bytes have we received
 
-    std::vector<Header> m_headers;
-    // buffer to store headers values
-    std::vector<char> m_headers_info_buffer;
+    std::vector<u8> m_out;  // buffer for outgoing messages
+    usize m_response_size;  // how many bytes we have to send
+    usize m_sent_bytes;     // how many bytes we have already sent
+
+    std::vector<Header> m_headers;    // list of headers, NOTE: Header is non-owning struct
+    std::vector<u8> m_headers_buffer; // buffer to store headers values
   };
 
   using ClientId = usize;
@@ -54,7 +55,7 @@ private:
   void send_response(ClientPos client);
   void disconnect(ClientPos client);
 
-  Response proccess_request(ClientPos client, Request request);
+  Response process_request(ClientPos client, Request request);
 
   Cancellation   m_running;
 

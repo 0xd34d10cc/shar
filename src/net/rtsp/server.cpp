@@ -64,12 +64,13 @@ void Server::start_accepting() {
 
 Server::Client::Client(tcp::Socket&& socket)
   : m_socket(std::move(socket))
-  , m_buffer(4096, 0)
+  , m_in(4096, 0)
   , m_received_bytes(0)
+  , m_out(4096, 0)
   , m_sent_bytes(0)
   , m_response_size(0)
   , m_headers(10)
-  , m_headers_info_buffer(100)
+  , m_headers_buffer(256, 0)
 {}
 
 void Server::disconnect(ClientPos pos) {
@@ -82,13 +83,14 @@ void Server::disconnect(ClientPos pos) {
 void Server::receive_request(ClientPos pos) {
   auto& [id, client] = *pos;
 
-  if (client.m_received_bytes == 4096) {
+  if (client.m_received_bytes == client.m_in.size()) {
     m_logger.info("Client {}: buffer overflow", id);
     disconnect(pos);
     return;
   }
 
-  auto buffer = span(client.m_buffer.data() + client.m_received_bytes, 4096 - client.m_received_bytes);
+  auto buffer = span(client.m_in.data() + client.m_received_bytes,
+                     client.m_in.size() - client.m_received_bytes);
   client.m_socket.async_receive(buffer, [this, id](const ErrorCode& ec, const usize size) {
     auto pos = m_clients.find(id);
     if (pos == m_clients.end()) {
@@ -109,10 +111,8 @@ void Server::receive_request(ClientPos pos) {
       Headers{ client.m_headers.data(), client.m_headers.size() }
     };
 
-    // FIXME: request size is ignored, we should move
-    //        remaining data to start of buffer
     auto request_size = request.parse(
-      Bytes{client.m_buffer.data(),
+      Bytes{client.m_in.data(),
             client.m_received_bytes}
     );
     if (auto e = request_size.err()) {
@@ -130,9 +130,13 @@ void Server::receive_request(ClientPos pos) {
       return;
     }
 
-    auto response = proccess_request(pos, request);
-    auto response_size = response.serialize(client.m_buffer.data(),
-                                            client.m_buffer.size());
+    // FIXME: request size is ignored, we should move
+    //        remaining data to start of buffer
+    assert(*request_size == client.m_received_bytes);
+
+    auto response = process_request(pos, request);
+    auto response_size = response.serialize(client.m_out.data(),
+                                            client.m_out.size());
     if (auto e = response_size.err()) {
       m_logger.warning("Client {} response serialization error: {}",
                        id, e.message());
@@ -152,7 +156,7 @@ void Server::send_response(ClientPos client_pos) {
   auto& client = client_pos->second;
   auto id = client_pos->first;
 
-  auto buffer = span(client.m_buffer.data() + client.m_sent_bytes,
+  auto buffer = span(client.m_out.data() + client.m_sent_bytes,
                      client.m_response_size - client.m_sent_bytes);
   client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, const usize size) {
     auto pos = m_clients.find(id);
@@ -179,12 +183,13 @@ void Server::send_response(ClientPos client_pos) {
   });
 }
 
-
-Response Server::proccess_request(ClientPos pos, Request request) {
+Response Server::process_request(ClientPos pos, Request request) {
   assert(request.m_type.has_value());
   auto& [id, client] = *pos;
-  Headers headers{ client.m_headers.data(), client.m_headers.size() };
+  Headers headers{client.m_headers.data(),
+                  client.m_headers.size()};
 
+  // NOTE: references |m_in| buffer
   auto cseq = request.m_headers.get("CSeq");
   if (!cseq) {
     m_logger.warning("CSeq header wasn't found. Client {}", id);
@@ -195,7 +200,6 @@ Response Server::proccess_request(ClientPos pos, Request request) {
     case Request::Type::OPTIONS: {
       return response(headers)
         .with_status(200, "OK")
-        // FIXME: cseq points to a buffer which we are going to overwrite
         .with_header(*cseq)
         .with_header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE");
     }
@@ -209,9 +213,9 @@ Response Server::proccess_request(ClientPos pos, Request request) {
           "a=rtpmap:96 H264/90000\r\n"
           "a=fmtp:96 packetization-mode=1\r\n";
 
-      auto& buffer = client.m_headers_info_buffer;
-      auto [size_end, ec] = std::to_chars(buffer.data(),
-        buffer.data() + buffer.size(), simple_sdp.len());
+      auto data = reinterpret_cast<char*>(client.m_headers_buffer.data());
+      const auto size = client.m_headers_buffer.size();
+      auto [size_end, ec] = std::to_chars(data, data + size, simple_sdp.len());
 
       if (ec != std::errc()) {
         assert(false);
@@ -222,16 +226,22 @@ Response Server::proccess_request(ClientPos pos, Request request) {
         .with_status(200, "OK")
         .with_header(*cseq)
         .with_header("Content-Type", "application/sdp")
-        .with_header("Content-Length", Bytes(buffer.data(), size_end))
+        .with_header("Content-Length", Bytes(data, size_end))
         .with_body(simple_sdp);
     }
 
     case Request::Type::SETUP: {
-      return response(headers)
-        .with_status(200, "OK")
-        .with_header(*cseq)
-          // FIXME: unhardcode
-        .with_header("Transport", "RTP;unicast;client_port=8000;server_port=9000;ssrc=D34D10CC");
+      // TODO: actually parse Transport header and get client ports
+      if (auto transport = request.m_headers.get("Transport")) {
+        return response(headers)
+          .with_status(200, "OK")
+          .with_header(*cseq)
+            // FIXME: unhardcode
+          .with_header("Transport", "RTP;unicast;client_port=8000;server_port=9000;ssrc=D34D10CC");
+      }
+      else {
+        return response(headers).with_status(400, "Bad Request");
+      }
     }
 
     case Request::Type::TEARDOWN:
@@ -242,7 +252,8 @@ Response Server::proccess_request(ClientPos pos, Request request) {
     case Request::Type::REDIRECT:
     case Request::Type::ANNOUNCE:
     case Request::Type::RECORD: {
-      return response(headers).with_status(501, "Not implemented");
+      return response(headers)
+        .with_status(501, "Not implemented");
     }
 
     default: {
