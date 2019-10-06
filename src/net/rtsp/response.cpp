@@ -1,9 +1,11 @@
 #include <cassert>
 #include <charconv>
 
+#include "bufwriter.hpp"
+
 #include "error.hpp"
 #include "response.hpp"
-#include "serializer.hpp"
+
 
 namespace shar::net::rtsp {
 
@@ -85,11 +87,11 @@ ErrorOr<usize> Response::parse(Bytes bytes) {
   return response_line_size + *headers_len;
 }
 
-ErrorOr<usize> Response::serialize(unsigned char* dst, usize size) {
+ErrorOr<usize> Response::serialize(u8* dst, usize size) {
   assert(m_version.has_value() || m_reason.has_value() ||
          m_status_code != std::numeric_limits<u16>::max());
 
-  Serializer serializer(reinterpret_cast<char*>(dst), size);
+  BufWriter serializer(dst, size);
 #define TRY_SERIALIZE(EXP) \
   if (!(EXP)) FAIL(Error::NotEnoughData);
   // serialize version

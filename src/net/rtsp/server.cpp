@@ -3,9 +3,45 @@
 #include "server.hpp"
 #include "error.hpp"
 #include "int.hpp"
+#include "bufwriter.hpp"
 
 
 namespace shar::net::rtsp {
+
+static std::optional<Port> parse_port(const u8* from, const u8* to) {
+  Port port;
+  auto [end, ec] = std::from_chars(
+    reinterpret_cast<const char*>(from),
+    reinterpret_cast<const char*>(to),
+    port
+  );
+
+  if (ec != std::errc() || reinterpret_cast<const u8*>(end) != to) {
+    return std::nullopt;
+  }
+
+  return port;
+}
+
+// Transport: RTP/AVP;unicast;client_port=8000-8001
+static std::optional<std::pair<Port, Port>> parse_transport(Bytes bytes) {
+  static const Bytes prefix = "RTP/AVP;unicast;client_port=";
+
+  if (!bytes.starts_with(prefix)) {
+    return std::nullopt;
+  }
+
+  bytes = bytes.slice(prefix.len(), bytes.len());
+  if (const u8* delim = bytes.find('-')) {
+    if (auto rtp = parse_port(bytes.begin(), delim)) {
+      if (auto rtcp = parse_port(delim + 1, bytes.end())) {
+        return std::make_pair(*rtp, *rtcp);
+      }
+    }
+  }
+
+  return std::nullopt;
+}
 
 Server::Server(Context context, IpAddress ip, Port port)
   : Context(std::move(context))
@@ -193,7 +229,9 @@ Response Server::process_request(ClientPos pos, Request request) {
   auto cseq = request.m_headers.get("CSeq");
   if (!cseq) {
     m_logger.warning("CSeq header wasn't found. Client {}", id);
-    return response(headers).with_status(400, "Bad Request");
+    return response(headers)
+      .with_status(400, "Bad Request")
+      .with_header("Reason", "No CSeq header");
   }
 
   switch (request.m_type.value()) {
@@ -201,7 +239,7 @@ Response Server::process_request(ClientPos pos, Request request) {
       return response(headers)
         .with_status(200, "OK")
         .with_header(*cseq)
-        .with_header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE");
+        .with_header("Public", "DESCRIBE, SETUP, TEARDOWN, PLAY");
     }
 
     case Request::Type::DESCRIBE: {
@@ -213,39 +251,87 @@ Response Server::process_request(ClientPos pos, Request request) {
           "a=rtpmap:96 H264/90000\r\n"
           "a=fmtp:96 packetization-mode=1\r\n";
 
-      auto data = reinterpret_cast<char*>(client.m_headers_buffer.data());
-      const auto size = client.m_headers_buffer.size();
-      auto [size_end, ec] = std::to_chars(data, data + size, simple_sdp.len());
-
-      if (ec != std::errc()) {
-        assert(false);
-        throw std::runtime_error("Failed to convert SDP size to string");
-      }
+      auto& buffer = client.m_headers_buffer;
+      BufWriter writer { buffer.data(), buffer.size() };
+      auto content_length = writer.format(simple_sdp.len());
+      assert(content_length.has_value());
 
       return response(headers)
         .with_status(200, "OK")
         .with_header(*cseq)
         .with_header("Content-Type", "application/sdp")
-        .with_header("Content-Length", Bytes(data, size_end))
+        .with_header("Content-Length", *content_length)
         .with_body(simple_sdp);
     }
 
     case Request::Type::SETUP: {
-      // TODO: actually parse Transport header and get client ports
-      if (auto transport = request.m_headers.get("Transport")) {
+      if (auto client_transport = request.m_headers.get("Transport")) {
+        if (auto ports = parse_transport(client_transport->value)) {
+          auto [rtp, rtcp] = *ports;
+          setup_session(pos, rtp, rtcp);
+          assert(client.m_session.has_value());
+
+          auto& buffer = client.m_headers_buffer;
+          BufWriter writer { buffer.data(), buffer.size() };
+
+          // setup transport header
+          writer.write("RTP/AVP;unicast;client_port=");
+          writer.format(rtp);
+          writer.write("-");
+          writer.format(rtcp);
+          // TODO: unhardcode server_port
+          writer.write(";server_port=1336-1337;ssrc=D34D10CC");
+
+          auto transport = Bytes(writer.data(), writer.written_bytes());
+          auto session = writer.format(client.m_session->number);
+
+          assert(session.has_value());
+          return response(headers)
+            .with_status(200, "OK")
+            .with_header(*cseq)
+            .with_header("Transport", transport)
+            .with_header("Session", *session)
+            .with_header("Media-Properties", "No-Seeking, Time-Progressing, Time-Duration=0.0");
+        }
+
+        return response(headers)
+          .with_status(461, "Unsupported Transport")
+          .with_header(*cseq);
+      }
+
+      return response(headers)
+        .with_status(402, "Payment Required")
+        .with_header(*cseq);
+    }
+
+    case Request::Type::TEARDOWN: {
+      if (auto session = request.m_headers.get("Session")) {
+        // TODO: check that session number actually matches
+        teardown_session(pos);
+        return response(headers)
+          .with_status(200, "OK")
+          .with_header(*cseq);
+      }
+
+      return response(headers)
+        .with_status(454, "Session Not Found")
+        .with_header(*cseq);
+    }
+
+    case Request::Type::PLAY: {
+      if (auto session = request.m_headers.get("Session")) {
+        // TODO: actually start streaming data
         return response(headers)
           .with_status(200, "OK")
           .with_header(*cseq)
-            // FIXME: unhardcode
-          .with_header("Transport", "RTP;unicast;client_port=8000;server_port=9000;ssrc=D34D10CC");
+          .with_header(*session);
       }
-      else {
-        return response(headers).with_status(400, "Bad Request");
-      }
+
+      return response(headers)
+        .with_status(454, "Session Not Found")
+        .with_header(*cseq);
     }
 
-    case Request::Type::TEARDOWN:
-    case Request::Type::PLAY:
     case Request::Type::PAUSE:
     case Request::Type::GET_PARAMETER:
     case Request::Type::SET_PARAMETER:
@@ -253,7 +339,8 @@ Response Server::process_request(ClientPos pos, Request request) {
     case Request::Type::ANNOUNCE:
     case Request::Type::RECORD: {
       return response(headers)
-        .with_status(501, "Not implemented");
+        .with_status(501, "Not implemented")
+        .with_header(*cseq);
     }
 
     default: {
@@ -261,6 +348,24 @@ Response Server::process_request(ClientPos pos, Request request) {
       throw std::runtime_error("Unknown request type.");
     }
   }
+}
+
+static usize gen_session_number() {
+  return rand();
+}
+
+void Server::setup_session(ClientPos pos, Port rtp, Port rtcp) {
+  auto& client = pos->second;
+  client.m_session = Session{
+    gen_session_number(),
+    client.m_socket.remote_endpoint().address(),
+    rtp,
+    rtcp
+  };
+}
+
+void Server::teardown_session(ClientPos pos) {
+  pos->second.m_session.reset();
 }
 
 }

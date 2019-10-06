@@ -62,8 +62,6 @@ add_library(net
     rtsp/parser.cpp
     rtsp/header.hpp
     rtsp/header.cpp
-    rtsp/serializer.hpp
-    rtsp/serializer.cpp
     rtsp/server.hpp
     rtsp/server.cpp
     rtsp/error.hpp

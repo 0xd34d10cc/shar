@@ -30,6 +30,13 @@ public:
   void shutdown() override;
 
 private:
+  struct Session {
+    usize number; // identifier of the session
+    IpAddress ip; // client ip address
+    Port rtp;     // client rtp port
+    Port rtcp;    // client rtcp port
+  };
+
   struct Client {
     explicit Client(tcp::Socket&& socket);
 
@@ -44,6 +51,8 @@ private:
 
     std::vector<Header> m_headers;    // list of headers, NOTE: Header is non-owning struct
     std::vector<u8> m_headers_buffer; // buffer to store headers values
+
+    std::optional<Session> m_session;
   };
 
   using ClientId = usize;
@@ -54,6 +63,9 @@ private:
   void receive_request(ClientPos client);
   void send_response(ClientPos client);
   void disconnect(ClientPos client);
+
+  void setup_session(ClientPos client, Port rtp, Port rtcp);
+  void teardown_session(ClientPos client);
 
   Response process_request(ClientPos client, Request request);
 

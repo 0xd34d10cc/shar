@@ -20,9 +20,9 @@ add_library(common
             byteorder.cpp
             atomic_string.hpp
             atomic_string.cpp
+            bufwriter.hpp
+            bufwriter.cpp
             newtype.hpp
-
-            # metrics
             metrics.cpp
             metrics.hpp
             )
