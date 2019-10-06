@@ -2,9 +2,9 @@
 #include <cstring>
 #include <cassert>
 
+#include "bufwriter.hpp"
 #include "error.hpp"
 #include "request.hpp"
-#include "serializer.hpp"
 
 
 namespace shar::net::rtsp {
@@ -12,22 +12,6 @@ namespace shar::net::rtsp {
 Request::Request(Headers headers) : m_headers(std::move(headers)) {}
 
 static ErrorOr<Request::Type> parse_type(const char* begin, usize size) {
-  /*
-  static std::array<std::pair<BytesRef, Request::Type>, 11> types{
-    {"OPTIONS"_b,  Request::Type::OPTIONS},
-    {"DESCRIBE"_b, Request::Type::DESCRIBE},
-    {"SETUP"_b,    Request::Type::SETUP},
-    {"TEARDOWN"_b, Request::Type::TEARDOWN},
-    {"PLAY"_b,     Request::Type::PLAY},
-    {"PAUSE"_b,    Request::Type::PAUSE},
-    {"REDIRECT"_b, Request::Type::REDIRECT},
-    {"ANNOUNCE"_b, Request::Type::ANNOUNCE},
-    {"RECORD"_b,   Request::Type::RECORD},
-    {"GET_PARAMETER"_b, Request::Type::GET_PARAMETER},
-    {"SET_PARAMETER"_b, Request::Type::SET_PARAMETER}
-  };
-  */
-
   int i = 0;
   usize len = 0;
 
@@ -157,10 +141,10 @@ static Bytes type_to_string(Request::Type type) {
   }
 }
 
-ErrorOr<bool> Request::serialize(unsigned char* dst, usize size) {
+ErrorOr<bool> Request::serialize(u8* dst, usize size) {
   assert(m_type.has_value() || m_address.has_value() || m_version.has_value());
 
-  Serializer serializer(reinterpret_cast<char*>(dst), size);
+  BufWriter serializer(dst, size);
 #define TRY_SERIALIZE(exp) if(!(exp)) return false
   //serialize type
   TRY_SERIALIZE(serializer.write(type_to_string(m_type.value())));

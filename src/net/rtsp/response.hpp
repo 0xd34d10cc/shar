@@ -24,7 +24,7 @@ public:
   Response(const ResponseBuilder& builder);
 
   ErrorOr<usize> parse(Bytes bytes);
-  ErrorOr<usize> serialize(unsigned char* destination, usize size);
+  ErrorOr<usize> serialize(u8* destination, usize size);
 
   friend class ResponseBuilder;
 
