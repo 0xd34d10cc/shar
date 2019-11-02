@@ -27,7 +27,7 @@ void Packetizer::set(u8* data, usize size) noexcept {
   m_position = data;
   m_last_packet_full_nal_unit = false;
 
-  bool found = next_nal(); // move to start of NAL unit
+  [[maybe_unused]] bool found = next_nal(); // move to start of NAL unit
   assert(found);
 }
 
