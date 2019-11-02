@@ -1,27 +1,27 @@
-#include <cassert>
+#include "unit.hpp"
 
+#include <cassert>
+#include <cstring>
+
+// clang-format off
 #include "disable_warnings_push.hpp"
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 #include "disable_warnings_pop.hpp"
-
-#include "unit.hpp"
-
+// clang-format on
 
 namespace shar::codec::ffmpeg {
 
-Unit::Unit(AVPacket* packet)
-  : m_packet(packet)
-  {}
+Unit::Unit(AVPacket *packet) : m_packet(packet) {}
 
 Unit Unit::allocate() noexcept {
   return Unit(av_packet_alloc());
 }
 
-Unit Unit::from_data(const u8* data, usize size) {
+Unit Unit::from_data(const u8 *data, usize size) {
   auto unit = Unit::allocate();
-  AVBufferRef* buffer = av_buffer_alloc(static_cast<int>(size));
+  AVBufferRef *buffer = av_buffer_alloc(static_cast<int>(size));
   std::memcpy(buffer->data, data, size);
   assert(unit.raw()->buf == nullptr);
   unit.raw()->buf = buffer;
@@ -31,16 +31,15 @@ Unit Unit::from_data(const u8* data, usize size) {
 }
 
 bool Unit::empty() const noexcept {
-  return m_packet == nullptr ||
-         m_packet->data == nullptr ||
+  return m_packet == nullptr || m_packet->data == nullptr ||
          m_packet->size == 0;
 }
 
-u8* Unit::data() noexcept {
+u8 *Unit::data() noexcept {
   return m_packet ? m_packet->data : nullptr;
 }
 
-const u8* Unit::data() const noexcept {
+const u8 *Unit::data() const noexcept {
   return m_packet ? m_packet->data : nullptr;
 }
 
@@ -57,8 +56,8 @@ Unit::Type Unit::type() const noexcept {
   return is_idr ? Type::IDR : Type::Unknown;
 }
 
-AVPacket* Unit::raw() noexcept {
+AVPacket *Unit::raw() noexcept {
   return m_packet.get();
 }
 
-}
+} // namespace shar::codec::ffmpeg

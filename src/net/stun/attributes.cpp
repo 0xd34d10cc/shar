@@ -1,26 +1,25 @@
-#include <cassert>
-
 #include "attributes.hpp"
+
 #include "byteorder.hpp"
 
+#include <cstring> // std::memcpy
+#include <cassert>
 
 namespace shar::net::stun {
 
-Attributes::Attributes(u8* data, usize size) noexcept
-  : BytesRef(data, size)
-  {}
+Attributes::Attributes(u8 *data, usize size) noexcept : BytesRef(data, size) {}
 
 void Attributes::reset() noexcept {
   m_pos = 0;
 }
 
-bool Attributes::read(Attribute& attr) noexcept {
+bool Attributes::read(Attribute &attr) noexcept {
   assert(valid());
   if (m_pos >= m_size || (m_size - m_pos) < 4) {
     return false;
   }
 
-  u8* p = m_data + m_pos;
+  u8 *p = m_data + m_pos;
   attr.type = read_u16_big_endian(p);
   attr.length = read_u16_big_endian(p + 2);
   attr.data = p + 4;
@@ -37,7 +36,7 @@ bool Attributes::append(Attribute attr) noexcept {
     return false;
   }
 
-  u8* p = m_data + m_pos;
+  u8 *p = m_data + m_pos;
   auto bytes = to_big_endian(attr.type);
   std::memcpy(p, bytes.data(), bytes.size());
   bytes = to_big_endian(attr.length);
@@ -56,4 +55,4 @@ bool Attributes::valid() const noexcept {
   return m_pos % 4 == 0;
 }
 
-}
+} // namespace shar::net::stun

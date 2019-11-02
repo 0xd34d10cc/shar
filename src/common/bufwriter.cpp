@@ -29,7 +29,7 @@ std::optional<Bytes> BufWriter::format(usize number) {
   auto[end, ec] = std::to_chars(curr, curr + (m_size - m_written_bytes), number);
 
   if (ec == std::errc()) {
-    m_written_bytes += end - curr;
+    m_written_bytes += static_cast<usize>(end - curr);
     return Bytes(begin, reinterpret_cast<u8*>(end));
   }
 

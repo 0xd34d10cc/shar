@@ -18,9 +18,7 @@ class Encoder: protected Context {
 public:
   Encoder(Context context, Size frame_size, usize fps);
   Encoder(const Encoder&) = delete;
-  Encoder(Encoder&&) = default;
   Encoder& operator=(const Encoder&) = delete;
-  Encoder& operator=(Encoder&&) = default;
   ~Encoder() = default;
 
   void run(Receiver<ffmpeg::Frame> input, Sender<ffmpeg::Unit> output);

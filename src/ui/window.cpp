@@ -139,18 +139,18 @@ static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* 
     Size{data->header_height, static_cast<usize>(width - 60)}
   };
 
-  if (header.contains(Point{ area->x, area->y })) {
+  if (header.contains(Point{ static_cast<usize>(area->x), static_cast<usize>(area->y) })) {
     return SDL_HITTEST_DRAGGABLE;
   }
 
   return SDL_HITTEST_NORMAL;
 }
 
-static int handle_event(void* user_data, SDL_Event* event) {
+static int handle_event([[maybe_unused]] void* user_data, SDL_Event* event) {
  if (event->type == SDL_SYSWMEVENT) {
-    auto* data = reinterpret_cast<OnMoveData*>(user_data);
 
 #ifdef WIN32
+    auto* data = reinterpret_cast<OnMoveData*>(user_data);
     const auto& winMessage = event->syswm.msg->msg.win;
     if (winMessage.msg == WM_ENTERSIZEMOVE) {
       assert(!data->active);

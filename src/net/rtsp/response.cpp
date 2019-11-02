@@ -1,24 +1,21 @@
-#include <cassert>
-#include <charconv>
-
-#include "bufwriter.hpp"
-
-#include "error.hpp"
 #include "response.hpp"
 
+#include "bufwriter.hpp"
+#include "error.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <charconv>
 
 namespace shar::net::rtsp {
 
 static const auto INVALID_STATUS_CODE = std::numeric_limits<uint16_t>::max();
 
 Response::Response(Headers headers)
-  : m_headers(std::move(headers))
-  , m_status_code(INVALID_STATUS_CODE)
-{}
+    : m_status_code(INVALID_STATUS_CODE)
+    , m_headers(std::move(headers)) {}
 
-Response::Response(const ResponseBuilder& builder)
-  : Response(builder.finish())
-{}
+Response::Response(const ResponseBuilder &builder) : Response(builder.finish()) {}
 
 std::optional<usize> Response::version() const noexcept {
   return m_version;
@@ -41,38 +38,38 @@ std::optional<Bytes> Response::body() const noexcept {
 }
 
 ErrorOr<usize> Response::parse(Bytes bytes) {
-  const char* current = bytes.char_ptr();
-  const char* begin = current;
-  const char* end = begin + bytes.len();
+  const char *current = bytes.char_ptr();
+  const char *begin = current;
+  const char *end = begin + bytes.len();
 
-  const char* version_end = std::find(current, end, ' ');
-  auto version = parse_version(current, version_end - current);
+  const char *version_end = std::find(current, end, ' ');
+  auto version = parse_version(current, static_cast<usize>(version_end - current));
   TRY(version);
   if (version_end == end) {
     FAIL(Error::NotEnoughData);
   }
   m_version = *version;
-  current = version_end + 1;  // Move to first symbol after space
+  current = version_end + 1; // Move to first symbol after space
 
-  const char* status_code_end = std::find(current, end, ' ');
+  const char *status_code_end = std::find(current, end, ' ');
   if (status_code_end == end) {
     FAIL(Error::NotEnoughData);
   }
 
-  auto status_code = parse_status_code(current, status_code_end - current);
+  auto status_code = parse_status_code(current, static_cast<usize>(status_code_end - current));
   TRY(status_code);
   if (*status_code < 100 || *status_code > 600) {
     FAIL(Error::InvalidStatusCode);
   }
   m_status_code = *status_code;
-  current = status_code_end + 1;  // Move to first symbol after space
+  current = status_code_end + 1; // Move to first symbol after space
 
-  auto reason_end = find_line_ending(current, end - current);
+  auto reason_end = find_line_ending(current, static_cast<usize>(end - current));
   TRY(reason_end);
   if (*reason_end == end) {
     FAIL(Error::NotEnoughData);
   }
-  m_reason = Bytes(current, *reason_end - current);
+  m_reason = Bytes(current, *reason_end);
 
   if (*reason_end + 2 == end) {
     FAIL(Error::NotEnoughData);
@@ -80,20 +77,21 @@ ErrorOr<usize> Response::parse(Bytes bytes) {
 
   current = *reason_end + 2;
 
-  auto headers_len = parse_headers(current, end - current, m_headers);
+  auto headers_len = parse_headers(current, static_cast<usize>(end - current), m_headers);
   TRY(headers_len);
 
-  usize response_line_size = current - begin;
+  usize response_line_size = static_cast<usize>(current - begin);
   return response_line_size + *headers_len;
 }
 
-ErrorOr<usize> Response::serialize(u8* dst, usize size) {
+ErrorOr<usize> Response::serialize(u8 *dst, usize size) {
   assert(m_version.has_value() || m_reason.has_value() ||
          m_status_code != std::numeric_limits<u16>::max());
 
   BufWriter serializer(dst, size);
 #define TRY_SERIALIZE(EXP) \
-  if (!(EXP)) FAIL(Error::NotEnoughData);
+  if (!(EXP))              \
+    FAIL(Error::NotEnoughData)
   // serialize version
 
   if (*m_version == 1) {
@@ -131,11 +129,10 @@ ErrorOr<usize> Response::serialize(u8* dst, usize size) {
 }
 
 ResponseBuilder response(Headers headers) {
-  return ResponseBuilder{ headers };
+  return ResponseBuilder{headers};
 }
 
-ResponseBuilder::ResponseBuilder(Headers headers)
- : m_response(headers) {
+ResponseBuilder::ResponseBuilder(Headers headers) : m_response(headers) {
   m_response.m_version = 2;
   m_headers = m_response.m_headers.len;
   m_response.m_headers.len = 0;
@@ -176,4 +173,4 @@ Response ResponseBuilder::finish() const {
   return m_response;
 }
 
-}  // namespace shar::net::rtsp
+} // namespace shar::net::rtsp

@@ -87,9 +87,12 @@ if (WIN32)
     PUBLIC ws2_32
     PUBLIC iphlpapi
   )
+else()
+  target_link_libraries(net PUBLIC pthread)
 endif()
 
-target_compile_definitions(net PRIVATE ${SHAR_COMPILE_DEFINITIONS})
+
+target_compile_definitions(net PRIVATE ${SHAR_COMPILE_DEFINITIONS} ASIO_HAS_STD_STRING_VIEW)
 target_compile_options(net PRIVATE ${SHAR_COMPILE_OPTIONS})
 
 # tests

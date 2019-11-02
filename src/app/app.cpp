@@ -1,18 +1,21 @@
-#include <thread>
-#include <filesystem>
-#include <fstream>
-
-#include "disable_warnings_push.hpp"
-#include <SDL2/SDL_events.h>
-#include "disable_warnings_pop.hpp"
-
 #include "app.hpp"
+
 #include "env.hpp"
-#include "time.hpp"
 #include "size.hpp"
+#include "time.hpp"
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
 
+#include <filesystem>
+#include <fstream>
+#include <thread>
+#include <type_traits>
+
+// clang-format off
+#include "disable_warnings_push.hpp"
+#include <SDL2/SDL_events.h>
+#include "disable_warnings_pop.hpp"
+// clang-format on
 
 namespace shar {
 
@@ -24,7 +27,8 @@ static Context make_context(Config c) {
   auto config = std::make_shared<Config>(std::move(c));
   auto shar_loglvl = config->log_level;
   if (shar_loglvl > config->encoder_log_level) {
-    throw std::runtime_error("Encoder log level should not be less than general log level");
+    throw std::runtime_error(
+        "Encoder log level should not be less than general log level");
   }
 
   if (config->log_level != LogLevel::None) {
@@ -33,43 +37,34 @@ static Context make_context(Config c) {
       if (!fs::create_directories(config->logs_location)) {
         throw std::runtime_error("Failed to create logs directory");
       }
-    }
-    else if (!fs::is_directory(status)) {
-      throw std::runtime_error("logs_location parameter should point to a directory");
+    } else if (!fs::is_directory(status)) {
+      throw std::runtime_error(
+          "logs_location parameter should point to a directory");
     }
   }
 
   auto logger = Logger(config->logs_location, shar_loglvl);
   auto metrics = std::make_shared<Metrics>(20);
 
-  return Context{
-    std::move(config),
-    std::move(logger),
-    std::move(metrics)
-  };
+  return Context{std::move(config), std::move(logger), std::move(metrics)};
 }
 
 App::App(Config config)
-  : m_context(make_context(std::move(config)))
-  // NOTE: should not be equal to screen size, otherwise some
-  //       magical SDL kludge makes window fullscreen
-  , m_window("shar", Size{ 1080 + HEADER_SIZE, 1920 })
-  , m_renderer(ui::OpenGLVTable::load().value())
-  , m_ui()
-  , m_background(Size{ 1080, 1920 })
-  , m_stop_button("stop")
-  , m_stream_button("stream")
-  , m_view_button("view")
-  , m_url(false, false, true)
-  , m_metrics_data{
-      std::vector<std::string>(),
-      Clock::now(),
-      Seconds(1)
-  }
-  , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
-  , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
-  , m_stream(Empty{})
-{
+    : m_context(make_context(std::move(config)))
+    // NOTE: should not be equal to screen size, otherwise some
+    //       magical SDL kludge makes window fullscreen
+    , m_window("shar", Size{1080 + HEADER_SIZE, 1920})
+    , m_renderer(ui::OpenGLVTable::load().value())
+    , m_ui()
+    , m_background(Size{1080, 1920})
+    , m_stop_button("stop")
+    , m_stream_button("stream")
+    , m_view_button("view")
+    , m_url(false, false, true)
+    , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
+    , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
+    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)}
+    , m_stream(Empty{}) {
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
   ui::Renderer::init_log(m_context.m_logger);
 
@@ -106,9 +101,8 @@ bool App::process_input() {
     }
 
     // change gui visibility on ctrl+g
-    if (event.type == SDL_KEYDOWN &&
-        event.key.keysym.sym == SDLK_g) {
-      const Uint8* state = SDL_GetKeyboardState(0);
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_g) {
+      const Uint8* state = SDL_GetKeyboardState(nullptr);
 
       if (state[SDL_SCANCODE_LCTRL]) {
         m_gui_enabled = !m_gui_enabled;
@@ -118,9 +112,8 @@ bool App::process_input() {
     }
 
     // change metric drawer visibility on ctrl+m
-    if (event.type == SDL_KEYDOWN &&
-      event.key.keysym.sym == SDLK_m) {
-      const Uint8* state = SDL_GetKeyboardState(0);
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_m) {
+      const Uint8* state = SDL_GetKeyboardState(nullptr);
 
       if (state[SDL_SCANCODE_LCTRL]) {
         m_render_metrics = !m_render_metrics;
@@ -139,9 +132,14 @@ void App::update_title_bar() {
   Size size = m_window.display_size();
 
   // title bar
-  bool active = nk_begin(m_ui.context(), "shar",
-                         nk_rect(0.0f, 0.0f, (float)size.width(), (float)HEADER_SIZE),
-                         NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
+  bool active =
+      nk_begin(m_ui.context(),
+               "shar",
+               nk_rect(0.0f,
+                       0.0f,
+                       static_cast<float>(size.width()),
+                       static_cast<float>(HEADER_SIZE)),
+               NK_WINDOW_TITLE | NK_WINDOW_CLOSABLE | NK_WINDOW_MINIMIZABLE);
   nk_end(m_ui.context());
 
   if (!active) {
@@ -163,16 +161,18 @@ void App::update_metrics() {
   auto old_bg = background_style;
   background_style = nk_style_item_hide();
 
-  if (nk_begin(m_ui.context(), "metrics",
-               nk_rect((float)size.width() - 200.0f, (float)HEADER_SIZE,
-                       200.0f, (float)size.height() - 500.0f),
+  if (nk_begin(m_ui.context(),
+               "metrics",
+               nk_rect(static_cast<float>(size.width()) - 200.0f,
+                       static_cast<float>(HEADER_SIZE),
+                       200.0f,
+                       static_cast<float>(size.height()) - 500.0f),
                NK_WINDOW_NO_SCROLLBAR)) {
 
     for (const auto& line : m_metrics_data.text) {
       nk_layout_row_dynamic(m_ui.context(), 10, 1);
       nk_label(m_ui.context(), line.c_str(), NK_TEXT_ALIGN_LEFT);
     }
-
   }
   nk_end(m_ui.context());
 
@@ -181,9 +181,9 @@ void App::update_metrics() {
 
 std::optional<StreamState> App::update_config() {
   std::optional<StreamState> new_state;
-  Size size = m_window.display_size();
   bool display_error = !m_last_error.empty();
-  if (nk_begin(m_ui.context(), "config",
+  if (nk_begin(m_ui.context(),
+               "config",
                nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
                NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
@@ -223,7 +223,8 @@ std::optional<StreamState> App::update_config() {
 
     if (display_error) {
       nk_layout_row_dynamic(m_ui.context(), 40, 1);
-      nk_text_wrap(m_ui.context(), m_last_error.c_str(),
+      nk_text_wrap(m_ui.context(),
+                   m_last_error.c_str(),
                    static_cast<int>(m_last_error.size()));
     }
   }
@@ -251,9 +252,9 @@ void App::render_background() {
   //        parameter for Size is height which is very confusing
   auto at = Point{0, HEADER_SIZE};
   if (bounded_by_height) {
-    at.x += static_cast<int>(win_size.width() - w) / 2;
+    at.x += (win_size.width() - w) / 2;
   } else {
-    at.y += static_cast<int>(max_height - h) / 2;
+    at.y += (max_height - h) / 2;
   }
 
   m_renderer.render(m_background, m_window.size(), at, Size{h, w});
@@ -327,9 +328,7 @@ bool App::update_background() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
       m_background.bind();
-      m_background.update(Point::origin(),
-                          frame->size,
-                          frame->data.get());
+      m_background.update(Point::origin(), frame->size, frame->data.get());
       m_background.unbind();
       return true;
     }
@@ -354,8 +353,7 @@ void App::update_gui() {
         m_last_error.clear();
       }
     }
-  }
-  catch (const std::exception & e) {
+  } catch (const std::exception& e) {
     m_last_error = e.what();
 
     if (m_stream.valueless_by_exception()) {
@@ -388,10 +386,12 @@ int App::run() {
 }
 
 void App::check_stream_state() {
-  const bool failed = std::visit([this](auto& stream) { return stream.failed(); }, m_stream);
+  const bool failed =
+      std::visit([](auto& stream) { return stream.failed(); }, m_stream);
 
   if (failed) {
-    m_last_error = std::visit([this](auto& stream) { return stream.error(); }, m_stream);
+    m_last_error =
+        std::visit([](auto& stream) { return stream.error(); }, m_stream);
     switch_to(StreamState::None);
   }
 }
@@ -413,23 +413,22 @@ bool App::check_metrics() {
 }
 
 StreamState App::state() const {
-  return std::visit([this](auto& stream) {
-    using T = std::decay_t<decltype(stream)>;
+  return std::visit(
+      [](auto& stream) {
+        using T = std::decay_t<decltype(stream)>;
 
-    if constexpr (std::is_same_v<T, Empty>) {
-      return StreamState::None;
-    }
-    else if constexpr (std::is_same_v<T, Broadcast>) {
-      return StreamState::Broadcast;
-    }
-    else if constexpr (std::is_same_v<T, View>) {
-      return StreamState::View;
-    }
-    else {
-      static_assert(false, "types...");
-    }
+        if constexpr (std::is_same_v<T, Empty>) {
+          return StreamState::None;
+        } else if constexpr (std::is_same_v<T, Broadcast>) {
+          return StreamState::Broadcast;
+        } else if constexpr (std::is_same_v<T, View>) {
+          return StreamState::View;
+        }
 
-    }, m_stream);
+        assert(false);
+        return StreamState::None;
+      },
+      m_stream);
 }
 
 void App::save_config() {
@@ -437,15 +436,16 @@ void App::save_config() {
   bool save = std::filesystem::exists(env::config_path());
   if (!save) {
     if (const auto dir = env::shar_dir()) {
-      save = std::filesystem::exists(*dir) && std::filesystem::is_directory(*dir);
+      save =
+          std::filesystem::exists(*dir) && std::filesystem::is_directory(*dir);
     }
   }
 
   if (save) {
     const auto config = m_context.m_config->to_string();
     std::ofstream out(env::config_path(), std::ios_base::binary);
-    out.write(config.data(), config.size());
+    out.write(config.data(), static_cast<std::streamsize>(config.size()));
   }
 }
 
-}
+} // namespace shar

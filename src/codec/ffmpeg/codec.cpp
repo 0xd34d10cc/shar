@@ -162,9 +162,10 @@ std::vector<Unit> Codec::encode(Frame image) {
       ret = avcodec_receive_packet(context, unit.raw());
 
       // NOTE: this delay is incorrect, because encoder is able to buffer frames.
-      const auto delay = Clock::now() - image.timestamp();
-      const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
-      //m_full_delay.Observe(static_cast<double>(delay_ms.count()));
+      // TODO: Report codec delay
+      // const auto delay = Clock::now() - image.timestamp();
+      // const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
+      // m_full_delay.Observe(static_cast<double>(delay_ms.count()));
     }
   }
 
@@ -190,7 +191,7 @@ std::optional<Frame> Codec::decode(Unit unit) {
   // error
   assert(ret == 0);
   assert(frame.raw()->format == AV_PIX_FMT_YUV420P);
-  return frame;
+  return std::move(frame);
 }
 
 int Codec::next_pts() {

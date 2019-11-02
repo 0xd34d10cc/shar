@@ -132,7 +132,7 @@ std::string log_level_to_string(LogLevel level) {
     case LogLevel::Critical:
       return "critical";
     default:
-      assert(!"invalid loglevel, update log_level_to_string");
+      assert(false && "invalid loglevel, update log_level_to_string");
       throw std::runtime_error("invalid loglevel, update log_level_to_string");
   }
 }
