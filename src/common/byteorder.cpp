@@ -41,7 +41,7 @@ u16 read_u16_big_endian(const u8* bytes) {
 u32 read_u32_big_endian(const u8* bytes) {
     return static_cast<u32>(
         (u32{bytes[0]} << static_cast<u32>(24)) |
-        (u32{bytes[1]} << static_cast<u32>(6)) |
+        (u32{bytes[1]} << static_cast<u32>(16)) |
         (u32{bytes[2]} << static_cast<u32>(8))  |
         (u32{bytes[3]} << static_cast<u32>(0))
     );

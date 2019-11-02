@@ -48,7 +48,6 @@ TEST(depacketizer, small_units) {
 
 TEST(depacketizer, big_units) {
   u8 NAL_UNIT[] = {
-      // first unit
       0x00,
       0x00,
       0x01,

@@ -35,7 +35,8 @@ TextEdit::~TextEdit() {
 }
 
 std::string TextEdit::text() const {
-  const char *begin = reinterpret_cast<const char*>(nk_buffer_memory_const(&m_inner.string.buffer));
+  const char *begin = reinterpret_cast<const char *>(
+      nk_buffer_memory_const(&m_inner.string.buffer));
   const char *end = begin + m_inner.string.len;
   return std::string{begin, end};
 }

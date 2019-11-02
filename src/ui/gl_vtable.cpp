@@ -15,7 +15,7 @@ std::optional<OpenGLVTable> OpenGLVTable::load() {
   do {                                              \
     if (void *ptr = SDL_GL_GetProcAddress(#name)) { \
       using FnType = decltype(table.name);          \
-      table.name = reinterpret_cast<FnType>(ptr);                     \
+      table.name = reinterpret_cast<FnType>(ptr);   \
     } else {                                        \
       return std::nullopt;                          \
     }                                               \
