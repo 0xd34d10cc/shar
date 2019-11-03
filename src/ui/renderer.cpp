@@ -1,22 +1,24 @@
 #include "renderer.hpp"
 
+#include "gl_vtable.hpp"
+#include "logger.hpp"
+#include "nk.hpp"
+#include "state.hpp"
+#include "texture.hpp"
+#include "window.hpp"
+
 #include <cassert>
+#include <cstddef>
 #include <cstdlib> // memset
 #include <optional>
 
+// clang-format off
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_opengl_glext.h>
 #include "disable_warnings_pop.hpp"
+// clang-format on
 
-#include "nk.hpp"
-#include "logger.hpp"
-#include "gl_vtable.hpp"
-#include "window.hpp"
-#include "state.hpp"
-#include "texture.hpp"
-
-
-#define MAX_VERTEX_MEMORY 512 * 1024
+#define MAX_VERTEX_MEMORY  512 * 1024
 #define MAX_ELEMENT_MEMORY 128 * 1024
 
 #ifdef __APPLE__
@@ -28,7 +30,7 @@
 #ifdef SHAR_DEBUG_BUILD
 static std::optional<shar::Logger> gl_logger;
 
-static const char* type_to_str(GLenum type) {
+static const char *type_to_str(GLenum type) {
   switch (type) {
     case GL_DEBUG_TYPE_ERROR:
       return "error";
@@ -58,11 +60,10 @@ static void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
                                              GLuint /*id */,
                                              GLenum severity,
                                              GLsizei /*length */,
-                                             const GLchar* message,
-                                             const void* /*userParam */)
-{
+                                             const GLchar *message,
+                                             const void * /*userParam */) {
   if (gl_logger) {
-    auto* t = type_to_str(type);
+    auto *t = type_to_str(type);
     switch (severity) {
       case GL_DEBUG_SEVERITY_LOW:
       case GL_DEBUG_SEVERITY_MEDIUM:
@@ -101,7 +102,7 @@ struct Vertex {
   nk_byte col[4];
 };
 
-void Renderer::init_log(const Logger& logger) {
+void Renderer::init_log(const Logger &logger) {
 #ifdef SHAR_DEBUG_BUILD
   gl_logger = logger;
 #else
@@ -110,10 +111,9 @@ void Renderer::init_log(const Logger& logger) {
 }
 
 Renderer::Renderer(OpenGLVTable table)
-  : m_device(std::make_unique<SDLDevice>())
-  , m_gl(std::move(table))
-  , m_atlas(std::make_unique<nk_font_atlas>())
-{
+    : m_gl(std::move(table))
+    , m_device(std::make_unique<SDLDevice>())
+    , m_atlas(std::make_unique<nk_font_atlas>()) {
   init();
 }
 
@@ -125,9 +125,9 @@ void Renderer::init() {
 
 #ifdef SHAR_DEBUG_BUILD
   // opengl debug output
-  if (void* ptr = SDL_GL_GetProcAddress("glDebugMessageCallback")) {
+  if (void *ptr = SDL_GL_GetProcAddress("glDebugMessageCallback")) {
     glEnable(GL_DEBUG_OUTPUT);
-    auto debug_output = (PFNGLDEBUGMESSAGECALLBACKARBPROC)ptr;
+    auto debug_output = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKARBPROC>(ptr);
     debug_output(opengl_error_callback, nullptr);
   }
 #endif
@@ -136,30 +136,28 @@ void Renderer::init() {
   glEnable(GL_TEXTURE_2D);
 
   GLint status;
-  static const GLchar* vertex_shader =
-    SHAR_SHADER_VERSION
-    "uniform mat4 ProjMtx;\n"
-    "in vec2 Position;\n"
-    "in vec2 TexCoord;\n"
-    "in vec4 Color;\n"
-    "out vec2 Frag_UV;\n"
-    "out vec4 Frag_Color;\n"
-    "void main() {\n"
-    "   Frag_UV = TexCoord;\n"
-    "   Frag_Color = Color;\n"
-    "   gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
-    "}\n";
+  static const GLchar *vertex_shader = SHAR_SHADER_VERSION
+      "uniform mat4 ProjMtx;\n"
+      "in vec2 Position;\n"
+      "in vec2 TexCoord;\n"
+      "in vec4 Color;\n"
+      "out vec2 Frag_UV;\n"
+      "out vec4 Frag_Color;\n"
+      "void main() {\n"
+      "   Frag_UV = TexCoord;\n"
+      "   Frag_Color = Color;\n"
+      "   gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
+      "}\n";
 
-  static const GLchar* fragment_shader =
-    SHAR_SHADER_VERSION
-    "precision mediump float;\n"
-    "uniform sampler2D Texture;\n"
-    "in vec2 Frag_UV;\n"
-    "in vec4 Frag_Color;\n"
-    "out vec4 Out_Color;\n"
-    "void main(){\n"
-    "   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
-    "}\n";
+  static const GLchar *fragment_shader = SHAR_SHADER_VERSION
+      "precision mediump float;\n"
+      "uniform sampler2D Texture;\n"
+      "in vec2 Frag_UV;\n"
+      "in vec4 Frag_Color;\n"
+      "out vec4 Out_Color;\n"
+      "void main(){\n"
+      "   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+      "}\n";
 
   nk_buffer_init_default(&m_device->cmds);
   // NOTE: these are extension functions, so we have to load them separately
@@ -167,8 +165,8 @@ void Renderer::init() {
   m_device->prog = m_gl.glCreateProgram();
   m_device->vert_shdr = m_gl.glCreateShader(GL_VERTEX_SHADER);
   m_device->frag_shdr = m_gl.glCreateShader(GL_FRAGMENT_SHADER);
-  m_gl.glShaderSource(m_device->vert_shdr, 1, &vertex_shader, 0);
-  m_gl.glShaderSource(m_device->frag_shdr, 1, &fragment_shader, 0);
+  m_gl.glShaderSource(m_device->vert_shdr, 1, &vertex_shader, nullptr);
+  m_gl.glShaderSource(m_device->frag_shdr, 1, &fragment_shader, nullptr);
   m_gl.glCompileShader(m_device->vert_shdr);
   m_gl.glCompileShader(m_device->frag_shdr);
   m_gl.glGetShaderiv(m_device->vert_shdr, GL_COMPILE_STATUS, &status);
@@ -202,13 +200,28 @@ void Renderer::init() {
     m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
     m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_device->ebo);
 
-    m_gl.glEnableVertexAttribArray((GLuint)m_device->attrib_pos);
-    m_gl.glEnableVertexAttribArray((GLuint)m_device->attrib_uv);
-    m_gl.glEnableVertexAttribArray((GLuint)m_device->attrib_col);
+    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_pos));
+    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_uv));
+    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_col));
 
-    m_gl.glVertexAttribPointer((GLuint)m_device->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
-    m_gl.glVertexAttribPointer((GLuint)m_device->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
-    m_gl.glVertexAttribPointer((GLuint)m_device->attrib_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs, (void*)vc);
+    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_pos),
+                               2,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               vs,
+                               reinterpret_cast<void *>(vp));
+    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_uv),
+                               2,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               vs,
+                               reinterpret_cast<void *>(vt));
+    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_col),
+                               4,
+                               GL_UNSIGNED_BYTE,
+                               GL_TRUE,
+                               vs,
+                               reinterpret_cast<void *>(vc));
   }
 
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -220,17 +233,27 @@ void Renderer::init() {
   nk_font_atlas_init_default(m_atlas.get());
   nk_font_atlas_begin(m_atlas.get());
   int w, h;
-  const void* image = nk_font_atlas_bake(m_atlas.get(), &w, &h, NK_FONT_ATLAS_RGBA32);
+  const void *image =
+      nk_font_atlas_bake(m_atlas.get(), &w, &h, NK_FONT_ATLAS_RGBA32);
 
   // nk_sdl_device_upload_atlas(sdl, image, w, h);
   glGenTextures(1, &m_device->font_tex);
   glBindTexture(GL_TEXTURE_2D, m_device->font_tex);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)w, (GLsizei)h, 0,
-    GL_RGBA, GL_UNSIGNED_BYTE, image);
+  glTexImage2D(GL_TEXTURE_2D,
+               0,
+               GL_RGBA,
+               static_cast<GLsizei>(w),
+               static_cast<GLsizei>(h),
+               0,
+               GL_RGBA,
+               GL_UNSIGNED_BYTE,
+               image);
 
-  nk_font_atlas_end(m_atlas.get(), nk_handle_id((int)m_device->font_tex), &m_device->null);
+  nk_font_atlas_end(m_atlas.get(),
+                    nk_handle_id(static_cast<int>(m_device->font_tex)),
+                    &m_device->null);
 }
 
 void Renderer::destroy() {
@@ -246,12 +269,12 @@ void Renderer::destroy() {
   nk_buffer_free(&m_device->cmds);
 }
 
-void Renderer::render(State& state, const Window& window) {
+void Renderer::render(State &state, const Window &window) {
   GLfloat ortho[4][4] = {
       {2.0f, 0.0f, 0.0f, 0.0f},
-      {0.0f,-2.0f, 0.0f, 0.0f},
-      {0.0f, 0.0f,-1.0f, 0.0f},
-      {-1.0f,1.0f, 0.0f, 1.0f},
+      {0.0f, -2.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, -1.0f, 0.0f},
+      {-1.0f, 1.0f, 0.0f, 1.0f},
   };
 
   int width = static_cast<int>(window.size().width());
@@ -260,12 +283,12 @@ void Renderer::render(State& state, const Window& window) {
   int display_width = static_cast<int>(window.display_size().width());
   int display_height = static_cast<int>(window.display_size().height());
 
-  ortho[0][0] /= (GLfloat)width;
-  ortho[1][1] /= (GLfloat)height;
+  ortho[0][0] /= static_cast<GLfloat>(width);
+  ortho[1][1] /= static_cast<GLfloat>(height);
 
   struct nk_vec2 scale;
-  scale.x = (float)display_width / (float)width;
-  scale.y = (float)display_height / (float)height;
+  scale.x = static_cast<float>(display_width) / static_cast<float>(width);
+  scale.y = static_cast<float>(display_height) / static_cast<float>(height);
 
   /* setup global state */
   glViewport(0, 0, display_width, display_height);
@@ -283,9 +306,9 @@ void Renderer::render(State& state, const Window& window) {
   m_gl.glUniformMatrix4fv(m_device->uniform_proj, 1, GL_FALSE, &ortho[0][0]);
   {
     /* convert from command queue into draw list and draw to screen */
-    const struct nk_draw_command* cmd;
-    void* vertices, * elements;
-    const nk_draw_index* offset = NULL;
+    const struct nk_draw_command *cmd;
+    void *vertices, *elements;
+    const nk_draw_index *offset = nullptr;
     struct nk_buffer vbuf, ebuf;
 
     /* allocate vertex and element buffer */
@@ -293,8 +316,14 @@ void Renderer::render(State& state, const Window& window) {
     m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
     m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_device->ebo);
 
-    m_gl.glBufferData(GL_ARRAY_BUFFER, MAX_VERTEX_MEMORY, NULL, GL_STREAM_DRAW);
-    m_gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_ELEMENT_MEMORY, NULL, GL_STREAM_DRAW);
+    m_gl.glBufferData(GL_ARRAY_BUFFER,
+                      MAX_VERTEX_MEMORY,
+                      nullptr,
+                      GL_STREAM_DRAW);
+    m_gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                      MAX_ELEMENT_MEMORY,
+                      nullptr,
+                      GL_STREAM_DRAW);
 
     /* load vertices/elements directly into vertex/element buffer */
     vertices = m_gl.glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
@@ -303,15 +332,14 @@ void Renderer::render(State& state, const Window& window) {
       /* fill convert configuration */
       struct nk_convert_config config;
       static const struct nk_draw_vertex_layout_element vertex_layout[] = {
-          {NK_VERTEX_POSITION, NK_FORMAT_FLOAT, NK_OFFSETOF(Vertex, position)},
-          {NK_VERTEX_TEXCOORD, NK_FORMAT_FLOAT, NK_OFFSETOF(Vertex, uv)},
-          {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, NK_OFFSETOF(Vertex, col)},
-          {NK_VERTEX_LAYOUT_END}
-      };
+          {NK_VERTEX_POSITION, NK_FORMAT_FLOAT, offsetof(Vertex, position)},
+          {NK_VERTEX_TEXCOORD, NK_FORMAT_FLOAT, offsetof(Vertex, uv)},
+          {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, offsetof(Vertex, col)},
+          {NK_VERTEX_LAYOUT_END}};
       std::memset(&config, 0, sizeof(config));
       config.vertex_layout = vertex_layout;
       config.vertex_size = sizeof(Vertex);
-      config.vertex_alignment = NK_ALIGNOF(Vertex);
+      config.vertex_alignment = alignof(Vertex);
       config.null = m_device->null;
       config.circle_segment_count = 22;
       config.curve_segment_count = 22;
@@ -321,23 +349,33 @@ void Renderer::render(State& state, const Window& window) {
       config.line_AA = NK_ANTI_ALIASING_ON;
 
       /* setup buffers to load vertices and elements */
-      nk_buffer_init_fixed(&vbuf, vertices, (nk_size)MAX_VERTEX_MEMORY);
-      nk_buffer_init_fixed(&ebuf, elements, (nk_size)MAX_ELEMENT_MEMORY);
+      nk_buffer_init_fixed(&vbuf, vertices, static_cast<nk_size>(MAX_VERTEX_MEMORY));
+      nk_buffer_init_fixed(&ebuf, elements, static_cast<nk_size>(MAX_ELEMENT_MEMORY));
       nk_convert(state.context(), &m_device->cmds, &vbuf, &ebuf, &config);
     }
     m_gl.glUnmapBuffer(GL_ARRAY_BUFFER);
     m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
     /* iterate over and execute each draw command */
-    nk_draw_foreach(cmd, state.context(), &m_device->cmds) {
-      if (cmd->elem_count == 0) continue;
+    auto* ctx = state.context();
 
-      glBindTexture(GL_TEXTURE_2D, (GLuint)cmd->texture.id);
-      glScissor((GLint)(cmd->clip_rect.x * scale.x),
-        (GLint)((height - (GLint)(cmd->clip_rect.y + cmd->clip_rect.h)) * scale.y),
-        (GLint)(cmd->clip_rect.w * scale.x),
-        (GLint)(cmd->clip_rect.h * scale.y));
-      glDrawElements(GL_TRIANGLES, (GLsizei)cmd->elem_count, GL_UNSIGNED_SHORT, offset);
+    for (cmd = nk__draw_begin(ctx, &m_device->cmds); cmd != nullptr; cmd = nk__draw_next(cmd, &m_device->cmds, ctx))
+    // nk_draw_foreach(cmd, state.context(), &m_device->cmds)
+    {
+      if (cmd->elem_count == 0)
+        continue;
+
+      glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(cmd->texture.id));
+      glScissor(
+          static_cast<GLint>(cmd->clip_rect.x * scale.x),
+          static_cast<GLint>((height - static_cast<GLint>(cmd->clip_rect.y + cmd->clip_rect.h)) *
+                  scale.y),
+          static_cast<GLint>(cmd->clip_rect.w * scale.x),
+          static_cast<GLint>(cmd->clip_rect.h * scale.y));
+      glDrawElements(GL_TRIANGLES,
+                     static_cast<GLsizei>(cmd->elem_count),
+                     GL_UNSIGNED_SHORT,
+                     offset);
       offset += cmd->elem_count;
     }
     state.clear();
@@ -352,14 +390,18 @@ void Renderer::render(State& state, const Window& window) {
   glDisable(GL_SCISSOR_TEST);
 }
 
-void Renderer::render(Texture& texture, Size window_size,
-                      Point at, Size texture_size) {
+void Renderer::render(Texture &texture,
+                      Size window_size,
+                      Point at,
+                      Size texture_size) {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0.0f,
-    static_cast<float>(window_size.width()),
-    static_cast<float>(window_size.height()),
-    0.f, 0.f, 1.f);
+  glOrtho(0.0,
+          static_cast<double>(window_size.width()),
+          static_cast<double>(window_size.height()),
+          0.0,
+          0.0,
+          1.0);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -371,31 +413,36 @@ void Renderer::render(Texture& texture, Size window_size,
 
   // left top
   glTexCoord2f(0, 0);
-  glVertex3f(static_cast<float>(at.x),
-             static_cast<float>(at.y), 0);
+  glVertex3f(static_cast<float>(at.x), static_cast<float>(at.y), 0);
 
   // right top
   glTexCoord2f(1, 0);
-  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
-             static_cast<float>(at.y), 0);
+  glVertex3f(static_cast<float>(at.x) +
+                 static_cast<float>(texture_size.width()),
+             static_cast<float>(at.y),
+             0);
 
   // right bottom
   glTexCoord2f(1, 1);
-  glVertex3f(static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
-             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
+  glVertex3f(
+      static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
+      static_cast<float>(at.y) + static_cast<float>(texture_size.height()),
+      0);
 
   // left bottom
   glTexCoord2f(0, 1);
   glVertex3f(static_cast<float>(at.x),
-             static_cast<float>(at.y) + static_cast<float>(texture_size.height()), 0);
+             static_cast<float>(at.y) +
+                 static_cast<float>(texture_size.height()),
+             0);
 
   glEnd();
 
   texture.unbind();
 }
 
-nk_user_font* Renderer::default_font_handle() const {
+nk_user_font *Renderer::default_font_handle() const {
   return &m_atlas->default_font->handle;
 }
 
-}
+} // namespace shar::ui

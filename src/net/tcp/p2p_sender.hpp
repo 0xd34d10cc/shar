@@ -23,8 +23,7 @@ class P2PSender
 public:
   P2PSender(Context context, IpAddress ip, Port port);
   P2PSender(const P2PSender&) = delete;
-  P2PSender(P2PSender&&) = default;
-  ~P2PSender() = default;
+  ~P2PSender() override = default;
 
   void run(Receiver<Unit> receiver) override;
   void shutdown() override;

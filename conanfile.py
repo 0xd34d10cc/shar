@@ -10,10 +10,9 @@ class Shar(ConanFile):
                        "sdl2/2.0.9@bincrafters/stable",               # window, input, OpenGL
                        "spdlog/0.17.0@bincrafters/stable",            # logs
                        "gtest/1.8.1@bincrafters/stable",              # UTs
-                       # TODO: move to 0xd34d10cc
                        "jsonformoderncpp/3.5.0@vthiery/stable",       # config
                        "CLI11/1.7.1@cliutils/stable",                 # command line options
-                       "nuklear/1.33.0@0xd34d10cc/testing")         # ui
+                       "nuklear/1.33.0@0xd34d10cc/testing")           # ui
 
     generators      = "cmake"
 
@@ -30,7 +29,7 @@ class Shar(ConanFile):
                        "ffmpeg:openjpeg = False",
                        "ffmpeg:zlib     = False",
                        "ffmpeg:bzlib    = False",
-                       "ffmpeg:lzma     = False")
+                       "ffmpeg:lzma     = False") 
 
     def requirements(self):
         if self.settings.os == "Windows":
@@ -41,6 +40,12 @@ class Shar(ConanFile):
             self.options["ffmpeg"].vaapi = False
             self.options["ffmpeg"].vdpau = False
             self.options["ffmpeg"].alsa = False
+            
+            self.options["sdl2"].alsa = False
+            self.options["sdl2"].jack = False
+            self.options["sdl2"].pulse = False
+            self.options["sdl2"].nas = False
+            self.options["sdl2"].esd = False
 
     def build(self):
         cmake = CMake(self)

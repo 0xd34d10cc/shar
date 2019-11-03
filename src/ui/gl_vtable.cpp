@@ -1,22 +1,25 @@
 #include "gl_vtable.hpp"
 
+// clang-format off
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_video.h>
 #include "disable_warnings_pop.hpp"
-
+// clang-format on
 
 namespace shar::ui {
 
 std::optional<OpenGLVTable> OpenGLVTable::load() {
   OpenGLVTable table;
 
-#define TRY_LOAD(name) if (void* ptr = SDL_GL_GetProcAddress(#name)) {\
-                          using FnType = decltype(table.name);\
-                          table.name = (FnType)ptr;\
-                       }\
-                       else {\
-                          return std::nullopt;\
-                       }
+#define TRY_LOAD(name)                              \
+  do {                                              \
+    if (void *ptr = SDL_GL_GetProcAddress(#name)) { \
+      using FnType = decltype(table.name);          \
+      table.name = reinterpret_cast<FnType>(ptr);   \
+    } else {                                        \
+      return std::nullopt;                          \
+    }                                               \
+  } while (false)
 
   TRY_LOAD(glCreateProgram);
   TRY_LOAD(glCreateShader);
@@ -50,4 +53,4 @@ std::optional<OpenGLVTable> OpenGLVTable::load() {
   return table;
 }
 
-}
+} // namespace shar::ui

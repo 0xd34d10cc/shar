@@ -27,11 +27,11 @@ public:
   {}
 
   Bytes(const char* start, const char* end) noexcept
-    : Bytes(start, end - start)
+    : Bytes(start, static_cast<usize>(end - start))
   {}
 
   Bytes(const u8* start, const u8* end) noexcept
-    : Bytes(start, end - start)
+    : Bytes(start, static_cast<usize>(end - start))
   {}
 
   bool empty() const noexcept {

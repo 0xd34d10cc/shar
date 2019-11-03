@@ -30,7 +30,7 @@ BGRAFrame to_bgra(const sc::Image& image) noexcept {
 
   assert(sc::isDataContiguous(image));
   std::memcpy(frame.data.get(), sc::StartSrc(image), n);
-  return std::move(frame);
+  return frame;
 }
 
 struct FrameHandler {

@@ -16,7 +16,6 @@ class PacketReceiver
 {
 public:
   PacketReceiver(Context context, IpAddress server, Port port);
-  PacketReceiver(PacketReceiver&&) = default;
 
   void run(Sender<codec::ffmpeg::Unit> units) override;
   void shutdown() override;

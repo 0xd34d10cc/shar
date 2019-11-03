@@ -43,7 +43,7 @@ TEST(rtcp_bye, deserialize) {
       // stream id #1
       "\xd3\x4d\x10\xcc"\
       // reason for leaving
-      "\x03\x61\x62\x63";;
+      "\x03\x61\x62\x63";
 
   std::vector<u8> buffer{
     reinterpret_cast<const u8*>(data),

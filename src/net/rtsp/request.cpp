@@ -15,17 +15,19 @@ static ErrorOr<Request::Type> parse_type(const char* begin, usize size) {
   int i = 0;
   usize len = 0;
 
-#define TRY_TYPE(TYPE)\
-len = std::strlen(#TYPE);\
-if(size<=len){\
-i = std::memcmp(begin, #TYPE, size); \
-if (size == len && i == 0) {\
-return Request::Type::TYPE;\
-}\
-if (i == 0 && size != len) {\
-FAIL(Error::NotEnoughData);\
-}\
-}
+#define TRY_TYPE(TYPE)                     \
+  do {                                     \
+    len = std::strlen(#TYPE);              \
+    if (size <= len) {                     \
+      i = std::memcmp(begin, #TYPE, size); \
+      if (size == len && i == 0) {         \
+        return Request::Type::TYPE;        \
+      }                                    \
+      if (i == 0 && size != len) {         \
+        FAIL(Error::NotEnoughData);        \
+      }                                    \
+    }                                      \
+  } while (false)
 
   TRY_TYPE(OPTIONS);
   TRY_TYPE(DESCRIBE);
@@ -64,7 +66,7 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
 
   const char* type_end = std::find(current, end, ' ');
 
-  usize type_size = type_end - current;
+  usize type_size = static_cast<usize>(type_end - current);
   auto type = parse_type(current, type_size);
   TRY(type);
   if(type_end == end) {
@@ -75,7 +77,7 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
 
   const char* address_end = std::find(current, end, ' ');
   if (address_end - current >= 512 ||
-    !is_valid_address(Bytes(current, address_end - current))) {
+    !is_valid_address(Bytes(current, address_end))) {
     FAIL(Error::InvalidAddress);
   }
 
@@ -83,12 +85,12 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
     FAIL(Error::NotEnoughData);
   }
 
-  m_address = Bytes(current, address_end-current);
+  m_address = Bytes(current, address_end);
   current = address_end + 1; //Move to first symbol after space
 
-  auto version_end = find_line_ending(current, end-current);
+  auto version_end = find_line_ending(current, static_cast<usize>(end-current));
   TRY(version_end);
-  auto version = parse_version(current, *version_end - current);
+  auto version = parse_version(current, static_cast<usize>(*version_end - current));
 
   TRY(version);
   if (*version_end == end) {
@@ -104,10 +106,10 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
 
   current = *version_end + 2; //Move to first symbol after line ending
 
-  auto headers_len = parse_headers(current, end-current, m_headers);
+  auto headers_len = parse_headers(current, static_cast<usize>(end-current), m_headers);
   TRY(headers_len);
 
-  usize request_line_size = current - begin;
+  usize request_line_size = static_cast<usize>(current - begin);
   return request_line_size + *headers_len;
 }
 

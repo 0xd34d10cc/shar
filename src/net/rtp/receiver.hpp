@@ -24,7 +24,6 @@ public:
   using Output = Sender<Unit>;
 
   Receiver(Context context, IpAddress ip, Port port);
-  Receiver(Receiver&&) = default;
 
   void run(Output units) override;
   void shutdown() override;
