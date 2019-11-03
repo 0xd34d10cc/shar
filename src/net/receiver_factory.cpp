@@ -27,6 +27,7 @@ std::unique_ptr<IPacketReceiver> create_receiver(Context context, Url url) {
                                              *address,
                                              url.port());
     case Protocol::RTSP:
+    default:
       throw std::runtime_error("Unsupported protocol");
   }
 }

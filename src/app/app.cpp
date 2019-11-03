@@ -423,10 +423,10 @@ StreamState App::state() const {
           return StreamState::Broadcast;
         } else if constexpr (std::is_same_v<T, View>) {
           return StreamState::View;
+        } else {
+          assert(false);
+          return StreamState::None;
         }
-
-        assert(false);
-        return StreamState::None;
       },
       m_stream);
 }
