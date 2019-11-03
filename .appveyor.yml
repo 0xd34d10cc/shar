@@ -23,7 +23,7 @@ install:
 
 build_script:
   - cmd: conan install .. --build=missing -s build_type=%configuration%
-  - cmd: set generator=Visual Studio 16 2019 Win64
+  - cmd: set generator=Visual Studio 16 2019
   - cmd: cmake .. -G"%generator%"
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
 
