@@ -26,7 +26,7 @@ bool is_message(const u8* data, usize size) noexcept;
 //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //
 // RFC 5389 Section 6
-class Message: public BytesRef {
+class Message: public BytesRefMut {
 public:
   static const usize MIN_SIZE = 20;
   static const u32 MAGIC = 0x2112A442;

@@ -30,7 +30,7 @@ enum ItemType: u8 {
 //        |                           SDES items                          |
 //        |                              ...                              |
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-class SourceItems: public BytesRef {
+class SourceItems: public BytesRefMut {
 public:
   static const usize NWORDS = 1;
   static const usize MIN_SIZE = NWORDS * sizeof(u32);
@@ -58,7 +58,7 @@ public:
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   // |    type       |     length    |     item-specific data        |
   // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  class Item: private BytesRef {
+  class Item: private BytesRefMut {
   public:
     Item() noexcept = default;
     Item(u8* data, usize size) noexcept;

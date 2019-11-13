@@ -92,7 +92,7 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
 
   bool process = m_drop ? fragment.is_first() : in_sequence;
   if (!process) {
-    m_dropped += packet.size();
+    m_dropped += packet.len();
     return result;
   }
 
@@ -143,9 +143,9 @@ std::optional<Unit> Receiver::receive() {
   }
 
   rtp::Packet packet{ buffer.data(), n };
-  assert(packet.size() == n);
+  assert(packet.len() == n);
   Fragment fragment{ packet.payload(), packet.payload_size() };
-  m_received += packet.size();
+  m_received += packet.len();
   return accept(packet, fragment);
 }
 

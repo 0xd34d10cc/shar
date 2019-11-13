@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "bytes.hpp"
+#include "bytes_ref.hpp"
 #include "parser.hpp"
 
 
@@ -23,25 +23,25 @@ public:
   explicit Response(Headers headers);
   Response(const ResponseBuilder& builder);
 
-  ErrorOr<usize> parse(Bytes bytes);
+  ErrorOr<usize> parse(BytesRef bytes);
   ErrorOr<usize> serialize(u8* destination, usize size);
 
   friend class ResponseBuilder;
 
   std::optional<usize> version() const noexcept;
   u16 status_code() const noexcept;
-  std::optional<Bytes> reason() const noexcept;
+  std::optional<BytesRef> reason() const noexcept;
 
   Headers headers() const noexcept;
-  std::optional<Bytes> body() const noexcept;
+  std::optional<BytesRef> body() const noexcept;
 
 private:
   std::optional<usize> m_version;
   u16 m_status_code;
-  std::optional<Bytes> m_reason; // Reason-Phrase
+  std::optional<BytesRef> m_reason; // Reason-Phrase
 
   Headers m_headers;
-  std::optional<Bytes> m_body;
+  std::optional<BytesRef> m_body;
 };
 
 ResponseBuilder response(Headers headers);
@@ -49,10 +49,10 @@ ResponseBuilder response(Headers headers);
 class ResponseBuilder {
 public:
   explicit ResponseBuilder(Headers headers);
-  ResponseBuilder with_status(u16 code, Bytes reason);
+  ResponseBuilder with_status(u16 code, BytesRef reason);
   ResponseBuilder with_header(Header header);
-  ResponseBuilder with_header(Bytes name, Bytes value);
-  ResponseBuilder with_body(Bytes body);
+  ResponseBuilder with_header(BytesRef name, BytesRef value);
+  ResponseBuilder with_body(BytesRef body);
 
   Response finish() const;
 

@@ -21,7 +21,7 @@ namespace shar::net::rtp {
 //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // The first twelve octets are present in every RTP packet, while the
 // list of CSRC identifiers is present only when inserted by a mixer.
-class Packet: public BytesRef {
+class Packet: public BytesRefMut {
 public:
   static const usize MIN_SIZE = sizeof(u32) * 3;
 

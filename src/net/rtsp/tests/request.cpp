@@ -2,7 +2,7 @@
 
 #include "net/rtsp/request.hpp"
 
-#include "bytes.hpp"
+#include "bytes_ref.hpp"
 #include "net/rtsp/error.hpp"
 
 #include <array>
@@ -21,7 +21,7 @@
 using namespace shar;
 using namespace shar::net;
 
-static void assert_fails(Bytes data, rtsp::Error e) {
+static void assert_fails(BytesRef data, rtsp::Error e) {
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});
 
@@ -30,8 +30,8 @@ static void assert_fails(Bytes data, rtsp::Error e) {
 }
 
 TEST(rtsp_request, simple_request) {
-  Bytes example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0\r\n"
-                          "\r\n";
+  BytesRef example_request = "PLAY rtsp://server/path/test.mpg RTSP/1.0\r\n"
+                             "\r\n";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});
 
@@ -73,7 +73,7 @@ TEST(rtsp_request, request_without_version) {
 }
 
 TEST(rtsp_request, request_with_header) {
-  Bytes request_with_header =
+  BytesRef request_with_header =
       "DESCRIBE rtsp://example.com/media.mp4 RTSP/1.0\r\n"
       "CSeq: 2\r\n"
       "\r\n";
@@ -93,7 +93,7 @@ TEST(rtsp_request, request_with_header) {
 }
 
 TEST(rtsp_request, large_request) {
-  Bytes large_request =
+  BytesRef large_request =
       "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
       "CSeq: 10\r\n"
       "Content-length: 20\r\n"
@@ -129,12 +129,13 @@ TEST(rtsp_request, header_without_value) {
 }
 
 TEST(rtsp_request, request_serialization) {
-  Bytes base_request = "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
-                       "CSeq: 10\r\n"
-                       "Content-length: 20\r\n"
-                       "Content-type: text/parameters\r\n"
-                       "barparam: barstuff\r\n"
-                       "\r\n";
+  BytesRef base_request =
+      "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
+      "CSeq: 10\r\n"
+      "Content-length: 20\r\n"
+      "Content-type: text/parameters\r\n"
+      "barparam: barstuff\r\n"
+      "\r\n";
 
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});
@@ -154,7 +155,7 @@ TEST(rtsp_request, incompete_type) {
 }
 
 TEST(rtsp_request, incomplete_address) {
-  Bytes data = "OPTIONS rtsp://";
+  BytesRef data = "OPTIONS rtsp://";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});
   EXPECT_EQ(request.parse(data).err(),
@@ -163,7 +164,7 @@ TEST(rtsp_request, incomplete_address) {
 }
 
 TEST(rtsp_request, incomplete_version) {
-  Bytes data = "PLAY rtsp://server/path/test.mpg RTS";
+  BytesRef data = "PLAY rtsp://server/path/test.mpg RTS";
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});
   EXPECT_EQ(request.parse(data).err(),
@@ -173,9 +174,9 @@ TEST(rtsp_request, incomplete_version) {
 }
 
 TEST(rtsp_request, incomplete_headers) {
-  Bytes data = "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
-               "CSeq: 10\r\n"
-               "Content-length";
+  BytesRef data = "SET_PARAMETER rtsp://example.com/media.mp4 RTSP/1.0\r\n"
+                  "CSeq: 10\r\n"
+                  "Content-length";
 
   std::array<rtsp::Header, 16> headers;
   rtsp::Request request(rtsp::Headers{headers.data(), headers.size()});

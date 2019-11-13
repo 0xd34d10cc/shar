@@ -14,7 +14,7 @@ bool is_message(const u8 *data, usize size) noexcept {
          (message.length() & 0b11) == 0 && message.cookie() == Message::MAGIC;
 }
 
-Message::Message(u8 *data, usize size) noexcept : BytesRef(data, size) {}
+Message::Message(u8 *data, usize size) noexcept : BytesRefMut(data, size) {}
 
 bool Message::valid() const noexcept {
   return m_data != nullptr && m_size >= MIN_SIZE;

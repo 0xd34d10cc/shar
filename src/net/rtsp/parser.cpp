@@ -37,8 +37,8 @@ ErrorOr<Header> parse_header(const char *begin, usize size) {
     FAIL(Error::InvalidHeader);
   }
 
-  auto key = Bytes(begin, key_end);
-  auto value = Bytes(key_end + 2, static_cast<usize>(end - key_end - 2));
+  auto key = BytesRef(begin, key_end);
+  auto value = BytesRef(key_end + 2, static_cast<usize>(end - key_end - 2));
 
   return Header{key, value};
 }

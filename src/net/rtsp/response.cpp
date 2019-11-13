@@ -25,7 +25,7 @@ u16 Response::status_code() const noexcept {
   return m_status_code;
 }
 
-std::optional<Bytes> Response::reason() const noexcept {
+std::optional<BytesRef> Response::reason() const noexcept {
   return m_reason;
 }
 
@@ -33,11 +33,11 @@ Headers Response::headers() const noexcept {
   return m_headers;
 }
 
-std::optional<Bytes> Response::body() const noexcept {
+std::optional<BytesRef> Response::body() const noexcept {
   return m_body;
 }
 
-ErrorOr<usize> Response::parse(Bytes bytes) {
+ErrorOr<usize> Response::parse(BytesRef bytes) {
   const char *current = bytes.char_ptr();
   const char *begin = current;
   const char *end = begin + bytes.len();
@@ -69,7 +69,7 @@ ErrorOr<usize> Response::parse(Bytes bytes) {
   if (*reason_end == end) {
     FAIL(Error::NotEnoughData);
   }
-  m_reason = Bytes(current, *reason_end);
+  m_reason = BytesRef(current, *reason_end);
 
   if (*reason_end + 2 == end) {
     FAIL(Error::NotEnoughData);
@@ -138,7 +138,7 @@ ResponseBuilder::ResponseBuilder(Headers headers) : m_response(headers) {
   m_response.m_headers.len = 0;
 }
 
-ResponseBuilder ResponseBuilder::with_status(u16 code, Bytes reason) {
+ResponseBuilder ResponseBuilder::with_status(u16 code, BytesRef reason) {
   assert(m_response.m_status_code == INVALID_STATUS_CODE);
   assert(!m_response.m_reason.has_value());
 
@@ -156,11 +156,11 @@ ResponseBuilder ResponseBuilder::with_header(Header header) {
   return *this;
 }
 
-ResponseBuilder ResponseBuilder::with_header(Bytes name, Bytes value) {
+ResponseBuilder ResponseBuilder::with_header(BytesRef name, BytesRef value) {
   return with_header(Header{name, value});
 }
 
-ResponseBuilder ResponseBuilder::with_body(Bytes body) {
+ResponseBuilder ResponseBuilder::with_body(BytesRef body) {
   assert(!m_response.m_body.has_value());
   m_response.m_body = body;
   return *this;

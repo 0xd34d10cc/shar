@@ -8,7 +8,7 @@
 namespace shar::net::rtcp {
 
 Header::Header(u8* data, usize size) noexcept
-  : BytesRef(data, size)
+  : BytesRefMut(data, size)
   {}
 
 bool Header::valid() const noexcept {
