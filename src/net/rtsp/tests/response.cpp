@@ -1,6 +1,5 @@
 #include "net/rtsp/response.hpp"
 
-#include "bytes.hpp"
 #include "net/rtsp/error.hpp"
 
 #include <array>

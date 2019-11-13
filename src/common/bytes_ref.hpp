@@ -115,7 +115,7 @@ public:
   }
 
   u8* ptr() noexcept {
-    return data();
+    return m_data;
   }
 
   const u8* data() const noexcept {
