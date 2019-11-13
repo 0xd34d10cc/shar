@@ -59,6 +59,7 @@ Broadcast::Broadcast(Context context)
   , m_capture(create_capture(m_context, m_monitor))
   , m_encoder(create_encoder(m_context, m_monitor))
   , m_network(create_network(m_context))
+  , m_errors(channel<std::string>(1))
 {}
 
 Receiver<BGRAFrame> Broadcast::start() {
@@ -76,7 +77,7 @@ Receiver<BGRAFrame> Broadcast::start() {
       m_encoder.run(std::move(rx), std::move(tx));
     }
     catch (const std::exception& e) {
-      m_error.set(e.what());
+      m_errors.first.try_send(e.what());
     }
   } };
 
@@ -86,7 +87,7 @@ Receiver<BGRAFrame> Broadcast::start() {
       m_network->run(std::move(rx));
     }
     catch (const std::exception& e) {
-      m_error.set(e.what());
+      m_errors.first.try_send(e.what());
     }
   } };
 
@@ -102,12 +103,11 @@ void Broadcast::stop() {
   m_network_thread.join();
 }
 
-bool Broadcast::failed() const {
-  return m_error.initialized();
-}
-
-std::string Broadcast::error() const {
-  return m_error.get();
+std::string Broadcast::error() {
+  if (auto error = m_errors.second.try_receive()) {
+    return *error;
+  }
+  return "";
 }
 
 }

@@ -2,12 +2,10 @@
 
 #include <memory>
 #include <thread>
-#include <atomic>
-#include <mutex>
+#include <utility>
 
 #include "context.hpp"
 #include "channel.hpp"
-#include "atomic_string.hpp"
 #include "capture/capture.hpp"
 #include "net/sender.hpp"
 #include "codec/encoder.hpp"
@@ -30,8 +28,7 @@ public:
   Receiver<BGRAFrame> start();
   void stop();
 
-  bool failed() const;
-  std::string error() const;
+  std::string error();
 
 private:
   Context m_context;
@@ -44,7 +41,7 @@ private:
   std::thread m_encoder_thread;
   std::thread m_network_thread;
 
-  AtomicString m_error;
+  std::pair<Sender<std::string>, Receiver<std::string>> m_errors;
 };
 
 }
