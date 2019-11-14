@@ -14,7 +14,7 @@ static bool is_aligned(const void *ptr) noexcept {
 namespace shar::net::rtp {
 
 Packet::Packet(u8* data, usize size) noexcept
-  : BytesRef(data, size)
+  : BytesRefMut(data, size)
 {
   assert(valid());
 }

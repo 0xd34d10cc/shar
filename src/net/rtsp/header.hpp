@@ -2,14 +2,14 @@
 
 #include <optional>
 
-#include "bytes.hpp"
+#include "bytes_ref.hpp"
 
 
 namespace shar::net::rtsp {
 
 struct Header {
   Header() = default;
-  Header(Bytes name, Bytes value);
+  Header(BytesRef name, BytesRef value);
   Header(const Header&) = default;
   Header(Header&&) = default;
 
@@ -20,8 +20,8 @@ struct Header {
 
   bool empty() const noexcept;
 
-  Bytes name;
-  Bytes value;
+  BytesRef name;
+  BytesRef value;
 };
 
 struct Headers {
@@ -31,7 +31,7 @@ struct Headers {
   Header* begin();
   Header* end();
 
-  std::optional<Header> get(Bytes name);
+  std::optional<Header> get(BytesRef name);
 
   Header* data{ nullptr };
   usize len{ 0 };

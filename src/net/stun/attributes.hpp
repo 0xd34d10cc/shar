@@ -22,7 +22,7 @@ struct Attribute {
   u8* data{ nullptr };
 };
 
-class Attributes: public BytesRef {
+class Attributes: public BytesRefMut {
 public:
   static const usize MIN_SIZE = 0;
 

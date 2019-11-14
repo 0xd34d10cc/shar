@@ -7,7 +7,7 @@
 
 namespace shar::net::stun {
 
-Attributes::Attributes(u8 *data, usize size) noexcept : BytesRef(data, size) {}
+Attributes::Attributes(u8 *data, usize size) noexcept : BytesRefMut(data, size) {}
 
 void Attributes::reset() noexcept {
   m_pos = 0;

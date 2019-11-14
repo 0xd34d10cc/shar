@@ -386,12 +386,11 @@ int App::run() {
 }
 
 void App::check_stream_state() {
-  const bool failed =
-      std::visit([](auto& stream) { return stream.failed(); }, m_stream);
+  std::string error =
+      std::visit([](auto& stream) { return stream.error(); }, m_stream);
 
-  if (failed) {
-    m_last_error =
-        std::visit([](auto& stream) { return stream.error(); }, m_stream);
+  if (!error.empty()) {
+    m_last_error = std::move(error);
     switch_to(StreamState::None);
   }
 }

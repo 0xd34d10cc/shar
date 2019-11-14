@@ -4,7 +4,7 @@
 
 namespace shar::net::rtsp {
 
-Header::Header(Bytes n, Bytes v)
+Header::Header(BytesRef n, BytesRef v)
     : name(std::move(n))
     , value(std::move(v)) {}
 
@@ -26,7 +26,7 @@ Header *Headers::end() {
   return data + len;
 }
 
-std::optional<Header> Headers::get(Bytes name) {
+std::optional<Header> Headers::get(BytesRef name) {
   auto it = std::find_if(begin(), end(), [name](const auto &h) {
     return h.name == name;
   });

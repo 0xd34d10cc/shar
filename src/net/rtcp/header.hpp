@@ -20,7 +20,7 @@ enum PacketType: u8 {
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 // | V |P|    RC   |      PT       |             length            |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Header: public BytesRef {
+class Header: public BytesRefMut {
 public:
   static const usize NWORDS = 1;
   static const usize MIN_SIZE = NWORDS * sizeof(u32);

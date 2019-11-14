@@ -1,33 +1,26 @@
 #pragma once
 
-#include <variant>
-#include <optional>
-
+#include "broadcast.hpp"
+#include "cancellation.hpp"
 #include "channel.hpp"
+#include "codec/ffmpeg/frame.hpp"
 #include "config.hpp"
 #include "context.hpp"
-#include "cancellation.hpp"
-
-#include "ui/window.hpp"
+#include "time.hpp"
+#include "ui/button.hpp"
 #include "ui/renderer.hpp"
 #include "ui/state.hpp"
-#include "ui/texture.hpp"
 #include "ui/text_edit.hpp"
-#include "ui/button.hpp"
-
-#include "codec/ffmpeg/frame.hpp"
-
-#include "broadcast.hpp"
+#include "ui/texture.hpp"
+#include "ui/window.hpp"
 #include "view.hpp"
-#include "time.hpp"
+
+#include <optional>
+#include <variant>
 
 namespace shar {
 
-enum class StreamState {
-  None,
-  Broadcast,
-  View
-};
+enum class StreamState { None, Broadcast, View };
 
 class App {
 public:
@@ -65,8 +58,8 @@ private:
   Context m_context;
   Cancellation m_running;
 
-  bool m_gui_enabled{ true };
-  bool m_render_metrics{ false };
+  bool m_gui_enabled{true};
+  bool m_render_metrics{false};
 
   ui::Window m_window;
   ui::Renderer m_renderer;
@@ -98,10 +91,6 @@ private:
       return std::nullopt;
     }
 
-    bool failed() const {
-      return false;
-    }
-
     std::string error() const {
       return "";
     }
@@ -113,4 +102,4 @@ private:
   std::optional<Receiver<BGRAFrame>> m_frames;
 };
 
-}
+} // namespace shar

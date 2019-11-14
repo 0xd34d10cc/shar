@@ -44,7 +44,7 @@ static ErrorOr<Request::Type> parse_type(const char* begin, usize size) {
 #undef TRY_TYPE
 }
 
-static bool is_valid_address(Bytes address) {
+static bool is_valid_address(BytesRef address) {
   for (u8 c : address) {
     switch (c) {
       case '\r':
@@ -59,7 +59,7 @@ static bool is_valid_address(Bytes address) {
   return true;
 }
 
-ErrorOr<usize> Request::parse(Bytes bytes) {
+ErrorOr<usize> Request::parse(BytesRef bytes) {
   const char* current = bytes.char_ptr();
   const char* begin = current;
   const char* end = current + bytes.len();
@@ -77,7 +77,7 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
 
   const char* address_end = std::find(current, end, ' ');
   if (address_end - current >= 512 ||
-    !is_valid_address(Bytes(current, address_end))) {
+    !is_valid_address(BytesRef(current, address_end))) {
     FAIL(Error::InvalidAddress);
   }
 
@@ -85,7 +85,7 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
     FAIL(Error::NotEnoughData);
   }
 
-  m_address = Bytes(current, address_end);
+  m_address = BytesRef(current, address_end);
   current = address_end + 1; //Move to first symbol after space
 
   auto version_end = find_line_ending(current, static_cast<usize>(end-current));
@@ -113,7 +113,7 @@ ErrorOr<usize> Request::parse(Bytes bytes) {
   return request_line_size + *headers_len;
 }
 
-static Bytes type_to_string(Request::Type type) {
+static BytesRef type_to_string(Request::Type type) {
   switch (type) {
     case Request::Type::OPTIONS:
       return "OPTIONS";

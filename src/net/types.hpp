@@ -30,7 +30,8 @@ using Timer = asio::steady_timer;
 
 inline auto span(const void* data, usize size) { return asio::buffer(data, size); }
 inline auto span(void* data, usize size) { return asio::buffer(data, size); }
-inline auto span(BytesRef bytes) { return asio::buffer(bytes.data(), bytes.size()); }
+inline auto span(BytesRef bytes) { return asio::buffer(bytes.data(), bytes.len()); }
+inline auto span(BytesRefMut bytes) { return asio::buffer(bytes.data(), bytes.len()); }
 
 namespace udp {
   using Protocol = asio::ip::udp;

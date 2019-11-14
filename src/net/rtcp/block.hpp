@@ -26,7 +26,7 @@ namespace shar::net::rtcp {
 //        +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-class Block: public BytesRef {
+class Block: public BytesRefMut {
 public:
   static const usize NWORDS = 6;
   static const usize MIN_SIZE = NWORDS * sizeof(u32);

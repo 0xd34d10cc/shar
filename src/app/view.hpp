@@ -1,16 +1,14 @@
 #pragma once
 
-#include <memory>
-#include <thread>
-
-#include "context.hpp"
+#include "capture/capture.hpp" // BGRAFrame
 #include "channel.hpp"
-#include "atomic_string.hpp"
-#include "net/receiver.hpp"
 #include "codec/decoder.hpp"
 #include "codec/ffmpeg/frame.hpp"
-#include "capture/capture.hpp" // BGRAFrame
+#include "context.hpp"
+#include "net/receiver.hpp"
 
+#include <memory>
+#include <thread>
 
 namespace shar {
 
@@ -23,8 +21,7 @@ public:
   Receiver<BGRAFrame> start();
   void stop();
 
-  bool failed() const;
-  std::string error() const;
+  std::string error();
 
 private:
   struct Converter {
@@ -45,7 +42,7 @@ private:
   std::thread m_decoder_thread;
   std::thread m_converter_thread;
 
-  AtomicString m_error;
+  std::pair<Sender<std::string>, Receiver<std::string>> m_errors;
 };
 
-}
+} // namespace shar

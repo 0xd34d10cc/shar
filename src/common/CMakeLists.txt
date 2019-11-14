@@ -18,8 +18,6 @@ add_library(common
             bytes_ref.hpp
             byteorder.hpp
             byteorder.cpp
-            atomic_string.hpp
-            atomic_string.cpp
             bufwriter.hpp
             bufwriter.cpp
             newtype.hpp

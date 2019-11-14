@@ -1,9 +1,8 @@
 #include "view.hpp"
 
-#include <cstdlib>
-
 #include "net/receiver_factory.hpp"
 
+#include <cstdlib>
 
 namespace shar {
 
@@ -16,65 +15,57 @@ static ReceiverPtr make_receiver(Context context) {
 static codec::Decoder make_decoder(Context context) {
   const auto fps = context.m_config->fps;
 
-  return codec::Decoder{
-    std::move(context),
-    // FIXME: unhardcode
-    Size{1080, 1920},
-    fps
-  };
+  return codec::Decoder{std::move(context),
+                        // FIXME: unhardcode
+                        Size{1080, 1920},
+                        fps};
 }
 
 View::View(Context context)
-  : m_context(context)
-  , m_receiver(make_receiver(m_context))
-  , m_decoder(make_decoder(m_context))
-  {}
+    : m_context(context)
+    , m_receiver(make_receiver(m_context))
+    , m_decoder(make_decoder(m_context))
+    , m_errors(channel<std::string>(1)) {}
 
 Receiver<BGRAFrame> View::start() {
   auto [frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto [packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
   auto [bgra_tx, bgra_rx] = channel<BGRAFrame>(30);
 
-  m_network_thread = std::thread{[this,
-                                  tx{std::move(packets_tx)}] () mutable {
+  m_network_thread = std::thread{[this, tx{std::move(packets_tx)}]() mutable {
     try {
       m_receiver->run(std::move(tx));
-    }
-    catch (const std::exception& e) {
-      m_error.set(e.what());
-    }
-  }};
-
-  m_decoder_thread = std::thread{[this,
-                                  rx{std::move(packets_rx)},
-                                  tx{std::move(frames_tx)}] () mutable {
-    try {
-      m_decoder.run(std::move(rx), std::move(tx));
-    }
-    catch (const std::exception& e) {
-      m_error.set(e.what());
+    } catch (const std::exception& e) {
+      m_errors.first.try_send(e.what());
     }
   }};
 
-  m_converter_thread = std::thread{[this,
-                                   rx{std::move(frames_rx)},
-                                   tx{std::move(bgra_tx)}] () mutable {
-    try {
-      while (!m_converter.m_running.expired() && tx.connected() && rx.connected()) {
-        if (auto frame = rx.receive()) {
-
-          auto bgra = frame->to_bgra();
-          tx.send({std::move(bgra.data), frame->sizes()});
+  m_decoder_thread = std::thread{
+      [this, rx{std::move(packets_rx)}, tx{std::move(frames_tx)}]() mutable {
+        try {
+          m_decoder.run(std::move(rx), std::move(tx));
+        } catch (const std::exception& e) {
+          m_errors.first.try_send(e.what());
         }
-        else {
-          break;
+      }};
+
+  m_converter_thread = std::thread{
+      [this, rx{std::move(frames_rx)}, tx{std::move(bgra_tx)}]() mutable {
+        try {
+          while (!m_converter.m_running.expired() && tx.connected() &&
+                 rx.connected()) {
+            if (auto frame = rx.receive()) {
+
+              auto bgra = frame->to_bgra();
+              tx.send({std::move(bgra.data), frame->sizes()});
+            } else {
+              break;
+            }
+          }
+        } catch (const std::exception& e) {
+          m_errors.first.try_send(e.what());
         }
-      }
-    }
-    catch (const std::exception& e) {
-      m_error.set(e.what());
-    }
-  }};
+      }};
 
   return std::move(bgra_rx);
 }
@@ -89,12 +80,12 @@ void View::stop() {
   m_converter_thread.join();
 }
 
-bool View::failed() const {
-  return m_error.initialized();
-}
+std::string View::error() {
+  if (auto error = m_errors.second.try_receive()) {
+    return *error;
+  }
 
-std::string View::error() const {
-  return m_error.get();
+  return "";
 }
 
 } // namespace shar

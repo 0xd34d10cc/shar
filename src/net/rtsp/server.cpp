@@ -8,13 +8,13 @@
 
 namespace shar::net::rtsp {
 
-static std::optional<Port> parse_port(const u8 *from, const u8 *to) {
+static std::optional<Port> parse_port(const u8* from, const u8* to) {
   Port port;
-  auto [end, ec] = std::from_chars(reinterpret_cast<const char *>(from),
-                                   reinterpret_cast<const char *>(to),
+  auto [end, ec] = std::from_chars(reinterpret_cast<const char*>(from),
+                                   reinterpret_cast<const char*>(to),
                                    port);
 
-  if (ec != std::errc() || reinterpret_cast<const u8 *>(end) != to) {
+  if (ec != std::errc() || reinterpret_cast<const u8*>(end) != to) {
     return std::nullopt;
   }
 
@@ -22,15 +22,15 @@ static std::optional<Port> parse_port(const u8 *from, const u8 *to) {
 }
 
 // Transport: RTP/AVP;unicast;client_port=8000-8001
-static std::optional<std::pair<Port, Port>> parse_transport(Bytes bytes) {
-  static const Bytes prefix = "RTP/AVP;unicast;client_port=";
+static std::optional<std::pair<Port, Port>> parse_transport(BytesRef bytes) {
+  static const BytesRef prefix = "RTP/AVP;unicast;client_port=";
 
   if (!bytes.starts_with(prefix)) {
     return std::nullopt;
   }
 
   bytes = bytes.slice(prefix.len(), bytes.len());
-  if (const u8 *delim = bytes.find('-')) {
+  if (const u8* delim = bytes.find('-')) {
     if (auto rtp = parse_port(bytes.begin(), delim)) {
       if (auto rtcp = parse_port(delim + 1, bytes.end())) {
         return std::make_pair(*rtp, *rtcp);
@@ -69,7 +69,7 @@ void Server::shutdown() {
 }
 
 void Server::start_accepting() {
-  m_acceptor.async_accept(m_current_socket, [this](const ErrorCode &ec) {
+  m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
       m_logger.error("Acceptor error: {}", ec.message());
       if (m_clients.empty()) {
@@ -95,7 +95,7 @@ void Server::start_accepting() {
   });
 }
 
-Server::Client::Client(tcp::Socket &&socket)
+Server::Client::Client(tcp::Socket&& socket)
     : m_socket(std::move(socket))
     , m_in(4096, 0)
     , m_received_bytes(0)
@@ -106,14 +106,14 @@ Server::Client::Client(tcp::Socket &&socket)
     , m_headers_buffer(256, 0) {}
 
 void Server::disconnect(ClientPos pos) {
-  auto &client = pos->second;
+  auto& client = pos->second;
   client.m_socket.shutdown(tcp::Socket::shutdown_both);
   client.m_socket.close();
   m_clients.erase(pos);
 }
 
 void Server::receive_request(ClientPos pos) {
-  auto &[id, client] = *pos;
+  auto& [id, client] = *pos;
 
   if (client.m_received_bytes == client.m_in.size()) {
     m_logger.info("Client {}: buffer overflow", id);
@@ -125,7 +125,7 @@ void Server::receive_request(ClientPos pos) {
                      client.m_in.size() - client.m_received_bytes);
   client.m_socket.async_receive(
       buffer,
-      [this, id = id](const ErrorCode &ec, const usize size) {
+      [this, id = id](const ErrorCode& ec, const usize size) {
         auto pos = m_clients.find(id);
         if (pos == m_clients.end()) {
           assert(false);
@@ -138,14 +138,14 @@ void Server::receive_request(ClientPos pos) {
           return;
         }
 
-        auto &client = pos->second;
+        auto& client = pos->second;
         client.m_received_bytes += size;
 
         Request request{
             Headers{client.m_headers.data(), client.m_headers.size()}};
 
-        auto request_size =
-            request.parse(Bytes{client.m_in.data(), client.m_received_bytes});
+        auto request_size = request.parse(
+            BytesRef{client.m_in.data(), client.m_received_bytes});
         if (auto e = request_size.err()) {
           // incomplete parse, receive more data
           if (e == make_error_code(Error::NotEnoughData)) {
@@ -185,14 +185,14 @@ void Server::receive_request(ClientPos pos) {
 }
 
 void Server::send_response(ClientPos client_pos) {
-  auto &client = client_pos->second;
+  auto& client = client_pos->second;
   auto id = client_pos->first;
 
   auto buffer = span(client.m_out.data() + client.m_sent_bytes,
                      client.m_response_size - client.m_sent_bytes);
   client.m_socket.async_send(
       buffer,
-      [this, id](const ErrorCode &ec, const usize size) {
+      [this, id](const ErrorCode& ec, const usize size) {
         auto pos = m_clients.find(id);
         if (pos == m_clients.end()) {
           m_logger.info("Client {} not found", id);
@@ -205,7 +205,7 @@ void Server::send_response(ClientPos client_pos) {
           return;
         }
 
-        auto &client = pos->second;
+        auto& client = pos->second;
         client.m_sent_bytes += size;
         if (client.m_response_size == client.m_sent_bytes) {
           client.m_received_bytes = 0;
@@ -219,7 +219,7 @@ void Server::send_response(ClientPos client_pos) {
 
 Response Server::process_request(ClientPos pos, Request request) {
   assert(request.m_type.has_value());
-  auto &[id, client] = *pos;
+  auto& [id, client] = *pos;
   Headers headers{client.m_headers.data(), client.m_headers.size()};
 
   // NOTE: references |m_in| buffer
@@ -241,13 +241,13 @@ Response Server::process_request(ClientPos pos, Request request) {
 
     case Request::Type::DESCRIBE: {
       // TODO: unhardcode
-      static Bytes simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
-                                "c=IN IP4 127.0.0.1\r\n"
-                                "m=video 1336 RTP/AVP 96\r\n"
-                                "a=rtpmap:96 H264/90000\r\n"
-                                "a=fmtp:96 packetization-mode=1\r\n";
+      static BytesRef simple_sdp = "o=- 1815849 0 IN IP4 127.0.0.1\r\n"
+                                   "c=IN IP4 127.0.0.1\r\n"
+                                   "m=video 1336 RTP/AVP 96\r\n"
+                                   "a=rtpmap:96 H264/90000\r\n"
+                                   "a=fmtp:96 packetization-mode=1\r\n";
 
-      auto &buffer = client.m_headers_buffer;
+      auto& buffer = client.m_headers_buffer;
       BufWriter writer{buffer.data(), buffer.size()};
       auto content_length = writer.format(simple_sdp.len());
       assert(content_length.has_value());
@@ -267,7 +267,7 @@ Response Server::process_request(ClientPos pos, Request request) {
           setup_session(pos, rtp, rtcp);
           assert(client.m_session.has_value());
 
-          auto &buffer = client.m_headers_buffer;
+          auto& buffer = client.m_headers_buffer;
           BufWriter writer{buffer.data(), buffer.size()};
 
           // setup transport header
@@ -278,7 +278,7 @@ Response Server::process_request(ClientPos pos, Request request) {
           // TODO: unhardcode server_port
           writer.write(";server_port=1336-1337;ssrc=D34D10CC");
 
-          auto transport = Bytes(writer.data(), writer.written_bytes());
+          auto transport = BytesRef(writer.data(), writer.written_bytes());
           auto session = writer.format(client.m_session->number);
 
           assert(session.has_value());
@@ -350,7 +350,7 @@ static usize gen_session_number() {
 }
 
 void Server::setup_session(ClientPos pos, Port rtp, Port rtcp) {
-  auto &client = pos->second;
+  auto& client = pos->second;
   client.m_session = Session{gen_session_number(),
                              client.m_socket.remote_endpoint().address(),
                              rtp,
