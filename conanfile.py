@@ -4,7 +4,7 @@ from conans import ConanFile, CMake
 class Shar(ConanFile):
     settings        = "os",  "compiler",  "build_type"
 
-    requires        = ("asio/1.12.0@bincrafters/stable",              # network
+    requires        = ("asio/1.16.1",                                 # network
                        "ScreenCaptureLite/16.1.0@0xd34d10cc/testing", # capture
                        "ffmpeg/4.0@0xd34d10cc/testing",               # encoder
                        "sdl2/2.0.9@bincrafters/stable",               # window, input, OpenGL
