@@ -333,7 +333,7 @@ bool App::update_background() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
       m_background.bind();
-      m_background.update(Point::origin(), frame->size, frame->data.get());
+      m_background.update(frame->size, frame->data.get());
       m_background.unbind();
       return true;
     }
