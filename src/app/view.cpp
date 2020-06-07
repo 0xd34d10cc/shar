@@ -14,10 +14,14 @@ static ReceiverPtr make_receiver(Context context) {
 
 static codec::Decoder make_decoder(Context context) {
   const auto fps = context.m_config->fps;
-
+  const auto monitor = sc::GetMonitors().front();
+  const auto height = static_cast<usize>(monitor.Height);
+  const auto width  = static_cast<usize>(monitor.Width);
   return codec::Decoder{std::move(context),
-                        // FIXME: unhardcode
-                        Size{1080, 1920},
+                        // NOTE: this might not match the actual resolution, since we don't
+                        //       know yet what it is on streamer side. Decoder will adjust
+                        //       this parameter when the first frame arrives.
+                        Size{height, width},
                         fps};
 }
 
@@ -28,8 +32,8 @@ View::View(Context context)
     , m_errors(channel<std::string>(1)) {}
 
 Receiver<BGRAFrame> View::start() {
-  auto [frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto [packets_tx, packets_rx] = channel<codec::ffmpeg::Unit>(30);
+  auto [frames_tx, frames_rx] = channel<codec::ffmpeg::Frame>(30);
   auto [bgra_tx, bgra_rx] = channel<BGRAFrame>(30);
 
   m_network_thread = std::thread{[this, tx{std::move(packets_tx)}]() mutable {

@@ -49,14 +49,21 @@ static Context make_context(Config c) {
   return Context{std::move(config), std::move(logger), std::move(metrics)};
 }
 
+static Size main_monitor_size() {
+  const auto monitor = sc::GetMonitors().front();
+  return Size{static_cast<usize>(monitor.Height),
+              static_cast<usize>(monitor.Width)};
+}
+
 App::App(Config config)
     : m_context(make_context(std::move(config)))
     // NOTE: should not be equal to screen size, otherwise some
     //       magical SDL kludge makes window fullscreen
-    , m_window("shar", Size{1080 + HEADER_SIZE, 1920})
+    , m_window("shar", Size{900 + HEADER_SIZE, 1600})
     , m_renderer(ui::OpenGLVTable::load().value())
     , m_ui()
-    , m_background(Size{1080, 1920})
+    // NOTE: If it will not match with the stream size the texture will be lazily resized, see Texture::update.
+    , m_background(main_monitor_size())
     , m_stop_button("stop")
     , m_stream_button("stream")
     , m_view_button("view")

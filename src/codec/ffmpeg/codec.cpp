@@ -213,7 +213,9 @@ Codec::AVContextPtr Codec::create_context(usize kbits, AVCodec* codec, shar::Siz
   context->pix_fmt = AV_PIX_FMT_YUV420P;
   context->width = static_cast<int>(frame_size.width());
   context->height = static_cast<int>(frame_size.height());
-  context->max_pixels = context->width * context->height;
+  // Support resolution up to 4k.
+  // NOTE: the values above could be not accurate, since we didn't receive any frames yet
+  context->max_pixels = 4096 * 2160;  
   context->get_buffer2 = avcodec_default_get_buffer2;
   context->get_format = get_format;
 
