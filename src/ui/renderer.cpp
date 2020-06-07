@@ -443,11 +443,11 @@ void Renderer::render(Texture& texture,
       {-1.0f,  1.0f,  0.0f,  1.0f},
   };
 
-  float width = static_cast<float>(window.size().width());
-  float height = static_cast<float>(window.size().height());
+  float w = static_cast<float>(window.size().width());
+  float h = static_cast<float>(window.size().height());
 
-  ortho[0][0] /= width;
-  ortho[1][1] /= height;
+  ortho[0][0] /= w;
+  ortho[1][1] /= h;
 
   /* setup global state */
   int display_width = static_cast<int>(window.display_size().width());
@@ -459,7 +459,7 @@ void Renderer::render(Texture& texture,
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glDisable(GL_SCISSOR_TEST);
+  glEnable(GL_SCISSOR_TEST);
   m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
@@ -470,15 +470,13 @@ void Renderer::render(Texture& texture,
   float x  = static_cast<float>(at.x);
   float y  = static_cast<float>(at.y);
   float yo = static_cast<float>(y_offset);
-  float w  = static_cast<float>(texture_size.width());
-  float h  = static_cast<float>(texture_size.height());
-
+  
   Vertex vertices_data[] = {
-      //      x          y            u     v      color
-      Vertex{ x,         y,           0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
-      Vertex{ x,         height - yo, 0.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top left corner
-      Vertex{ width - x, height - yo, 1.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top right corner
-      Vertex{ width - x, y,           1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
+      //      x      y       u     v      color
+      Vertex{ x,     y,      0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
+      Vertex{ x,     h - yo, 0.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top left corner
+      Vertex{ w - x, h - yo, 1.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top right corner
+      Vertex{ w - x, y,      1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
   };
 
   const u16 elements_data[] = { 
@@ -509,12 +507,15 @@ void Renderer::render(Texture& texture,
 
   m_gl.glUnmapBuffer(GL_ARRAY_BUFFER);
   m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
-  texture.bind();
-  glDisable(GL_CULL_FACE);
   
+  texture.bind();
+
+  glScissor(0, 0, display_width, display_height);
+
   void* offset = nullptr;
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, offset);
+
+  texture.unbind();
 
   m_gl.glUseProgram(0);
   m_gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
