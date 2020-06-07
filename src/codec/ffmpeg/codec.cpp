@@ -140,8 +140,9 @@ Codec::Codec(Context context, Size frame_size, usize fps)
 
 std::vector<Unit> Codec::encode(Frame image) {
   auto* context = m_context.get();
-  assert(static_cast<usize>(context->width) == image.width());
-  assert(static_cast<usize>(context->height) == image.height());
+  // NOTE: the value could be greater in case of dynamic resize
+  assert(static_cast<usize>(context->width) <= image.width());
+  assert(static_cast<usize>(context->height)<= image.height());
 
   int pts = next_pts();
   image.raw()->pts = pts;
@@ -214,7 +215,7 @@ Codec::AVContextPtr Codec::create_context(usize kbits, AVCodec* codec, shar::Siz
   context->width = static_cast<int>(frame_size.width());
   context->height = static_cast<int>(frame_size.height());
   // Support resolution up to 4k.
-  // NOTE: the values above could be not accurate, since we didn't receive any frames yet
+  // NOTE: the values above could be not accurate, since we didn't received any frames yet
   context->max_pixels = 4096 * 2160;  
   context->get_buffer2 = avcodec_default_get_buffer2;
   context->get_format = get_format;

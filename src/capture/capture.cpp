@@ -71,8 +71,14 @@ Capture::Capture(Context context,
     : Context(std::move(context))
     , m_interval(interval)
     , m_capture(nullptr) {
-  m_capture_config = sc::CreateCaptureConfiguration([m{std::move(monitor)}]() mutable {
-    return std::vector<sc::Monitor>{ std::move(m) };
+  usize id = static_cast<usize>(monitor.Id);
+  m_capture_config = sc::CreateCaptureConfiguration([id]() mutable {
+    const auto monitors = sc::GetMonitors();
+    if (monitors.empty()) {
+      return std::vector<sc::Monitor>();
+    }
+
+    return std::vector<sc::Monitor>{ monitors[std::min(id, monitors.size() - 1)] };
   });
 
 }
