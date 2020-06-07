@@ -24,8 +24,6 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    # TODO: https://github.com/0xd34d10cc/shar/issues/83
-
     - env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug CONAN_STDLIB=libc++
       os: osx
       osx_image: xcode11.5
@@ -93,9 +91,7 @@ install:
       CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    # else;
-    # TODO: uncomment after #83
-    #   brew install cmake || brew upgrade cmake
+
     fi
   - cmake --version
 
