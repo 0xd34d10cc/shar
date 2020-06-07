@@ -93,7 +93,7 @@ install:
       CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    else
+    else;
     # TODO: uncomment after #83
     #   brew install cmake || brew upgrade cmake
     fi
