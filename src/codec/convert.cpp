@@ -114,7 +114,7 @@ Slice yuv420_to_bgra(const u8* ys,
       bgra.data[i + 0] = b;
       bgra.data[i + 1] = g;
       bgra.data[i + 2] = r;
-      bgra.data[i + 3] = 0;
+      bgra.data[i + 3] = 0xff;
 
       i += 4;
     }
