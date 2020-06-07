@@ -24,50 +24,48 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    # TODO: https://github.com/0xd34d10cc/shar/issues/83
+    - env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug CONAN_STDLIB=libc++
+      os: osx
+      osx_image: xcode11.5
+      compiler: clang
 
-    # - env: COMPILER=clang++ BUILD_TYPE=Debug
-    #   os: osx
-    #   osx_image: xcode9.1
-    #   compiler: clang
-
-    # - env: COMPILER=clang++ BUILD_TYPE=Release
-    #   os: osx
-    #   osx_image: xcode9.1
-    #   compiler: clang
+    - env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release CONAN_STDLIB=libc++
+      os: osx
+      osx_image: xcode11.5
+      compiler: clang
 
     ##########################################################################
     # Clang on Linux
     ##########################################################################
+    # TODO: uncomment after https://github.com/0xd34d10cc/shar/issues/105
+    # # Clang 7.0
+    # - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
+    #   addons: &clang70
+    #     apt:
+    #       packages:
+    #         - clang-7
+    #         - g++-7
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #         - llvm-toolchain-trusty-7
 
-    # Clang 7.0
-    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
-      addons: &clang70
-        apt:
-          packages:
-            - clang-7
-            - g++-7
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-7
+    # - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
+    #   addons: *clang70
 
-    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
-      addons: *clang70
+    # ##########################################################################
+    # # GCC on Linux
+    # ##########################################################################
 
-    ##########################################################################
-    # GCC on Linux
-    ##########################################################################
+    # # GCC 7
+    # - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
+    #   addons: &gcc7
+    #     apt:
+    #       packages: g++-7
+    #       sources:
+    #         - ubuntu-toolchain-r-test
 
-    # GCC 7
-    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
-      addons: &gcc7
-        apt:
-          packages: g++-7
-          sources:
-            - ubuntu-toolchain-r-test
-
-    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
-      addons: *gcc7
+    # - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
+    #   addons: *gcc7
 
 install:
   # Set $CC and $CXX variables properly
@@ -93,9 +91,6 @@ install:
       CMAKE_URL="https://cmake.org/files/v${CMAKE_VERSION%.[0-9]}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    else
-    # TODO: uncomment after #83
-    #   brew install cmake || brew upgrade cmake
     fi
   - cmake --version
 
@@ -103,8 +98,8 @@ before_script:
   # have CMake to generate build files
   - cd "${TRAVIS_BUILD_DIR}"
   - sudo pip install conan
-  # install screencapturelite deps
-  - sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev
+  # install screencapturelite deps only for linux 
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev; fi
   # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
