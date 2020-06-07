@@ -433,7 +433,7 @@ void Renderer::render(State &state, const Window &window) {
 void Renderer::render(Texture& texture,
                       const Window& window,
                       Point at,
-                      Size texture_size,
+                      usize x_offset,
                       usize y_offset) {
   // TODO: extract global setup to a separate function to reuse for UI & video rendering
   float ortho[4][4] = {
@@ -469,14 +469,15 @@ void Renderer::render(Texture& texture,
   
   float x  = static_cast<float>(at.x);
   float y  = static_cast<float>(at.y);
+  float xo = static_cast<float>(x_offset);
   float yo = static_cast<float>(y_offset);
   
   Vertex vertices_data[] = {
-      //      x      y       u     v      color
-      Vertex{ x,     y,      0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
-      Vertex{ x,     h - yo, 0.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top left corner
-      Vertex{ w - x, h - yo, 1.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top right corner
-      Vertex{ w - x, y,      1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
+      //      x       y       u     v      color
+      Vertex{ x,      y,      0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
+      Vertex{ x,      h - yo, 0.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top left corner
+      Vertex{ w - xo, h - yo, 1.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top right corner
+      Vertex{ w - xo, y,      1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
   };
 
   const u16 elements_data[] = { 

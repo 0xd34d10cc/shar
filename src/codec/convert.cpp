@@ -110,11 +110,12 @@ Slice yuv420_to_bgra(const u8* ys,
       uint8_t r = static_cast<uint8_t>(clamp((298 * c + 409 * e + 128) >> 8, 0, 255));
       uint8_t g = static_cast<uint8_t>(clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255));
       uint8_t b = static_cast<uint8_t>(clamp((298 * c + 516 * d + 128) >> 8, 0, 255));
+      uint8_t a = 0xff; // no transparency
 
       bgra.data[i + 0] = b;
       bgra.data[i + 1] = g;
       bgra.data[i + 2] = r;
-      bgra.data[i + 3] = 0xff;
+      bgra.data[i + 3] = a;
 
       i += 4;
     }
