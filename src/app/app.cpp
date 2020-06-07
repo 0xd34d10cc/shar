@@ -234,7 +234,7 @@ std::optional<StreamState> App::update_config() {
 }
 
 void App::render_background() {
-  const auto win_size = m_window.display_size();
+  const auto win_size = m_window.size();
   // TODO: unhardcode
   const usize height_ratio = 9;
   const usize width_ratio = 16;
@@ -251,13 +251,18 @@ void App::render_background() {
   // FIXME: x in Point is for horizontal axis, but first
   //        parameter for Size is height which is very confusing
   auto at = Point{0, HEADER_SIZE};
+  
+  usize y_offset = 0;
+  usize x_offset = 0;
   if (bounded_by_height) {
-    at.x += (win_size.width() - w) / 2;
+    x_offset = (win_size.width() - w) / 2; 
+    at.x += x_offset;
   } else {
-    at.y += (max_height - h) / 2;
+    y_offset = (max_height - h) / 2;
+    at.y += y_offset;
   }
 
-  m_renderer.render(m_background, m_window.size(), at, Size{h, w});
+  m_renderer.render(m_background, m_window, at, x_offset, y_offset);
 }
 
 void App::render() {

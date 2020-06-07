@@ -18,8 +18,9 @@
 #include "disable_warnings_pop.hpp"
 // clang-format on
 
-#define MAX_VERTEX_MEMORY  512 * 1024
-#define MAX_ELEMENT_MEMORY 128 * 1024
+
+static const nk_size MAX_VERTEX_MEMORY = 512 * 1024;
+static const nk_size MAX_ELEMENT_MEMORY = 128 * 1024;
 
 #ifdef __APPLE__
 #define SHAR_SHADER_VERSION "#version 150\n"
@@ -84,22 +85,18 @@ namespace shar::ui {
 struct SDLDevice {
   struct nk_buffer cmds;
   struct nk_draw_null_texture null;
-  GLuint vbo, vao, ebo;
-  GLuint prog;
-  GLuint vert_shdr;
-  GLuint frag_shdr;
-  GLint attrib_pos;
-  GLint attrib_uv;
-  GLint attrib_col;
-  GLint uniform_tex;
-  GLint uniform_proj;
+
+  GLuint vbo;  // vertex buffer object id
+  GLuint vao;  // vertex array object id
+  GLuint ebo;  // element buffer object id
+
   GLuint font_tex;
 };
 
 struct Vertex {
   float position[2];
   float uv[2];
-  nk_byte col[4];
+  nk_byte color[4];
 };
 
 void Renderer::init_log(const Logger &logger) {
@@ -121,6 +118,55 @@ Renderer::~Renderer() {
   destroy();
 }
 
+Shader Renderer::compile(const char* vertex_shader,
+                         const char* fragment_shader) {
+  Shader shader;
+  
+  shader.vertex = m_gl.glCreateShader(GL_VERTEX_SHADER);
+  m_gl.glShaderSource(shader.vertex, 1, &vertex_shader, nullptr);
+  m_gl.glCompileShader(shader.vertex);
+  
+  shader.fragment = m_gl.glCreateShader(GL_FRAGMENT_SHADER);
+  m_gl.glShaderSource(shader.fragment, 1, &fragment_shader, nullptr);
+  m_gl.glCompileShader(shader.fragment);
+  
+  const auto check = [this] (GLint status, ProgramID shader) {
+    const bool failed = status != GL_TRUE;
+    
+    if (failed) {
+      GLint len = 0;
+      m_gl.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+      std::string message(len, ' ');
+      m_gl.glGetShaderInfoLog(shader, len, &len, message.data());
+
+      // FIXME: leaks shader
+      throw std::runtime_error("Compilation error: " + message);
+    }
+  };
+
+  GLint status = GL_FALSE;
+  m_gl.glGetShaderiv(shader.vertex, GL_COMPILE_STATUS, &status);
+  check(status, shader.vertex);
+  
+  m_gl.glGetShaderiv(shader.fragment, GL_COMPILE_STATUS, &status);
+  check(status, shader.fragment);
+  
+  shader.program = m_gl.glCreateProgram();
+  m_gl.glAttachShader(shader.program, shader.vertex);
+  m_gl.glAttachShader(shader.program, shader.fragment);
+  m_gl.glLinkProgram(shader.program);
+  m_gl.glGetProgramiv(shader.program, GL_LINK_STATUS, &status);
+  assert(status == GL_TRUE);
+  
+  shader.attributes.texture = m_gl.glGetUniformLocation(shader.program, "Texture");
+  shader.attributes.projection = m_gl.glGetUniformLocation(shader.program, "Projection");
+  shader.attributes.position = m_gl.glGetAttribLocation(shader.program, "Position");
+  shader.attributes.texture_coordinates = m_gl.glGetAttribLocation(shader.program, "TexCoord");
+  shader.attributes.color = m_gl.glGetAttribLocation(shader.program, "Color");
+
+  return shader;
+}
+
 void Renderer::init() {
 
 #ifdef SHAR_DEBUG_BUILD
@@ -132,12 +178,9 @@ void Renderer::init() {
   }
 #endif
 
-  // TODO: remove after migration to CORE OpenGL profile
-  glEnable(GL_TEXTURE_2D);
-
-  GLint status;
-  static const GLchar *vertex_shader = SHAR_SHADER_VERSION
-      "uniform mat4 ProjMtx;\n"
+  static const GLchar* nk_vertex_shader = 
+      SHAR_SHADER_VERSION
+      "uniform mat4 Projection;\n"
       "in vec2 Position;\n"
       "in vec2 TexCoord;\n"
       "in vec4 Color;\n"
@@ -146,10 +189,11 @@ void Renderer::init() {
       "void main() {\n"
       "   Frag_UV = TexCoord;\n"
       "   Frag_Color = Color;\n"
-      "   gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
+      "   gl_Position = Projection * vec4(Position.xy, 0, 1);\n"
       "}\n";
 
-  static const GLchar *fragment_shader = SHAR_SHADER_VERSION
+  static const GLchar* nk_fragment_shader = 
+      SHAR_SHADER_VERSION
       "precision mediump float;\n"
       "uniform sampler2D Texture;\n"
       "in vec2 Frag_UV;\n"
@@ -160,37 +204,13 @@ void Renderer::init() {
       "}\n";
 
   nk_buffer_init_default(&m_device->cmds);
-  // NOTE: these are extension functions, so we have to load them separately
-  //       either manually or via library (e.g. glew)
-  m_device->prog = m_gl.glCreateProgram();
-  m_device->vert_shdr = m_gl.glCreateShader(GL_VERTEX_SHADER);
-  m_device->frag_shdr = m_gl.glCreateShader(GL_FRAGMENT_SHADER);
-  m_gl.glShaderSource(m_device->vert_shdr, 1, &vertex_shader, nullptr);
-  m_gl.glShaderSource(m_device->frag_shdr, 1, &fragment_shader, nullptr);
-  m_gl.glCompileShader(m_device->vert_shdr);
-  m_gl.glCompileShader(m_device->frag_shdr);
-  m_gl.glGetShaderiv(m_device->vert_shdr, GL_COMPILE_STATUS, &status);
-  assert(status == GL_TRUE);
-  m_gl.glGetShaderiv(m_device->frag_shdr, GL_COMPILE_STATUS, &status);
-  assert(status == GL_TRUE);
-  m_gl.glAttachShader(m_device->prog, m_device->vert_shdr);
-  m_gl.glAttachShader(m_device->prog, m_device->frag_shdr);
-  m_gl.glLinkProgram(m_device->prog);
-  m_gl.glGetProgramiv(m_device->prog, GL_LINK_STATUS, &status);
-  assert(status == GL_TRUE);
-
-  m_device->uniform_tex = m_gl.glGetUniformLocation(m_device->prog, "Texture");
-  m_device->uniform_proj = m_gl.glGetUniformLocation(m_device->prog, "ProjMtx");
-  m_device->attrib_pos = m_gl.glGetAttribLocation(m_device->prog, "Position");
-  m_device->attrib_uv = m_gl.glGetAttribLocation(m_device->prog, "TexCoord");
-  m_device->attrib_col = m_gl.glGetAttribLocation(m_device->prog, "Color");
-
+  m_shader = compile(nk_vertex_shader, nk_fragment_shader);
   {
     /* buffer setup */
     GLsizei vs = sizeof(Vertex);
     size_t vp = offsetof(Vertex, position);
     size_t vt = offsetof(Vertex, uv);
-    size_t vc = offsetof(Vertex, col);
+    size_t vc = offsetof(Vertex, color);
 
     m_gl.glGenBuffers(1, &m_device->vbo);
     m_gl.glGenBuffers(1, &m_device->ebo);
@@ -200,23 +220,23 @@ void Renderer::init() {
     m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
     m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_device->ebo);
 
-    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_pos));
-    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_uv));
-    m_gl.glEnableVertexAttribArray(static_cast<GLuint>(m_device->attrib_col));
+    m_gl.glEnableVertexAttribArray(m_shader.attributes.position);
+    m_gl.glEnableVertexAttribArray(m_shader.attributes.texture_coordinates);
+    m_gl.glEnableVertexAttribArray(m_shader.attributes.color);
 
-    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_pos),
+    m_gl.glVertexAttribPointer(m_shader.attributes.position,
                                2,
                                GL_FLOAT,
                                GL_FALSE,
                                vs,
                                reinterpret_cast<void *>(vp));
-    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_uv),
+    m_gl.glVertexAttribPointer(m_shader.attributes.texture_coordinates,
                                2,
                                GL_FLOAT,
                                GL_FALSE,
                                vs,
                                reinterpret_cast<void *>(vt));
-    m_gl.glVertexAttribPointer(static_cast<GLuint>(m_device->attrib_col),
+    m_gl.glVertexAttribPointer(m_shader.attributes.color,
                                4,
                                GL_UNSIGNED_BYTE,
                                GL_TRUE,
@@ -256,13 +276,25 @@ void Renderer::init() {
                     &m_device->null);
 }
 
+void Renderer::free(Shader& shader) {
+  if (shader.program != 0) {
+    m_gl.glDetachShader(shader.program, shader.vertex);
+    m_gl.glDetachShader(shader.program, shader.fragment);
+    m_gl.glDeleteProgram(shader.program);
+  }
+
+  if (shader.vertex != 0)
+    m_gl.glDeleteShader(shader.vertex);
+    
+  if (shader.fragment != 0)  
+    m_gl.glDeleteShader(shader.fragment);
+}
+
 void Renderer::destroy() {
   nk_font_atlas_clear(m_atlas.get());
-  m_gl.glDetachShader(m_device->prog, m_device->vert_shdr);
-  m_gl.glDetachShader(m_device->prog, m_device->frag_shdr);
-  m_gl.glDeleteShader(m_device->vert_shdr);
-  m_gl.glDeleteShader(m_device->frag_shdr);
-  m_gl.glDeleteProgram(m_device->prog);
+
+  free(m_shader);
+
   glDeleteTextures(1, &m_device->font_tex);
   m_gl.glDeleteBuffers(1, &m_device->vbo);
   m_gl.glDeleteBuffers(1, &m_device->ebo);
@@ -270,27 +302,23 @@ void Renderer::destroy() {
 }
 
 void Renderer::render(State &state, const Window &window) {
-  GLfloat ortho[4][4] = {
-      {2.0f, 0.0f, 0.0f, 0.0f},
-      {0.0f, -2.0f, 0.0f, 0.0f},
-      {0.0f, 0.0f, -1.0f, 0.0f},
-      {-1.0f, 1.0f, 0.0f, 1.0f},
+  float ortho[4][4] = {
+      { 2.0f,  0.0f,  0.0f,  0.0f},
+      { 0.0f, -2.0f,  0.0f,  0.0f},
+      { 0.0f,  0.0f, -1.0f,  0.0f},
+      {-1.0f,  1.0f,  0.0f,  1.0f},
   };
 
-  int width = static_cast<int>(window.size().width());
-  int height = static_cast<int>(window.size().height());
+  float width = static_cast<float>(window.size().width());
+  float height = static_cast<float>(window.size().height());
 
+  ortho[0][0] /= width;
+  ortho[1][1] /= height;
+
+  /* setup global state */
   int display_width = static_cast<int>(window.display_size().width());
   int display_height = static_cast<int>(window.display_size().height());
 
-  ortho[0][0] /= static_cast<GLfloat>(width);
-  ortho[1][1] /= static_cast<GLfloat>(height);
-
-  struct nk_vec2 scale;
-  scale.x = static_cast<float>(display_width) / static_cast<float>(width);
-  scale.y = static_cast<float>(display_height) / static_cast<float>(height);
-
-  /* setup global state */
   glViewport(0, 0, display_width, display_height);
   glEnable(GL_BLEND);
   m_gl.glBlendEquation(GL_FUNC_ADD);
@@ -301,16 +329,12 @@ void Renderer::render(State &state, const Window &window) {
   m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
-  m_gl.glUseProgram(m_device->prog);
-  m_gl.glUniform1i(m_device->uniform_tex, 0);
-  m_gl.glUniformMatrix4fv(m_device->uniform_proj, 1, GL_FALSE, &ortho[0][0]);
+  m_gl.glUseProgram(m_shader.program);
+  m_gl.glUniform1i(m_shader.attributes.texture, 0);
+  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
   {
     /* convert from command queue into draw list and draw to screen */
-    const struct nk_draw_command *cmd;
-    void *vertices, *elements;
-    const nk_draw_index *offset = nullptr;
-    struct nk_buffer vbuf, ebuf;
-
+  
     /* allocate vertex and element buffer */
     m_gl.glBindVertexArray(m_device->vao);
     m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
@@ -326,16 +350,17 @@ void Renderer::render(State &state, const Window &window) {
                       GL_STREAM_DRAW);
 
     /* load vertices/elements directly into vertex/element buffer */
-    vertices = m_gl.glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    elements = m_gl.glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+    Vertex* vertices = reinterpret_cast<Vertex*>(m_gl.glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+    u16* elements = reinterpret_cast<u16*>(m_gl.glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
     {
       /* fill convert configuration */
-      struct nk_convert_config config;
       static const struct nk_draw_vertex_layout_element vertex_layout[] = {
           {NK_VERTEX_POSITION, NK_FORMAT_FLOAT, offsetof(Vertex, position)},
           {NK_VERTEX_TEXCOORD, NK_FORMAT_FLOAT, offsetof(Vertex, uv)},
-          {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, offsetof(Vertex, col)},
+          {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, offsetof(Vertex, color)},
           {NK_VERTEX_LAYOUT_END}};
+      
+      struct nk_convert_config config;
       std::memset(&config, 0, sizeof(config));
       config.vertex_layout = vertex_layout;
       config.vertex_size = sizeof(Vertex);
@@ -349,29 +374,44 @@ void Renderer::render(State &state, const Window &window) {
       config.line_AA = NK_ANTI_ALIASING_ON;
 
       /* setup buffers to load vertices and elements */
-      nk_buffer_init_fixed(&vbuf, vertices, static_cast<nk_size>(MAX_VERTEX_MEMORY));
-      nk_buffer_init_fixed(&ebuf, elements, static_cast<nk_size>(MAX_ELEMENT_MEMORY));
-      nk_convert(state.context(), &m_device->cmds, &vbuf, &ebuf, &config);
+      struct nk_buffer vertex_buffer;
+      struct nk_buffer elements_buffer;
+
+      nk_buffer_init_fixed(&vertex_buffer, vertices, MAX_VERTEX_MEMORY);
+      nk_buffer_init_fixed(&elements_buffer, elements, MAX_ELEMENT_MEMORY);
+      nk_convert(state.context(), &m_device->cmds, &vertex_buffer, &elements_buffer, &config);
     }
     m_gl.glUnmapBuffer(GL_ARRAY_BUFFER);
     m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
+    struct nk_vec2 scale;
+    scale.x = static_cast<float>(display_width) / static_cast<float>(width);
+    scale.y = static_cast<float>(display_height) / static_cast<float>(height);
+
     /* iterate over and execute each draw command */
     auto* ctx = state.context();
 
-    for (cmd = nk__draw_begin(ctx, &m_device->cmds); cmd != nullptr; cmd = nk__draw_next(cmd, &m_device->cmds, ctx))
-    // nk_draw_foreach(cmd, state.context(), &m_device->cmds)
+    // NOTE: this is not really a pointer
+    const nk_draw_index* offset = nullptr;
+  
+    const struct nk_draw_command* cmd = nk__draw_begin(ctx, &m_device->cmds);
+    for (; cmd != nullptr; cmd = nk__draw_next(cmd, &m_device->cmds, ctx))
     {
       if (cmd->elem_count == 0)
         continue;
 
+      // Make the specified texture active
       glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(cmd->texture.id));
-      glScissor(
-          static_cast<GLint>(cmd->clip_rect.x * scale.x),
-          static_cast<GLint>((height - static_cast<GLint>(cmd->clip_rect.y + cmd->clip_rect.h)) *
-                  scale.y),
-          static_cast<GLint>(cmd->clip_rect.w * scale.x),
-          static_cast<GLint>(cmd->clip_rect.h * scale.y));
+      
+      // Clip the render target to |cmd->clip_rect|
+      const auto x   = static_cast<int>(cmd->clip_rect.x * scale.x);
+      const auto top = static_cast<int>(cmd->clip_rect.y + cmd->clip_rect.h);
+      const auto y   = static_cast<int>((height - top) * scale.y);
+      const auto w   = static_cast<int>(cmd->clip_rect.w * scale.x);
+      const auto h   = static_cast<int>(cmd->clip_rect.h * scale.y);
+      glScissor(x, y, w, h);
+
+      // Execute the command
       glDrawElements(GL_TRIANGLES,
                      static_cast<GLsizei>(cmd->elem_count),
                      GL_UNSIGNED_SHORT,
@@ -390,55 +430,98 @@ void Renderer::render(State &state, const Window &window) {
   glDisable(GL_SCISSOR_TEST);
 }
 
-void Renderer::render(Texture &texture,
-                      Size window_size,
+void Renderer::render(Texture& texture,
+                      const Window& window,
                       Point at,
-                      Size texture_size) {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0.0,
-          static_cast<double>(window_size.width()),
-          static_cast<double>(window_size.height()),
-          0.0,
-          0.0,
-          1.0);
+                      usize x_offset,
+                      usize y_offset) {
+  // TODO: extract global setup to a separate function to reuse for UI & video rendering
+  float ortho[4][4] = {
+      { 2.0f,  0.0f,  0.0f,  0.0f},
+      { 0.0f, -2.0f,  0.0f,  0.0f},
+      { 0.0f,  0.0f, -1.0f,  0.0f},
+      {-1.0f,  1.0f,  0.0f,  1.0f},
+  };
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  float w = static_cast<float>(window.size().width());
+  float h = static_cast<float>(window.size().height());
 
+  ortho[0][0] /= w;
+  ortho[1][1] /= h;
+
+  /* setup global state */
+  int display_width = static_cast<int>(window.display_size().width());
+  int display_height = static_cast<int>(window.display_size().height());
+
+  glViewport(0, 0, display_width, display_height);
+  glEnable(GL_BLEND);
+  m_gl.glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
+  glEnable(GL_SCISSOR_TEST);
+  m_gl.glActiveTexture(GL_TEXTURE0);
+
+  /* setup program */
+  m_gl.glUseProgram(m_shader.program);
+  m_gl.glUniform1i(m_shader.attributes.texture, 0);
+  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
+  
+  float x  = static_cast<float>(at.x);
+  float y  = static_cast<float>(at.y);
+  float xo = static_cast<float>(x_offset);
+  float yo = static_cast<float>(y_offset);
+  
+  Vertex vertices_data[] = {
+      //      x       y       u     v      color
+      Vertex{ x,      y,      0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
+      Vertex{ x,      h - yo, 0.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top left corner
+      Vertex{ w - xo, h - yo, 1.0f, 1.0f, {0xff, 0xff, 0xff, 0xff} }, // top right corner
+      Vertex{ w - xo, y,      1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
+  };
+
+  const u16 elements_data[] = { 
+      0, 2, 1,     // first triangle (bottom left - top left - top right)
+      0, 3, 2 
+  };
+
+   /* allocate vertex and element buffer */
+  m_gl.glBindVertexArray(m_device->vao);
+  m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
+  m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_device->ebo);
+
+  m_gl.glBufferData(GL_ARRAY_BUFFER,
+                    MAX_VERTEX_MEMORY,
+                    nullptr,
+                    GL_STREAM_DRAW);
+  m_gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                    MAX_ELEMENT_MEMORY,
+                    nullptr,
+                    GL_STREAM_DRAW);
+
+  /* load vertices/elements directly into vertex/element buffer */
+  void* vertices = m_gl.glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+  void* elements = m_gl.glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+  std::memcpy(vertices, vertices_data, sizeof(Vertex) * 4);
+  std::memcpy(elements, elements_data, sizeof(u16) * 6);
+
+  m_gl.glUnmapBuffer(GL_ARRAY_BUFFER);
+  m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+  
   texture.bind();
 
-  // TODO: use shaders
-  glBegin(GL_QUADS);
+  glScissor(0, 0, display_width, display_height);
 
-  // left top
-  glTexCoord2f(0, 0);
-  glVertex3f(static_cast<float>(at.x), static_cast<float>(at.y), 0);
-
-  // right top
-  glTexCoord2f(1, 0);
-  glVertex3f(static_cast<float>(at.x) +
-                 static_cast<float>(texture_size.width()),
-             static_cast<float>(at.y),
-             0);
-
-  // right bottom
-  glTexCoord2f(1, 1);
-  glVertex3f(
-      static_cast<float>(at.x) + static_cast<float>(texture_size.width()),
-      static_cast<float>(at.y) + static_cast<float>(texture_size.height()),
-      0);
-
-  // left bottom
-  glTexCoord2f(0, 1);
-  glVertex3f(static_cast<float>(at.x),
-             static_cast<float>(at.y) +
-                 static_cast<float>(texture_size.height()),
-             0);
-
-  glEnd();
+  void* offset = nullptr;
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, offset);
 
   texture.unbind();
+
+  m_gl.glUseProgram(0);
+  m_gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+  m_gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  m_gl.glBindVertexArray(0);
 }
 
 nk_user_font *Renderer::default_font_handle() const {

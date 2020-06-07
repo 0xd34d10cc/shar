@@ -26,6 +26,7 @@ std::optional<OpenGLVTable> OpenGLVTable::load() {
   TRY_LOAD(glShaderSource);
   TRY_LOAD(glCompileShader);
   TRY_LOAD(glGetShaderiv);
+  TRY_LOAD(glGetShaderInfoLog);
   TRY_LOAD(glAttachShader);
   TRY_LOAD(glLinkProgram);
   TRY_LOAD(glGetProgramiv);
