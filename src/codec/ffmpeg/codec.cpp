@@ -117,59 +117,79 @@ Codec::Codec(Context context, Size frame_size, usize fps)
     setup_logging(m_config, m_logger);
   }
 
-  /*m_full_delay = metrics::Histogram({ "Codec_full_delay", "Delay of capture & codec", "ms" },
-                                     m_registry, { 5.0, 10.0, 15.0, 30.0 });*/
+  open(frame_size, fps);
+}
+
+void Codec::open(Size frame_size, usize fps) {
   ffmpeg::Options opts{};
-  for (const auto& [key, value]: m_config->options) {
+  for (const auto& [key, value] : m_config->options) {
     if (!opts.set(key.c_str(), value.c_str())) {
-      m_logger.error("Failed to set {} codec option to {}. Ignoring", key, value);
+      m_logger.error("Failed to set {} codec option to {}. Ignoring",
+                     key,
+                     value);
     }
   }
 
+  m_context.reset();
+  
   m_codec = select_codec(opts, frame_size, fps);
   assert(m_context.get());
   assert(m_codec);
 
-
   // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
     m_logger.warning("Following {} options were not found: {}",
-      opts.count(), opts.to_string());
+                     opts.count(),
+                     opts.to_string());
   }
 }
 
 std::vector<Unit> Codec::encode(Frame image) {
   auto* context = m_context.get();
-  // NOTE: the value could be greater in case of dynamic resize
-  assert(static_cast<usize>(context->width) <= image.width());
-  assert(static_cast<usize>(context->height)<= image.height());
+  
+  const bool width_changed = static_cast<usize>(context->width) != image.width();
+  const bool height_changed = static_cast<usize>(context->height) != image.height();
+  const bool resized = width_changed || height_changed;
 
+  if (resized) {
+    m_logger.warning(
+        "The stream resolution have been changed from {}x{} to {}x{}",
+        context->width,
+        context->height,
+        image.width(),
+        image.height()
+    );
+
+    usize fps = static_cast<usize>(context->time_base.den);
+    open(image.sizes(), fps);
+  }
+  
   int pts = next_pts();
   image.raw()->pts = pts;
 
   int ret = avcodec_send_frame(context, image.raw());
   std::vector<Unit> packets;
 
-  assert(ret==0);
-  if (ret == 0) {
-    auto unit = Unit::allocate();
+  if (ret != 0) {
+    report_error(ret);
+    return packets;
+  }  
 
+  auto unit = Unit::allocate();
+  ret = avcodec_receive_packet(context, unit.raw());
+  while (ret != AVERROR(EAGAIN)) {
+    unit.raw()->pts = pts;
+    packets.emplace_back(std::move(unit));
+
+    unit = Unit::allocate();
     ret = avcodec_receive_packet(context, unit.raw());
-    while (ret != AVERROR(EAGAIN)) {
-      unit.raw()->pts = pts;
-      packets.emplace_back(std::move(unit));
 
-      unit = Unit::allocate();
-      ret = avcodec_receive_packet(context, unit.raw());
-
-      // NOTE: this delay is incorrect, because encoder is able to buffer frames.
-      // TODO: Report codec delay
-      // const auto delay = Clock::now() - image.timestamp();
-      // const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
-      // m_full_delay.Observe(static_cast<double>(delay_ms.count()));
-    }
+    // NOTE: this delay is incorrect, because encoder is able to buffer frames.
+    // TODO: Report codec delay
+    // const auto delay = Clock::now() - image.timestamp();
+    // const auto delay_ms = std::chrono::duration_cast<Milliseconds>(delay);
+    // m_full_delay.Observe(static_cast<double>(delay_ms.count()));
   }
-
   return packets;
 }
 
@@ -189,8 +209,11 @@ std::optional<Frame> Codec::decode(Unit unit) {
     return std::nullopt;
   }
 
-  // error
-  assert(ret == 0);
+  if (ret != 0) {
+    report_error(ret);
+    return std::nullopt;
+  }
+
   assert(frame.raw()->format == AV_PIX_FMT_YUV420P);
   return std::move(frame);
 }
@@ -298,6 +321,16 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
   }
 
   throw std::runtime_error("Failed to initialize default codec");
+}
+
+void Codec::report_error(int code) {
+  if (code == 0)
+    // nothing to report
+    return;
+
+  char message[1024];
+  av_strerror(code, message, sizeof(message));
+  m_logger.error("Codec failure: {}", message);
 }
 
 }

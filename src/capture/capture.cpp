@@ -12,10 +12,17 @@ Frame convert(const sc::Image& image) noexcept {
   auto size  = Size{ height, width };
 
   // Frame::from_bgra expects no padding, for now
-  // TODO: support padded images
-  assert(sc::isDataContiguous(image));
-  const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
-  return Frame::from_bgra(data, size);
+  if (sc::isDataContiguous(image)) {
+    const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
+    return Frame::from_bgra(data, size);
+  } else {
+    // do a bunch of memove operations to get rid of padding
+    // TODO: support padding in bgra_to_yuv to avoid extra allocation + copy
+    usize nbytes = width * height * 4;
+    const auto data = std::make_unique<u8[]>(nbytes);
+    sc::Extract(image, data.get(), nbytes);
+    return Frame::from_bgra(reinterpret_cast<const char*>(data.get()), size);
+  }
 }
 
 BGRAFrame to_bgra(const sc::Image& image) noexcept {
@@ -28,8 +35,7 @@ BGRAFrame to_bgra(const sc::Image& image) noexcept {
   frame.data = std::make_unique<u8[]>(n);
   frame.size = Size{ height, width };
 
-  assert(sc::isDataContiguous(image));
-  std::memcpy(frame.data.get(), sc::StartSrc(image), n);
+  sc::Extract(image, frame.data.get(), n);
   return frame;
 }
 
