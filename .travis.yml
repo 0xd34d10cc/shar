@@ -1,5 +1,9 @@
 # Based on https://github.com/Microsoft/GSL/blob/master/.travis.yml
 
+language: python
+python:
+  - "3.7"
+
 language: cpp
 sudo: false
 notifications:
