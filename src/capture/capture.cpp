@@ -6,6 +6,8 @@ namespace {
 using namespace shar;
 using Frame = codec::ffmpeg::Frame;
 
+static const usize NCHANNELS = 4; // bgra
+
 Frame convert(const sc::Image& image) noexcept {
   const auto width  = static_cast<usize>(Width(image));
   const auto height = static_cast<usize>(Height(image));
@@ -16,9 +18,9 @@ Frame convert(const sc::Image& image) noexcept {
     const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
     return Frame::from_bgra(data, size);
   } else {
-    // do a bunch of memove operations to get rid of padding
+    // do a bunch of memcpy operations to get rid of padding
     // TODO: support padding in bgra_to_yuv to avoid extra allocation + copy
-    usize nbytes = width * height * 4;
+    usize nbytes = width * height * NCHANNELS;
     const auto data = std::make_unique<u8[]>(nbytes);
     sc::Extract(image, data.get(), nbytes);
     return Frame::from_bgra(reinterpret_cast<const char*>(data.get()), size);
@@ -30,7 +32,7 @@ BGRAFrame to_bgra(const sc::Image& image) noexcept {
 
   const auto width = static_cast<usize>(Width(image));
   const auto height = static_cast<usize>(Height(image));
-  usize n = width * height * 4;
+  usize n = width * height * NCHANNELS;
 
   frame.data = std::make_unique<u8[]>(n);
   frame.size = Size{ height, width };
