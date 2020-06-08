@@ -37,35 +37,35 @@ matrix:
     ##########################################################################
     # Clang on Linux
     ##########################################################################
-    # TODO: uncomment after https://github.com/0xd34d10cc/shar/issues/105
-    # # Clang 7.0
-    # - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
-    #   addons: &clang70
-    #     apt:
-    #       packages:
-    #         - clang-7
-    #         - g++-7
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-trusty-7
+    TODO: uncomment after https://github.com/0xd34d10cc/shar/issues/105
+    # Clang 7.0
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
+      addons: &clang70
+        apt:
+          packages:
+            - clang-7
+            - g++-7
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-7
 
-    # - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
-    #   addons: *clang70
+    - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
+      addons: *clang70
 
-    # ##########################################################################
-    # # GCC on Linux
-    # ##########################################################################
+    ##########################################################################
+    # GCC on Linux
+    ##########################################################################
 
-    # # GCC 7
-    # - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
-    #   addons: &gcc7
-    #     apt:
-    #       packages: g++-7
-    #       sources:
-    #         - ubuntu-toolchain-r-test
+    # GCC 7
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
+      addons: &gcc7
+        apt:
+          packages: g++-7
+          sources:
+            - ubuntu-toolchain-r-test
 
-    # - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
-    #   addons: *gcc7
+    - env: C_COMPILER=gcc-7 COMPILER=g++-7 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
+      addons: *gcc7
 
 install:
   # Set $CC and $CXX variables properly
@@ -97,7 +97,7 @@ install:
 before_script:
   # have CMake to generate build files
   - cd "${TRAVIS_BUILD_DIR}"
-  - sudo pip install conan
+  - sudo pip3 install conan
   # install screencapturelite deps only for linux 
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then sudo apt-get install libxtst-dev libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev; fi
   # setup conan remotes
