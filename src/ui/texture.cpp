@@ -17,7 +17,9 @@
 namespace shar::ui {
 
 Texture::Texture(Size size) noexcept
-    : m_id(0) {
+    : m_id(0)
+    , m_size(size)
+{
   GLuint id;
   glGenTextures(1, &id);
   m_id = id;
@@ -30,7 +32,7 @@ Texture::Texture(Size size) noexcept
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   // allocate memory for texture
-  set(size, nullptr);
+  set(m_size, nullptr);
   unbind();
 }
 
@@ -51,14 +53,19 @@ void Texture::set(Size size, const u8* data) noexcept {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()), 0,
                GL_BGRA, GL_UNSIGNED_BYTE, data);
+  m_size = size;
 }
 
-void Texture::update(Point offset, Size size,
-                     const u8* data) noexcept {
-  glTexSubImage2D(GL_TEXTURE_2D, 0,
-                  static_cast<GLint>(offset.x), static_cast<GLint>(offset.y),
-                  static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()),
-                  GL_BGRA, GL_UNSIGNED_BYTE, data);
+void Texture::update(Size size, const u8* data) noexcept {
+  if (size != m_size) {
+    set(size, data);
+  } 
+  else {
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                    static_cast<GLsizei>(size.width()), static_cast<GLsizei>(size.height()),
+                    GL_BGRA, GL_UNSIGNED_BYTE, data);
+
+  }
 }
 
 }

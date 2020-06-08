@@ -40,6 +40,9 @@ private:
                         Size frame_size,
                         usize fps);
 
+  void report_error(int code);
+  void open(Size frame_size, usize fps);
+
   struct Deleter {
     void operator()(AVCodecContext* context) {
       avcodec_free_context(&context);

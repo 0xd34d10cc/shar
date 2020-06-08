@@ -88,7 +88,7 @@ struct SDLDevice {
 
   GLuint vbo;  // vertex buffer object id
   GLuint vao;  // vertex array object id
-  GLuint ebo;  // element buffer object id
+  GLuint ebo;  // element (index) buffer object id
 
   GLuint font_tex;
 };
@@ -207,10 +207,10 @@ void Renderer::init() {
   m_shader = compile(nk_vertex_shader, nk_fragment_shader);
   {
     /* buffer setup */
-    GLsizei vs = sizeof(Vertex);
-    size_t vp = offsetof(Vertex, position);
-    size_t vt = offsetof(Vertex, uv);
-    size_t vc = offsetof(Vertex, color);
+    GLsizei vertex_size = sizeof(Vertex);
+    size_t position_offset = offsetof(Vertex, position);
+    size_t texture_coordinates_offset  = offsetof(Vertex, uv);
+    size_t color_offset = offsetof(Vertex, color);
 
     m_gl.glGenBuffers(1, &m_device->vbo);
     m_gl.glGenBuffers(1, &m_device->ebo);
@@ -224,24 +224,29 @@ void Renderer::init() {
     m_gl.glEnableVertexAttribArray(m_shader.attributes.texture_coordinates);
     m_gl.glEnableVertexAttribArray(m_shader.attributes.color);
 
-    m_gl.glVertexAttribPointer(m_shader.attributes.position,
-                               2,
-                               GL_FLOAT,
-                               GL_FALSE,
-                               vs,
-                               reinterpret_cast<void *>(vp));
-    m_gl.glVertexAttribPointer(m_shader.attributes.texture_coordinates,
-                               2,
-                               GL_FLOAT,
-                               GL_FALSE,
-                               vs,
-                               reinterpret_cast<void *>(vt));
+    m_gl.glVertexAttribPointer(
+        m_shader.attributes.position,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        vertex_size,
+        reinterpret_cast<void*>(position_offset)
+    );
+    m_gl.glVertexAttribPointer(
+        m_shader.attributes.texture_coordinates,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        vertex_size,
+        reinterpret_cast<void*>(texture_coordinates_offset)
+    );
     m_gl.glVertexAttribPointer(m_shader.attributes.color,
-                               4,
-                               GL_UNSIGNED_BYTE,
-                               GL_TRUE,
-                               vs,
-                               reinterpret_cast<void *>(vc));
+        4,
+        GL_UNSIGNED_BYTE,
+        GL_TRUE,
+        vertex_size,
+        reinterpret_cast<void*>(color_offset)
+    );
   }
 
   glBindTexture(GL_TEXTURE_2D, 0);
