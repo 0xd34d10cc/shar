@@ -60,7 +60,7 @@ App::App(Config config)
     : m_context(make_context(std::move(config)))
     // NOTE: should not be equal to screen size, otherwise some
     //       magical SDL kludge makes window fullscreen
-    , m_window("shar", Size{900 + HEADER_SIZE, 1600})
+    , m_window("shar", Size{768 + HEADER_SIZE, 1366})
     , m_renderer(ui::OpenGLVTable::load().value())
     , m_ui()
     // NOTE: If it will not match with the stream size the texture will be lazily resized, see Texture::update.
