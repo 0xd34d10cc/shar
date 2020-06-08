@@ -37,7 +37,6 @@ matrix:
     ##########################################################################
     # Clang on Linux
     ##########################################################################
-    TODO: uncomment after https://github.com/0xd34d10cc/shar/issues/105
     # Clang 7.0
     - env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Debug CONAN_STDLIB=libc++
       addons: &clang70
