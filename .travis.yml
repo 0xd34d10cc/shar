@@ -1,17 +1,12 @@
 # Based on https://github.com/Microsoft/GSL/blob/master/.travis.yml
 
-language: python
-python:
-  - "3.7"
-
-# language: cpp
+language: cpp
 sudo: false
 notifications:
   email: false
 
 # Use Linux unless specified otherwise
 os: linux
-# dist: trusty
 
 # cache:
 #   directories:
@@ -103,7 +98,7 @@ before_script:
   - echo "$TRAVIS_PYTHON_VERSION"
   # install screencapturelite deps only for linux 
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then sudo apt-get install libxtst-dev python3-pip libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev; fi
-  - sudo pip3 install conan
+  - sudo pip install conan
   # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
