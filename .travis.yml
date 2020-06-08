@@ -23,12 +23,12 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    - env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug CONAN_STDLIB=libc++
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    - env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release CONAN_STDLIB=libc++
       os: osx
       osx_image: xcode11.5
       compiler: clang
@@ -36,19 +36,21 @@ matrix:
     ##########################################################################
     # Clang on Linux
     ##########################################################################
-    # Clang 7.1
-    - env: C_COMPILER=clang-7.1 COMPILER=clang++-7.1 BUILD_TYPE=Debug CONAN_STDLIB=libc++
-      addons: &clang70
+    # Clang 8
+    - env: C_COMPILER=clang-8 COMPILER=clang++-8 BUILD_TYPE=Debug CONAN_STDLIB=libc++
+      addons: # &clang8
         apt:
           packages:
-            - clang-7
+            - clang-8
+            - libc++-8-dev
+            - libc++abi-8-dev  
             # - g++-7
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: C_COMPILER=clang-7.1 COMPILER=clang++-7.1 BUILD_TYPE=Release CONAN_STDLIB=libc++
-      addons: *clang70
+    #- env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
+      # addons: *clang7
 
     ##########################################################################
     # GCC on Linux
