@@ -2,7 +2,6 @@
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using Clang
     set(ENABLED_WARNINGS
-        -Werror
         -Weverything
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
