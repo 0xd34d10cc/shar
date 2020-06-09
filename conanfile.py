@@ -24,6 +24,7 @@ class Shar(ConanFile):
         "ffmpeg:mp3lame": False,
         "ffmpeg:vpx": False,
         "ffmpeg:fdk_aac": False,
+        "ffmpeg:freetype": False,
         "ffmpeg:opus": False,
         "ffmpeg:vorbis": False,
         "ffmpeg:x265": False,
