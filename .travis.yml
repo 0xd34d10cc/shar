@@ -43,6 +43,7 @@ matrix:
         apt:
           packages:
             - clang-9
+            - lld-9
             - libc++-9-dev
             - libc++abi-9-dev
             - libgl1-mesa-dev
