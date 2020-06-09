@@ -10,7 +10,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-missing-braces
         -Wno-global-constructors
         -Wno-exit-time-destructors
-        -Wno-unused-command-line-argument # because ccache
         -Wno-undefined-func-template # false positives
         -Wno-weak-vtables
         -Wno-covered-switch-default

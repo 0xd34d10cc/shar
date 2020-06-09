@@ -58,7 +58,8 @@ install:
   # Set $CC and $CXX variables properly
   - export CC=${C_COMPILER}
   - export CXX=${COMPILER}
-  - export CXXFLAGS="-stdlib=${STDLIB} -fuse-ld=${LINKER} ${CXXFLAGS}"
+  - export CXXFLAGS="-stdlib=${STDLIB} ${CXXFLAGS}"
+  - export LDFLAGS="-fuse-ld=${LINKER} ${LDFLAGS}"
   - ${CC} --version
   - ${CXX} --version
 
