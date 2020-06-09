@@ -1,4 +1,11 @@
-add_executable(shar WIN32
+set(MACOSX_BUNDLE_ICON_FILE mac.icns)
+set(myApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mac.icns)
+set_source_files_properties(${myApp_ICON} PROPERTIES
+       MACOSX_PACKAGE_LOCATION "Resources")
+
+
+
+add_executable(shar MACOSX_BUNDLE
                main.cpp
                runner.hpp
                runner.cpp
@@ -9,6 +16,7 @@ add_executable(shar WIN32
                view.hpp
                view.cpp
                resource.rc
+               ${myApp_ICON}
                )
 
 target_include_directories(shar
