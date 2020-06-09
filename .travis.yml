@@ -11,8 +11,8 @@ dist: bionic
 
 cache:
   directories:
-    - /home/travis/.conan
-#    - ${TRAVIS_BUILD_DIR}/deps
+    - $HOME/.conan
+#   - ${TRAVIS_BUILD_DIR}/deps
 
 matrix:
   include:
