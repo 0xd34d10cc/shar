@@ -38,7 +38,7 @@ matrix:
     # Clang on Linux
     ##########################################################################
     # Clang 9
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld-9
       addons: &clang9
         apt:
           packages:
@@ -50,7 +50,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld-9
       addons: *clang9
 
 install:
