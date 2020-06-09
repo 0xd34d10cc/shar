@@ -13,18 +13,18 @@ cache:
 matrix:
   include:
     # OS X
-    - env: CC=clang   CXX=clang++   BUILD_TYPE=Debug   STDLIB=libc++ LINKER=ld
+    - env: CC=clang CXX=clang++ BUILD_TYPE=Debug STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    - env: CC=clang   CXX=clang++   BUILD_TYPE=Release STDLIB=libc++ LINKER=ld
+    - env: CC=clang CXX=clang++ BUILD_TYPE=Release STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
     # Linux
-    - env: CC=clang-9 CXX=clang++-9 BUILD_TYPE=Debug   STDLIB=libc++ LINKER=lld-9
+    - env: CC=clang-9 CXX=clang++-9 BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld-9
       os: linux
       dist: bionic
       addons: &clang9
@@ -37,16 +37,15 @@ matrix:
             - libc++abi-9-dev
             # OpenGL
             - libgl1-mesa-dev
-            # For conan
+            # for conan
             - python3-pip 
-            # Screen capture dependencies
+            # screen capture dependencies
             - libxtst-dev 
             - libxinerama-dev 
             - libx11-dev 
             - libxfixes-dev 
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-7
 
     - env: CC=clang-9 CXX=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld-9
       os: linux
@@ -76,6 +75,8 @@ install:
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     fi
   - cmake --version
+  - ${CXX} --version
+  - ${CC} --version
 
 before_script:
   - cd "${TRAVIS_BUILD_DIR}"
