@@ -1,23 +1,32 @@
-set(MACOSX_BUNDLE_ICON_FILE mac.icns)
-set(myApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mac.icns)
-set_source_files_properties(${myApp_ICON} PROPERTIES
-       MACOSX_PACKAGE_LOCATION "Resources")
+set(SOURCE_FILES
+    main.cpp
+    runner.hpp
+    runner.cpp
+    app.hpp
+    app.cpp
+    broadcast.hpp
+    broadcast.cpp
+    view.hpp
+    view.cpp
+    resource.rc
+    )
 
-
-
-add_executable(shar MACOSX_BUNDLE
-               main.cpp
-               runner.hpp
-               runner.cpp
-               app.hpp
-               app.cpp
-               broadcast.hpp
-               broadcast.cpp
-               view.hpp
-               view.cpp
-               resource.rc
-               ${myApp_ICON}
-               )
+# Setting icon for macos is kinda tricky
+if (APPLE) 
+    set(MACOSX_BUNDLE_ICON_FILE mac.icns)
+    set(myApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mac.icns)
+    set_source_files_properties(${myApp_ICON} PROPERTIES
+           MACOSX_PACKAGE_LOCATION "Resources")
+    
+    add_executable(shar MACOSX_BUNDLE
+                   ${SOURCE_FILES}
+                   ${myApp_ICON}
+                   )
+else (APPLE)
+    add_executable(shar WIN32
+                   ${SOURCE_FILES}
+                   )
+endif (APPLE)
 
 target_include_directories(shar
                            PRIVATE ..
