@@ -24,7 +24,7 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld
       os: osx
       osx_image: xcode11.5
       compiler: clang
@@ -38,7 +38,7 @@ matrix:
     # Clang on Linux
     ##########################################################################
     # Clang 9
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld
       addons: &clang9
         apt:
           packages:
@@ -50,15 +50,14 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld
       addons: *clang9
-
 
 install:
   # Set $CC and $CXX variables properly
   - export CC=${C_COMPILER}
   - export CXX=${COMPILER}
-  - export CXXFLAGS="-stdlib=${STDLIB} ${CXXFLAGS}"
+  - export CXXFLAGS="-stdlib=${STDLIB} -fuse-ld=${LINKER} ${CXXFLAGS}"
   - ${CC} --version
   - ${CXX} --version
 
