@@ -24,12 +24,12 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
