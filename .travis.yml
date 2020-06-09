@@ -67,21 +67,17 @@ install:
   - ${CXX} --version
   - ${CC} --version
 
-before_script:
-  - cd "${TRAVIS_BUILD_DIR}"
+  # setup conan
   - sudo pip install conan
-
-  # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
-  # build dependencies
+  # install dependencies
   - mkdir build && cd build
   - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$STDLIB ..
-  - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 script:
-  # build and run tests
+  - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
   - cmake --build . -- -j${JOBS}
   # TODO
   # - ctest --output-on-failure -j${JOBS}
