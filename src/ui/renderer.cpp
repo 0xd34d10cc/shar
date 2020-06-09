@@ -459,12 +459,10 @@ void Renderer::render(Texture& texture,
   int display_height = static_cast<int>(window.display_size().height());
 
   glViewport(0, 0, display_width, display_height);
-  glEnable(GL_BLEND);
-  m_gl.glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glEnable(GL_SCISSOR_TEST);
+  glDisable(GL_SCISSOR_TEST);
   m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
@@ -515,8 +513,6 @@ void Renderer::render(Texture& texture,
   m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
   
   texture.bind();
-
-  glScissor(0, 0, display_width, display_height);
 
   void* offset = nullptr;
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, offset);
