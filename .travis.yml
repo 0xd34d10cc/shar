@@ -74,7 +74,7 @@ install:
 
   # install dependencies
   - mkdir build && cd build
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$STDLIB ..
+  - conan install .. --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$STDLIB
 
 script:
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
