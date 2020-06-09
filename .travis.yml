@@ -2,67 +2,61 @@
 
 language: cpp
 sudo: false
+
 notifications:
   email: false
-
-# Use Linux unless specified otherwise
-os: linux
-dist: bionic
 
 cache:
   directories:
     - $HOME/.conan
-#   - ${TRAVIS_BUILD_DIR}/deps
 
 matrix:
   include:
-
-    ##########################################################################
-    # Clang on OSX
-    # Travis seems to take longer to start OSX instances,
-    # so leave this first for the overall build to be faster
-    ##########################################################################
-
-    # XCode 9.1
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++ LINKER=ld
+    # OS X
+    - env: CC=clang   CXX=clang++   BUILD_TYPE=Debug   STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release STDLIB=libc++ LINKER=ld
+    - env: CC=clang   CXX=clang++   BUILD_TYPE=Release STDLIB=libc++ LINKER=ld
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    ##########################################################################
-    # Clang on Linux
-    ##########################################################################
-    # Clang 9
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++ LINKER=lld-9
+    # Linux
+    - env: CC=clang-9 CXX=clang++-9 BUILD_TYPE=Debug   STDLIB=libc++ LINKER=lld-9
+      os: linux
+      dist: bionic
       addons: &clang9
         apt:
           packages:
+            # llvm 9.0 toolchain
             - clang-9
             - lld-9
             - libc++-9-dev
             - libc++abi-9-dev
+            # OpenGL
             - libgl1-mesa-dev
+            # For conan
+            - python3-pip 
+            # Screen capture dependencies
+            - libxtst-dev 
+            - libxinerama-dev 
+            - libx11-dev 
+            - libxfixes-dev 
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld-9
+    - env: CC=clang-9 CXX=clang++-9 BUILD_TYPE=Release STDLIB=libc++ LINKER=lld-9
+      os: linux
+      dist: bionic
       addons: *clang9
 
 install:
-  # Set $CC and $CXX variables properly
-  - export CC=${C_COMPILER}
-  - export CXX=${COMPILER}
   - export CXXFLAGS="-stdlib=${STDLIB} ${CXXFLAGS}"
   - export LDFLAGS="-fuse-ld=${LINKER} ${LDFLAGS}"
-  - ${CC} --version
-  - ${CXX} --version
-
+ 
   # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir -p "${DEPS_DIR}"
@@ -84,15 +78,13 @@ install:
   - cmake --version
 
 before_script:
-  # have CMake to generate build files
   - cd "${TRAVIS_BUILD_DIR}"
-  - echo "$TRAVIS_PYTHON_VERSION"
-  # install screencapturelite deps only for linux 
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then sudo apt-get install libxtst-dev python3-pip libxinerama-dev libx11-dev libxfixes-dev libxrandr-dev libxcursor-dev; fi
   - sudo pip install conan
+  
   # setup conan remotes
   - conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  
   # build dependencies
   - mkdir build && cd build
   - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$STDLIB ..
