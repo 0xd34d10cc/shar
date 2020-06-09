@@ -32,7 +32,8 @@ class Shar(ConanFile):
         "ffmpeg:zlib": False,
         "ffmpeg:bzlib": False,
         "ffmpeg:lzma": False,
-        "ffmpeg:openssl": False
+        "ffmpeg:openssl": False,
+        "ffmpeg:webp": False
     }
 
     def requirements(self):
