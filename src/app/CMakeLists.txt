@@ -8,6 +8,7 @@ add_executable(shar WIN32
                broadcast.cpp
                view.hpp
                view.cpp
+               resource.rc
                )
 
 target_include_directories(shar
