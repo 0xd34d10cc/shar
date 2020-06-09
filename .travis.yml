@@ -43,7 +43,7 @@ matrix:
             - libxtst-dev 
             - libxinerama-dev 
             - libx11-dev 
-            - libxfixes-dev 
+            - libxfixes-dev
           sources:
             - ubuntu-toolchain-r-test
 
@@ -53,6 +53,8 @@ matrix:
       addons: *clang9
 
 install:
+  - export CC=${CC}
+  - export CXX=${CXX}
   - export CXXFLAGS="-stdlib=${STDLIB} ${CXXFLAGS}"
   - export LDFLAGS="-fuse-ld=${LINKER} ${LDFLAGS}"
  
