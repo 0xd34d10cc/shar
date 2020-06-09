@@ -36,37 +36,22 @@ matrix:
     ##########################################################################
     # Clang on Linux
     ##########################################################################
-    # Clang 8
-    - env: C_COMPILER=clang-8 COMPILER=clang++-8 BUILD_TYPE=Debug STDLIB=libc++
-      addons: # &clang8
+    # Clang 9
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Debug STDLIB=libc++
+      addons: &clang9
         apt:
           packages:
-            - clang-8
-            - libc++-8-dev
-            - libc++abi-8-dev
+            - clang-9
+            - libc++-9-dev
+            - libc++abi-9-dev
             - libgl1-mesa-dev
-            # - g++-7
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    #- env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release STDLIB=libc++
-      # addons: *clang7
+    - env: C_COMPILER=clang-9 COMPILER=clang++-9 BUILD_TYPE=Release STDLIB=libc++
+      addons: *clang9
 
-    ##########################################################################
-    # GCC on Linux
-    ##########################################################################
-
-    # GCC 7
-    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Debug STDLIB=libstdc++
-    #   addons: &gcc71
-    #     apt:
-    #       packages: g++-7.1
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-
-    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Release STDLIB=libstdc++
-    #   addons: *gcc71
 
 install:
   # Set $CC and $CXX variables properly
