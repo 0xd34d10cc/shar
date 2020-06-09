@@ -17,6 +17,14 @@ public:
   Size& operator=(Size&&) noexcept = default;
   ~Size() = default;
 
+  bool operator==(const Size& rhs) const noexcept {
+    return m_height == rhs.m_height && m_width == rhs.m_width;
+  }
+
+  bool operator!=(const Size& rhs) const noexcept {
+    return !(*this == rhs);
+  }
+
   static Size empty() {
     return Size{0, 0};
   }

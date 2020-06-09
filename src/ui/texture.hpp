@@ -19,12 +19,16 @@ public:
   void bind() noexcept;
   void unbind() noexcept;
 
-  // update part of texture
-  void update(Point offset, Size size,
-              const u8* data) noexcept;
+  // update texture
+  void update(Size size, const u8* data) noexcept;
+
+  Size size() const noexcept {
+    return m_size;
+  }
 
 private:
   usize m_id;
+  Size m_size;
 };
 
 }

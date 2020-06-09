@@ -6,6 +6,7 @@
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
 
+#include <numeric>
 #include <filesystem>
 #include <fstream>
 #include <thread>
@@ -49,14 +50,21 @@ static Context make_context(Config c) {
   return Context{std::move(config), std::move(logger), std::move(metrics)};
 }
 
+static Size main_monitor_size() {
+  const auto monitor = sc::GetMonitors().front();
+  return Size{static_cast<usize>(monitor.Height),
+              static_cast<usize>(monitor.Width)};
+}
+
 App::App(Config config)
     : m_context(make_context(std::move(config)))
     // NOTE: should not be equal to screen size, otherwise some
     //       magical SDL kludge makes window fullscreen
-    , m_window("shar", Size{1080 + HEADER_SIZE, 1920})
+    , m_window("shar", Size{768 + HEADER_SIZE, 1366})
     , m_renderer(ui::OpenGLVTable::load().value())
     , m_ui()
-    , m_background(Size{1080, 1920})
+    // NOTE: If it will not match with the stream size the texture will be lazily resized, see Texture::update.
+    , m_background(main_monitor_size())
     , m_stop_button("stop")
     , m_stream_button("stream")
     , m_view_button("view")
@@ -235,9 +243,11 @@ std::optional<StreamState> App::update_config() {
 
 void App::render_background() {
   const auto win_size = m_window.size();
-  // TODO: unhardcode
-  const usize height_ratio = 9;
-  const usize width_ratio = 16;
+  const auto frame_size = m_background.size();
+  
+  const usize divisor = std::gcd(frame_size.height(), frame_size.width());
+  const usize width_ratio = frame_size.width() / divisor;
+  const usize height_ratio = frame_size.height() / divisor;
   const usize max_height = win_size.height() - HEADER_SIZE;
 
   usize w = win_size.width();
@@ -333,7 +343,7 @@ bool App::update_background() {
   if (m_frames) {
     if (auto frame = m_frames->try_receive()) {
       m_background.bind();
-      m_background.update(Point::origin(), frame->size, frame->data.get());
+      m_background.update(frame->size, frame->data.get());
       m_background.unbind();
       return true;
     }

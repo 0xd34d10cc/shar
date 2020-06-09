@@ -6,16 +6,25 @@ namespace {
 using namespace shar;
 using Frame = codec::ffmpeg::Frame;
 
+static const usize NCHANNELS = 4; // bgra
+
 Frame convert(const sc::Image& image) noexcept {
   const auto width  = static_cast<usize>(Width(image));
   const auto height = static_cast<usize>(Height(image));
   auto size  = Size{ height, width };
 
   // Frame::from_bgra expects no padding, for now
-  // TODO: support padded images
-  assert(sc::isDataContiguous(image));
-  const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
-  return Frame::from_bgra(data, size);
+  if (sc::isDataContiguous(image)) {
+    const char* data = reinterpret_cast<const char*>(sc::StartSrc(image));
+    return Frame::from_bgra(data, size);
+  } else {
+    // do a bunch of memcpy operations to get rid of padding
+    // TODO: support padding in bgra_to_yuv to avoid extra allocation + copy
+    usize nbytes = width * height * NCHANNELS;
+    const auto data = std::make_unique<u8[]>(nbytes);
+    sc::Extract(image, data.get(), nbytes);
+    return Frame::from_bgra(reinterpret_cast<const char*>(data.get()), size);
+  }
 }
 
 BGRAFrame to_bgra(const sc::Image& image) noexcept {
@@ -23,13 +32,12 @@ BGRAFrame to_bgra(const sc::Image& image) noexcept {
 
   const auto width = static_cast<usize>(Width(image));
   const auto height = static_cast<usize>(Height(image));
-  usize n = width * height * 4;
+  usize n = width * height * NCHANNELS;
 
   frame.data = std::make_unique<u8[]>(n);
   frame.size = Size{ height, width };
 
-  assert(sc::isDataContiguous(image));
-  std::memcpy(frame.data.get(), sc::StartSrc(image), n);
+  sc::Extract(image, frame.data.get(), n);
   return frame;
 }
 
@@ -71,8 +79,14 @@ Capture::Capture(Context context,
     : Context(std::move(context))
     , m_interval(interval)
     , m_capture(nullptr) {
-  m_capture_config = sc::CreateCaptureConfiguration([m{std::move(monitor)}]() mutable {
-    return std::vector<sc::Monitor>{ std::move(m) };
+  usize id = static_cast<usize>(monitor.Id);
+  m_capture_config = sc::CreateCaptureConfiguration([id]() mutable {
+    const auto monitors = sc::GetMonitors();
+    if (monitors.empty()) {
+      return std::vector<sc::Monitor>();
+    }
+
+    return std::vector<sc::Monitor>{ monitors[std::min(id, monitors.size() - 1)] };
   });
 
 }
