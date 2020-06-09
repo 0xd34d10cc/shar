@@ -8,10 +8,10 @@ notifications:
 # Use Linux unless specified otherwise
 os: linux
 
-# cache:
-#   directories:
-#     - ${TRAVIS_BUILD_DIR}/deps
-#     - /home/travis/.conan
+cache:
+  directories:
+    - /home/travis/.conan
+#    - ${TRAVIS_BUILD_DIR}/deps
 
 matrix:
   include:
@@ -23,12 +23,12 @@ matrix:
     ##########################################################################
 
     # XCode 9.1
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Debug STDLIB=libc++
       os: osx
       osx_image: xcode11.5
       compiler: clang
 
-    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang COMPILER=clang++ BUILD_TYPE=Release STDLIB=libc++
       os: osx
       osx_image: xcode11.5
       compiler: clang
@@ -37,7 +37,7 @@ matrix:
     # Clang on Linux
     ##########################################################################
     # Clang 8
-    - env: C_COMPILER=clang-8 COMPILER=clang++-8 BUILD_TYPE=Debug CONAN_STDLIB=libc++
+    - env: C_COMPILER=clang-8 COMPILER=clang++-8 BUILD_TYPE=Debug STDLIB=libc++
       addons: # &clang8
         apt:
           packages:
@@ -50,7 +50,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-7
 
-    #- env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release CONAN_STDLIB=libc++
+    #- env: C_COMPILER=clang-7 COMPILER=clang++-7 BUILD_TYPE=Release STDLIB=libc++
       # addons: *clang7
 
     ##########################################################################
@@ -58,20 +58,21 @@ matrix:
     ##########################################################################
 
     # GCC 7
-    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Debug CONAN_STDLIB=libstdc++
+    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Debug STDLIB=libstdc++
     #   addons: &gcc71
     #     apt:
     #       packages: g++-7.1
     #       sources:
     #         - ubuntu-toolchain-r-test
 
-    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Release CONAN_STDLIB=libstdc++
+    # - env: C_COMPILER=gcc-7.1 COMPILER=g++-7.1 BUILD_TYPE=Release STDLIB=libstdc++
     #   addons: *gcc71
 
 install:
   # Set $CC and $CXX variables properly
   - export CC=${C_COMPILER}
   - export CXX=${COMPILER}
+  - export CXXFLAGS=-stdlib=${STDLIB} ${CXXFLAGS}
   - ${CC} --version
   - ${CXX} --version
 
@@ -107,7 +108,7 @@ before_script:
   - conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   # build dependencies
   - mkdir build && cd build
-  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$CONAN_STDLIB ..
+  - conan install --build=missing -s build_type=$BUILD_TYPE -s compiler.libcxx=$STDLIB ..
   - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 script:
