@@ -72,7 +72,7 @@ install:
   # Set $CC and $CXX variables properly
   - export CC=${C_COMPILER}
   - export CXX=${COMPILER}
-  - export CXXFLAGS=-stdlib=${STDLIB} ${CXXFLAGS}
+  - export CXXFLAGS="-stdlib=${STDLIB} ${CXXFLAGS}"
   - ${CC} --version
   - ${CXX} --version
 
