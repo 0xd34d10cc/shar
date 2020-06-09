@@ -43,7 +43,8 @@ matrix:
           packages:
             - clang-8
             - libc++-8-dev
-            - libc++abi-8-dev  
+            - libc++abi-8-dev
+            - libgl1-mesa-dev
             # - g++-7
           sources:
             - ubuntu-toolchain-r-test
