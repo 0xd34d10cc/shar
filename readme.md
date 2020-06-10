@@ -12,5 +12,5 @@ $ conan remote add d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
 $ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 $ conan install .. --build=missing
 $ cmake ..
-$ cmake --build ..
+$ cmake --build .
 ```
