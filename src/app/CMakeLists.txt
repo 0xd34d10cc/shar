@@ -8,26 +8,34 @@ set(SOURCE_FILES
     broadcast.cpp
     view.hpp
     view.cpp
-
-    ${CMAKE_SOURCE_DIR}/res/resource.rc
     )
 
-# Setting icon for macos is kinda tricky
+
+if (APPLE)
+    set(SHAR_ICON ${CMAKE_SOURCE_DIR}/res/mac.icns)
+    set_source_files_properties(${SHAR_ICON} PROPERTIES
+                                MACOSX_PACKAGE_LOCATION "Resources"
+                               )
+elseif (WIN32)
+    set(SHAR_ICON ${CMAKE_SOURCE_DIR}/res/resource.rc)
+endif(APPLE)
+
+add_executable(shar
+               ${SOURCE_FILES}
+               ${SHAR_ICON}
+               )
+
 if (APPLE) 
-    set(MACOSX_BUNDLE_ICON_FILE mac.icns)
-    set(myApp_ICON ${CMAKE_SOURCE_DIR}/res/mac.icns)
-    set_source_files_properties(${myApp_ICON} PROPERTIES
-           MACOSX_PACKAGE_LOCATION "Resources")
-    
-    add_executable(shar MACOSX_BUNDLE
-                   ${SOURCE_FILES}
-                   ${myApp_ICON}
-                   )
-else (APPLE)
-    add_executable(shar WIN32
-                   ${SOURCE_FILES}
-                   )
+    set_target_properties(shar PROPERTIES
+                          MACOSX_BUNDLE TRUE
+                         )
+elseif (WIN32)
+    set_target_properties(shar PROPERTIES
+                          WIN32_EXECUTABLE TRUE
+                         )    
 endif (APPLE)
+
+                   
 
 target_include_directories(shar
                            PRIVATE ..
