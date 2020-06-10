@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/0xd34d10cc/shar.svg?branch=master)](https://travis-ci.org/0xd34d10cc/shar)
+
 # Prerequisites
 - conan
 - cmake
