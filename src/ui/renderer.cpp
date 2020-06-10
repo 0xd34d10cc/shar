@@ -345,8 +345,11 @@ void Renderer::render(State &state, const Window &window) {
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);
-  m_gl.glUniform1i(m_shader.attributes.texture, 0);
-  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
+  m_gl.glUniform1i(static_cast<GLint>(m_shader.attributes.texture), 0);
+  m_gl.glUniformMatrix4fv(
+      static_cast<GLint>(m_shader.attributes.projection),
+      1, GL_FALSE, &ortho[0][0]
+  );
   {
     /* convert from command queue into draw list and draw to screen */
 
@@ -477,8 +480,11 @@ void Renderer::render(Texture& texture,
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);
-  m_gl.glUniform1i(m_shader.attributes.texture, 0);
-  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
+  m_gl.glUniform1i(static_cast<GLint>(m_shader.attributes.texture), 0);
+  m_gl.glUniformMatrix4fv(
+      static_cast<GLint>(m_shader.attributes.projection),
+      1, GL_FALSE, &ortho[0][0]
+  );
 
   float x  = static_cast<float>(at.x);
   float y  = static_cast<float>(at.y);
