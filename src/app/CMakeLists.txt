@@ -8,13 +8,14 @@ set(SOURCE_FILES
     broadcast.cpp
     view.hpp
     view.cpp
-    resource.rc
+
+    ${CMAKE_SOURCE_DIR}/res/resource.rc
     )
 
 # Setting icon for macos is kinda tricky
 if (APPLE) 
     set(MACOSX_BUNDLE_ICON_FILE mac.icns)
-    set(myApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mac.icns)
+    set(myApp_ICON ${CMAKE_SOURCE_DIR}/res/mac.icns)
     set_source_files_properties(${myApp_ICON} PROPERTIES
            MACOSX_PACKAGE_LOCATION "Resources")
     
