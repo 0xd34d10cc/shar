@@ -2,9 +2,9 @@ from conans import ConanFile, CMake
 
 
 class Shar(ConanFile):
-    settings        = "os",  "compiler",  "build_type"
+    settings = "os",  "compiler",  "build_type"
 
-    requires        = (
+    requires = (
         "asio/1.16.1",                                 # network
         "ScreenCaptureLite/16.1.0@0xd34d10cc/testing", # capture
         "ffmpeg/4.2.1@bincrafters/stable",             # encoder
@@ -16,7 +16,7 @@ class Shar(ConanFile):
         "nuklear/1.33.0@0xd34d10cc/testing"            # ui
     )
 
-    generators      = "cmake"
+    generators = "cmake"
 
     default_options = {
         "ffmpeg:iconv": False,

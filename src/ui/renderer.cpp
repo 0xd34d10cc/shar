@@ -121,22 +121,22 @@ Renderer::~Renderer() {
 Shader Renderer::compile(const char* vertex_shader,
                          const char* fragment_shader) {
   Shader shader;
-  
+
   shader.vertex = m_gl.glCreateShader(GL_VERTEX_SHADER);
   m_gl.glShaderSource(shader.vertex, 1, &vertex_shader, nullptr);
   m_gl.glCompileShader(shader.vertex);
-  
+
   shader.fragment = m_gl.glCreateShader(GL_FRAGMENT_SHADER);
   m_gl.glShaderSource(shader.fragment, 1, &fragment_shader, nullptr);
   m_gl.glCompileShader(shader.fragment);
-  
+
   const auto check = [this] (GLint status, ProgramID shader) {
     const bool failed = status != GL_TRUE;
-    
+
     if (failed) {
       GLint len = 0;
       m_gl.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-      std::string message(len, ' ');
+      std::string message(static_cast<usize>(len), ' ');
       m_gl.glGetShaderInfoLog(shader, len, &len, message.data());
 
       // FIXME: leaks shader
@@ -147,22 +147,32 @@ Shader Renderer::compile(const char* vertex_shader,
   GLint status = GL_FALSE;
   m_gl.glGetShaderiv(shader.vertex, GL_COMPILE_STATUS, &status);
   check(status, shader.vertex);
-  
+
   m_gl.glGetShaderiv(shader.fragment, GL_COMPILE_STATUS, &status);
   check(status, shader.fragment);
-  
+
   shader.program = m_gl.glCreateProgram();
   m_gl.glAttachShader(shader.program, shader.vertex);
   m_gl.glAttachShader(shader.program, shader.fragment);
   m_gl.glLinkProgram(shader.program);
   m_gl.glGetProgramiv(shader.program, GL_LINK_STATUS, &status);
   assert(status == GL_TRUE);
-  
-  shader.attributes.texture = m_gl.glGetUniformLocation(shader.program, "Texture");
-  shader.attributes.projection = m_gl.glGetUniformLocation(shader.program, "Projection");
-  shader.attributes.position = m_gl.glGetAttribLocation(shader.program, "Position");
-  shader.attributes.texture_coordinates = m_gl.glGetAttribLocation(shader.program, "TexCoord");
-  shader.attributes.color = m_gl.glGetAttribLocation(shader.program, "Color");
+
+  shader.attributes.texture = static_cast<AttributeID>(
+      m_gl.glGetUniformLocation(shader.program, "Texture")
+  );
+  shader.attributes.projection = static_cast<AttributeID>(
+      m_gl.glGetUniformLocation(shader.program, "Projection")
+  );
+  shader.attributes.position = static_cast<AttributeID>(
+      m_gl.glGetAttribLocation(shader.program, "Position")
+  );
+  shader.attributes.texture_coordinates = static_cast<AttributeID>(
+      m_gl.glGetAttribLocation(shader.program, "TexCoord")
+  );
+  shader.attributes.color = static_cast<AttributeID>(
+      m_gl.glGetAttribLocation(shader.program, "Color")
+  );
 
   return shader;
 }
@@ -178,7 +188,7 @@ void Renderer::init() {
   }
 #endif
 
-  static const GLchar* nk_vertex_shader = 
+  static const GLchar* nk_vertex_shader =
       SHAR_SHADER_VERSION
       "uniform mat4 Projection;\n"
       "in vec2 Position;\n"
@@ -192,7 +202,7 @@ void Renderer::init() {
       "   gl_Position = Projection * vec4(Position.xy, 0, 1);\n"
       "}\n";
 
-  static const GLchar* nk_fragment_shader = 
+  static const GLchar* nk_fragment_shader =
       SHAR_SHADER_VERSION
       "precision mediump float;\n"
       "uniform sampler2D Texture;\n"
@@ -290,8 +300,8 @@ void Renderer::free(Shader& shader) {
 
   if (shader.vertex != 0)
     m_gl.glDeleteShader(shader.vertex);
-    
-  if (shader.fragment != 0)  
+
+  if (shader.fragment != 0)
     m_gl.glDeleteShader(shader.fragment);
 }
 
@@ -335,11 +345,14 @@ void Renderer::render(State &state, const Window &window) {
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);
-  m_gl.glUniform1i(m_shader.attributes.texture, 0);
-  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
+  m_gl.glUniform1i(static_cast<GLint>(m_shader.attributes.texture), 0);
+  m_gl.glUniformMatrix4fv(
+      static_cast<GLint>(m_shader.attributes.projection),
+      1, GL_FALSE, &ortho[0][0]
+  );
   {
     /* convert from command queue into draw list and draw to screen */
-  
+
     /* allocate vertex and element buffer */
     m_gl.glBindVertexArray(m_device->vao);
     m_gl.glBindBuffer(GL_ARRAY_BUFFER, m_device->vbo);
@@ -364,7 +377,7 @@ void Renderer::render(State &state, const Window &window) {
           {NK_VERTEX_TEXCOORD, NK_FORMAT_FLOAT, offsetof(Vertex, uv)},
           {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, offsetof(Vertex, color)},
           {NK_VERTEX_LAYOUT_END}};
-      
+
       struct nk_convert_config config;
       std::memset(&config, 0, sizeof(config));
       config.vertex_layout = vertex_layout;
@@ -398,7 +411,7 @@ void Renderer::render(State &state, const Window &window) {
 
     // NOTE: this is not really a pointer
     const nk_draw_index* offset = nullptr;
-  
+
     const struct nk_draw_command* cmd = nk__draw_begin(ctx, &m_device->cmds);
     for (; cmd != nullptr; cmd = nk__draw_next(cmd, &m_device->cmds, ctx))
     {
@@ -407,7 +420,7 @@ void Renderer::render(State &state, const Window &window) {
 
       // Make the specified texture active
       glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(cmd->texture.id));
-      
+
       // Clip the render target to |cmd->clip_rect|
       const auto x   = static_cast<int>(cmd->clip_rect.x * scale.x);
       const auto top = static_cast<int>(cmd->clip_rect.y + cmd->clip_rect.h);
@@ -459,24 +472,25 @@ void Renderer::render(Texture& texture,
   int display_height = static_cast<int>(window.display_size().height());
 
   glViewport(0, 0, display_width, display_height);
-  glEnable(GL_BLEND);
-  m_gl.glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glEnable(GL_SCISSOR_TEST);
+  glDisable(GL_SCISSOR_TEST);
   m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);
-  m_gl.glUniform1i(m_shader.attributes.texture, 0);
-  m_gl.glUniformMatrix4fv(m_shader.attributes.projection, 1, GL_FALSE, &ortho[0][0]);
-  
+  m_gl.glUniform1i(static_cast<GLint>(m_shader.attributes.texture), 0);
+  m_gl.glUniformMatrix4fv(
+      static_cast<GLint>(m_shader.attributes.projection),
+      1, GL_FALSE, &ortho[0][0]
+  );
+
   float x  = static_cast<float>(at.x);
   float y  = static_cast<float>(at.y);
   float xo = static_cast<float>(x_offset);
   float yo = static_cast<float>(y_offset);
-  
+
   Vertex vertices_data[] = {
       //      x       y       u     v      color
       Vertex{ x,      y,      0.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom left corner
@@ -485,9 +499,9 @@ void Renderer::render(Texture& texture,
       Vertex{ w - xo, y,      1.0f, 0.0f, {0xff, 0xff, 0xff, 0xff} }, // bottom right corner
   };
 
-  const u16 elements_data[] = { 
+  const u16 elements_data[] = {
       0, 2, 1,     // first triangle (bottom left - top left - top right)
-      0, 3, 2 
+      0, 3, 2
   };
 
    /* allocate vertex and element buffer */
@@ -513,10 +527,8 @@ void Renderer::render(Texture& texture,
 
   m_gl.glUnmapBuffer(GL_ARRAY_BUFFER);
   m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-  
-  texture.bind();
 
-  glScissor(0, 0, display_width, display_height);
+  texture.bind();
 
   void* offset = nullptr;
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, offset);

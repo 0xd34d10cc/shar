@@ -22,10 +22,10 @@ class State;
 class Window;
 class Texture;
 
-using AttributeID = i32;
+using AttributeID = u32;
 
 struct ShaderAttributes {
-  AttributeID position{ 0 }; 
+  AttributeID position{ 0 };
   AttributeID texture_coordinates{ 0 };
   AttributeID color{ 0 };
 
@@ -61,7 +61,7 @@ public:
 
   // compile shader from sources
   Shader compile(const char* vertex_shader, const char* fragment_shader);
-  
+
   // free shader and associated resources
   void free(Shader& shader);
 
@@ -71,7 +71,7 @@ private:
 
   OpenGLVTable m_gl;
   Shader m_shader;
-  
+
   std::unique_ptr<SDLDevice> m_device;
   std::unique_ptr<nk_font_atlas> m_atlas;
 };
