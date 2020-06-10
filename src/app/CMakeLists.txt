@@ -1,16 +1,3 @@
-set(SOURCE_FILES
-    main.cpp
-    runner.hpp
-    runner.cpp
-    app.hpp
-    app.cpp
-    broadcast.hpp
-    broadcast.cpp
-    view.hpp
-    view.cpp
-    )
-
-
 if (APPLE)
     set(SHAR_ICON ${CMAKE_SOURCE_DIR}/res/mac.icns)
     set_source_files_properties(${SHAR_ICON} PROPERTIES
@@ -21,7 +8,15 @@ elseif (WIN32)
 endif(APPLE)
 
 add_executable(shar
-               ${SOURCE_FILES}
+               main.cpp
+               runner.hpp
+               runner.cpp
+               app.hpp
+               app.cpp
+               broadcast.hpp
+               broadcast.cpp
+               view.hpp
+               view.cpp
                ${SHAR_ICON}
                )
 
