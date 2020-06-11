@@ -307,7 +307,7 @@ void App::switch_to(StreamState new_state) {
 
   switch (new_state) {
     case StreamState::None:
-      m_stream.emplace<Empty>();
+      m_stream.emplace<Empty>(m_context);
       break;
 
     case StreamState::Broadcast:

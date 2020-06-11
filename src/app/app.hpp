@@ -85,11 +85,13 @@ private:
   MetricsData m_metrics_data;
 
   struct Empty {
+    explicit Empty(Context context) : m_context(context) {}
+
     void stop() {}
 
     std::optional<Receiver<BGRAFrame>> start() {
       auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
-      PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"));
+      PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"), m_logger);
       BGRAFrame background_frame;
       usize n = static_cast<usize>(png_reader.get_height()) * png_reader.get_width() * png_reader.get_channels();
 
@@ -104,6 +106,8 @@ private:
     std::string error() const {
       return "";
     }
+
+    Context m_context;
   };
 
   using Stream = std::variant<Empty, Broadcast, View>;
