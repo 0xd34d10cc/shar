@@ -79,6 +79,8 @@ public:
 private:
   // mutex to prevent data races when adding/removing/reporting metrics
   std::mutex m_mutex;
+
+  // TODO: refactor to Slab<MetricData>
   std::vector<std::optional<MetricData>> m_metrics;
 };
 

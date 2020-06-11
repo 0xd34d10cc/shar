@@ -7,12 +7,12 @@
 #include "config.hpp"
 #include "context.hpp"
 #include "time.hpp"
-#include "ui/button.hpp"
 #include "ui/renderer.hpp"
 #include "ui/state.hpp"
-#include "ui/text_edit.hpp"
 #include "ui/texture.hpp"
 #include "ui/window.hpp"
+#include "ui/controls/button.hpp"
+#include "ui/controls/text_edit.hpp"
 #include "view.hpp"
 
 #include <optional>
