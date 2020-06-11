@@ -33,6 +33,9 @@ public:
 
   void show();
   void minimize();
+
+  bool is_fullscreen() const noexcept;
+  void set_fullscreen(bool fullscreen);
   void on_move(std::function<void()> callback);
 
   void swap();
@@ -55,6 +58,7 @@ public:
 
 private:
 
+  bool m_fullscreen{ false };
   SDLWindowPtr m_window;
   GLContextPtr m_context;
   std::unique_ptr<HitTestData> m_hittest_data;

@@ -243,6 +243,18 @@ void Window::minimize() {
   SDL_MinimizeWindow(m_window.get());
 }
 
+bool Window::is_fullscreen() const noexcept {
+  return m_fullscreen;
+}
+
+void Window::set_fullscreen(bool fullscreen) {
+  int flags = fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
+  [[maybe_unused]]
+  int status = SDL_SetWindowFullscreen(m_window.get(), flags);
+  assert(status == 0);
+  m_fullscreen = fullscreen;
+}
+
 void Window::set_border(bool active) {
   SDL_SetWindowBordered(m_window.get(), active ? SDL_TRUE : SDL_FALSE);
 }

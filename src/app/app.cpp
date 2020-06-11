@@ -130,6 +130,14 @@ bool App::process_input() {
       }
     }
 
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_f) {
+      const Uint8* state = SDL_GetKeyboardState(nullptr);
+
+      if (state[SDL_SCANCODE_LCTRL]) {
+        m_window.set_fullscreen(!m_window.is_fullscreen());
+      }
+    }
+
     updated |= m_ui.handle(&event);
   }
   nk_input_end(m_ui.context());
@@ -244,7 +252,7 @@ std::optional<StreamState> App::update_config() {
 void App::render_background() {
   const auto win_size = m_window.size();
   const auto frame_size = m_background.size();
-  
+
   const usize divisor = std::gcd(frame_size.height(), frame_size.width());
   const usize width_ratio = frame_size.width() / divisor;
   const usize height_ratio = frame_size.height() / divisor;
@@ -261,11 +269,11 @@ void App::render_background() {
   // FIXME: x in Point is for horizontal axis, but first
   //        parameter for Size is height which is very confusing
   auto at = Point{0, HEADER_SIZE};
-  
+
   usize y_offset = 0;
   usize x_offset = 0;
   if (bounded_by_height) {
-    x_offset = (win_size.width() - w) / 2; 
+    x_offset = (win_size.width() - w) / 2;
     at.x += x_offset;
   } else {
     y_offset = (max_height - h) / 2;
