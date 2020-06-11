@@ -1,4 +1,13 @@
-add_executable(shar WIN32
+if (APPLE)
+    set(SHAR_ICON ${CMAKE_SOURCE_DIR}/res/mac.icns)
+    set_source_files_properties(${SHAR_ICON} PROPERTIES
+                                MACOSX_PACKAGE_LOCATION "Resources"
+                               )
+elseif (WIN32)
+    set(SHAR_ICON ${CMAKE_SOURCE_DIR}/res/resource.rc)
+endif(APPLE)
+
+add_executable(shar
                main.cpp
                runner.hpp
                runner.cpp
@@ -8,7 +17,20 @@ add_executable(shar WIN32
                broadcast.cpp
                view.hpp
                view.cpp
+               ${SHAR_ICON}
                )
+
+if (APPLE) 
+    set_target_properties(shar PROPERTIES
+                          MACOSX_BUNDLE TRUE
+                         )
+elseif (WIN32)
+    set_target_properties(shar PROPERTIES
+                          WIN32_EXECUTABLE TRUE
+                         )    
+endif (APPLE)
+
+                   
 
 target_include_directories(shar
                            PRIVATE ..
