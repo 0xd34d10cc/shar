@@ -13,7 +13,8 @@ class Shar(ConanFile):
         "gtest/1.8.1@bincrafters/stable",              # UTs
         "jsonformoderncpp/3.5.0@vthiery/stable",       # config
         "CLI11/1.7.1@cliutils/stable",                 # command line options
-        "nuklear/1.33.0@0xd34d10cc/testing"            # ui
+        "nuklear/1.33.0@0xd34d10cc/testing",           # ui
+        "libpng/1.6.37"                                # png
     )
 
     generators = "cmake"

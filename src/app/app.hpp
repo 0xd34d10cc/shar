@@ -14,6 +14,7 @@
 #include "ui/texture.hpp"
 #include "ui/window.hpp"
 #include "view.hpp"
+#include "png_reader.hpp"
 
 #include <optional>
 #include <variant>
@@ -87,8 +88,17 @@ private:
     void stop() {}
 
     std::optional<Receiver<BGRAFrame>> start() {
-      // TODO: replace with once<Frame>(Frame::black())
-      return std::nullopt;
+      auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
+      PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"));
+      BGRAFrame background_frame;
+      usize n = static_cast<usize>(png_reader.get_height()) * png_reader.get_width() * png_reader.get_channels();
+
+      background_frame.data = std::make_unique<u8[]>(n);
+      memcpy(background_frame.data.get(), png_reader.get_data(), n);
+      background_frame.size = Size{ static_cast<shar::usize>(png_reader.get_height()), static_cast<shar::usize>(png_reader.get_width()) };
+      
+      display_frames_tx.send(std::move(background_frame));
+      return std::move(display_frames_rx);
     }
 
     std::string error() const {
