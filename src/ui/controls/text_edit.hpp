@@ -1,8 +1,9 @@
 #pragma once
 
-#include "nk.hpp"
+#include "ui/nk.hpp"
 
-#include <string>
+#include <string_view>
+
 
 namespace shar::ui {
 
@@ -15,11 +16,11 @@ public:
   TextEdit &operator=(const TextEdit &) = delete;
   ~TextEdit();
 
-  std::string text() const;
+  std::string_view text() const;
 
   void process(State &state);
 
-  void set_text(const std::string &text);
+  void set_text(std::string_view text);
 
 private:
   nk_text_edit m_inner;

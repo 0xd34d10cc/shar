@@ -6,15 +6,15 @@
 #include <SDL2/SDL_messagebox.h>
 #include "disable_warnings_pop.hpp"
 
+
 namespace shar::ui {
 
 MessageBox::MessageBox(Type type, std::string title, std::string message)
-  : m_type(type)
-  , m_title(std::move(title))
-  , m_message(std::move(message))
-{}
+    : m_type(type)
+    , m_title(std::move(title))
+    , m_message(std::move(message)) {}
 
-int MessageBox::show() {
+bool MessageBox::show() {
   const auto type_to_sdl = [](Type type) {
     switch (type) {
       case Type::Error:
@@ -29,10 +29,11 @@ int MessageBox::show() {
     }
   };
 
-  return SDL_ShowSimpleMessageBox(type_to_sdl(m_type),
-                                  m_title.c_str(),
-                                  m_message.c_str(),
-                                  nullptr);
+  int code = SDL_ShowSimpleMessageBox(type_to_sdl(m_type),
+                                      m_title.c_str(),
+                                      m_message.c_str(),
+                                      nullptr);
+  return code == 0;
 }
 
-}
+} // namespace shar::ui

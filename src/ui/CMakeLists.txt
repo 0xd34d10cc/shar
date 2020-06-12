@@ -7,18 +7,18 @@ add_library(ui
     gl_vtable.cpp
     state.hpp
     state.cpp
+    nk.hpp
+    nk.cpp
     renderer.hpp
     renderer.cpp
     window.hpp
     window.cpp
-    message_box.hpp
-    message_box.cpp
-    button.hpp
-    button.cpp
-    nk.hpp
-    nk.cpp
-    text_edit.hpp
-    text_edit.cpp
+    controls/message_box.hpp
+    controls/message_box.cpp
+    controls/button.hpp
+    controls/button.cpp
+    controls/text_edit.hpp
+    controls/text_edit.cpp
 )
 
 target_include_directories(ui
