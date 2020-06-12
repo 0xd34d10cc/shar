@@ -475,6 +475,7 @@ void Renderer::render(Texture& texture,
   glEnable(GL_BLEND);
   m_gl.glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // TODO: put under if statement 
   /*glDisable(GL_BLEND),*/
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
