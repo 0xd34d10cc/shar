@@ -35,7 +35,9 @@ public:
   void minimize();
 
   bool is_fullscreen() const noexcept;
-  void set_fullscreen(bool fullscreen);
+  void set_fullscreen(bool fullscreen) noexcept;
+
+  void set_resizable(bool resizable) noexcept;
   void on_move(std::function<void()> callback);
 
   void swap();

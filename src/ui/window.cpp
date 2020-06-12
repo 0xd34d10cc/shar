@@ -247,12 +247,16 @@ bool Window::is_fullscreen() const noexcept {
   return m_fullscreen;
 }
 
-void Window::set_fullscreen(bool fullscreen) {
+void Window::set_fullscreen(bool fullscreen) noexcept {
   int flags = fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
   [[maybe_unused]]
   int status = SDL_SetWindowFullscreen(m_window.get(), flags);
   assert(status == 0);
   m_fullscreen = fullscreen;
+}
+
+void Window::set_resizable(bool resizable) noexcept {
+  SDL_SetWindowResizable(m_window.get(), resizable ? SDL_TRUE : SDL_FALSE);
 }
 
 void Window::set_border(bool active) {

@@ -136,7 +136,20 @@ bool App::process_input() {
       const Uint8* state = SDL_GetKeyboardState(nullptr);
 
       if (state[SDL_SCANCODE_LCTRL]) {
-        m_window.set_fullscreen(!m_window.is_fullscreen());
+        const bool was_fullscreen = m_window.is_fullscreen();
+
+        // Change title bar state
+        m_window.set_header(was_fullscreen ? HEADER_SIZE : 0);
+
+        // NOTE: SDL does not allow to change resizable state of fullscreen window
+        if (was_fullscreen) {
+          m_window.set_fullscreen(false);
+          m_window.set_resizable(true);
+        } else {
+          m_window.set_resizable(false);
+          m_window.set_fullscreen(true);
+        }
+
         updated = true;
         m_ui.clear();
       }
