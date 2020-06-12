@@ -1,5 +1,6 @@
 #include "button.hpp"
-#include "state.hpp"
+
+#include "ui/state.hpp"
 
 
 extern "C" int nk_button_label(nk_context*, const char*);

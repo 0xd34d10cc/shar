@@ -106,6 +106,8 @@ bool App::process_input() {
 
   SDL_Event event;
   nk_input_begin(m_ui.context());
+
+  // TODO: this is ineffective. Use SDL_PumpEvents + SDL_PeepEvents instead
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_QUIT) {
       m_running.cancel();
@@ -133,6 +135,29 @@ bool App::process_input() {
       }
     }
 
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_f) {
+      const Uint8* state = SDL_GetKeyboardState(nullptr);
+
+      if (state[SDL_SCANCODE_LCTRL]) {
+        const bool was_fullscreen = m_window.is_fullscreen();
+
+        // Change title bar state
+        m_window.set_header(was_fullscreen ? HEADER_SIZE : 0);
+
+        // NOTE: SDL does not allow to change resizable state of fullscreen window
+        if (was_fullscreen) {
+          m_window.set_fullscreen(false);
+          m_window.set_resizable(true);
+        } else {
+          m_window.set_resizable(false);
+          m_window.set_fullscreen(true);
+        }
+
+        updated = true;
+        m_ui.clear();
+      }
+    }
+
     updated |= m_ui.handle(&event);
   }
   nk_input_end(m_ui.context());
@@ -140,6 +165,11 @@ bool App::process_input() {
 }
 
 void App::update_title_bar() {
+  if (m_window.is_fullscreen()) {
+    // Don't render title bar in fullscreen mode
+    return;
+  }
+
   Size size = m_window.display_size();
 
   // title bar
@@ -213,7 +243,8 @@ std::optional<StreamState> App::update_config() {
   bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(),
                "config",
-               nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
+               nk_rect(0.0f, static_cast<float>(m_window.is_fullscreen() ? 0 : HEADER_SIZE),
+                       300.0f, display_error ? 130.0f : 90.0f),
                NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
     nk_layout_row_dynamic(m_ui.context(), 30, 3);
@@ -264,11 +295,11 @@ std::optional<StreamState> App::update_config() {
 void App::render_background() {
   const auto win_size = m_window.size();
   const auto frame_size = m_background.size();
-  
+
   const usize divisor = std::gcd(frame_size.height(), frame_size.width());
   const usize width_ratio = frame_size.width() / divisor;
   const usize height_ratio = frame_size.height() / divisor;
-  const usize max_height = win_size.height() - HEADER_SIZE;
+  const usize max_height = win_size.height() - (m_window.is_fullscreen() ? 0 : HEADER_SIZE);
 
   usize w = win_size.width();
   usize h = (w * height_ratio / width_ratio);
@@ -280,12 +311,12 @@ void App::render_background() {
 
   // FIXME: x in Point is for horizontal axis, but first
   //        parameter for Size is height which is very confusing
-  auto at = Point{0, HEADER_SIZE};
-  
+  auto at = Point{0, m_window.is_fullscreen() ? 0 : HEADER_SIZE};
+
   usize y_offset = 0;
   usize x_offset = 0;
   if (bounded_by_height) {
-    x_offset = (win_size.width() - w) / 2; 
+    x_offset = (win_size.width() - w) / 2;
     at.x += x_offset;
   } else {
     y_offset = (max_height - h) / 2;
@@ -405,10 +436,11 @@ void App::update_gui() {
 
 int App::run() {
   start_stream();
+  bool updated = true;
   while (!m_running.expired()) {
     m_ticks += 1;
 
-    bool updated = process_input();
+    updated |= process_input();
     updated |= update_background();
 
     if (check_metrics()) {
@@ -420,6 +452,7 @@ int App::run() {
       render();
     }
 
+    updated = false;
     std::this_thread::sleep_for(Milliseconds(5));
   }
 

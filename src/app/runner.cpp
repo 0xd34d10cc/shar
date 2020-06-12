@@ -6,7 +6,7 @@
 
 #include "config.hpp"
 #include "app.hpp"
-#include "ui/message_box.hpp"
+#include "ui/controls/message_box.hpp"
 
 
 namespace shar {
@@ -21,11 +21,10 @@ int Runner::run(int argc, char* argv[]) {
     return app.run();
   }
   catch (const std::exception& e) {
-    ui::MessageBox error{
-      ui::MessageBox::Type::Error,
+    auto error = ui::MessageBox::error(
       "Fatal error",
       fmt::format("Unhandled exception: {}", e.what())
-    };
+    );
     error.show();
     return EXIT_FAILURE;
   }
