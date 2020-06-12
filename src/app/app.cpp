@@ -103,6 +103,8 @@ bool App::process_input() {
 
   SDL_Event event;
   nk_input_begin(m_ui.context());
+
+  // TODO: this is ineffective. Use SDL_PumpEvents + SDL_PeepEvents instead
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_QUIT) {
       m_running.cancel();
@@ -135,6 +137,8 @@ bool App::process_input() {
 
       if (state[SDL_SCANCODE_LCTRL]) {
         m_window.set_fullscreen(!m_window.is_fullscreen());
+        updated = true;
+        m_ui.clear();
       }
     }
 
@@ -145,6 +149,11 @@ bool App::process_input() {
 }
 
 void App::update_title_bar() {
+  if (m_window.is_fullscreen()) {
+    // Don't render title bar in fullscreen mode
+    return;
+  }
+
   Size size = m_window.display_size();
 
   // title bar
@@ -200,7 +209,8 @@ std::optional<StreamState> App::update_config() {
   bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(),
                "config",
-               nk_rect(0.0f, 30.0f, 300.0f, display_error ? 130.0f : 90.0f),
+               nk_rect(0.0f, static_cast<float>(m_window.is_fullscreen() ? 0 : HEADER_SIZE),
+                       300.0f, display_error ? 130.0f : 90.0f),
                NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
     nk_layout_row_dynamic(m_ui.context(), 30, 3);
@@ -256,7 +266,7 @@ void App::render_background() {
   const usize divisor = std::gcd(frame_size.height(), frame_size.width());
   const usize width_ratio = frame_size.width() / divisor;
   const usize height_ratio = frame_size.height() / divisor;
-  const usize max_height = win_size.height() - HEADER_SIZE;
+  const usize max_height = win_size.height() - (m_window.is_fullscreen() ? 0 : HEADER_SIZE);
 
   usize w = win_size.width();
   usize h = (w * height_ratio / width_ratio);
@@ -268,7 +278,7 @@ void App::render_background() {
 
   // FIXME: x in Point is for horizontal axis, but first
   //        parameter for Size is height which is very confusing
-  auto at = Point{0, HEADER_SIZE};
+  auto at = Point{0, m_window.is_fullscreen() ? 0 : HEADER_SIZE};
 
   usize y_offset = 0;
   usize x_offset = 0;
@@ -386,10 +396,11 @@ void App::update_gui() {
 }
 
 int App::run() {
+  bool updated = true;
   while (!m_running.expired()) {
     m_ticks += 1;
 
-    bool updated = process_input();
+    updated |= process_input();
     updated |= update_background();
 
     if (check_metrics()) {
@@ -401,6 +412,7 @@ int App::run() {
       render();
     }
 
+    updated = false;
     std::this_thread::sleep_for(Milliseconds(5));
   }
 
