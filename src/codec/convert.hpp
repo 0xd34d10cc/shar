@@ -11,7 +11,7 @@ namespace shar::codec {
 using Bytes = std::unique_ptr<u8[]>;
 
 struct Slice {
-  Bytes       data{ nullptr };
+  Bytes data{ nullptr };
   usize size{ 0 };
 };
 
