@@ -15,14 +15,13 @@ matrix:
   fast_finish: true
 
 install:
-  - cmd: echo "Downloading conan..."
-  - cmd: set PATH=%PATH%;C:\Python38-x64/Scripts/
+  - cmd: set PATH=C:\Python38-x64\Scripts\;%PATH%
   - cmd: pip.exe install conan
-  - cmd: conan user
+  # should be C:\Users\appveyor\.conan\data
+  - cmd: conan config get storage.path
+  - cmd: wmic cpu get numberofcores
   - cmd: conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - cmd: conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-  - cmd: conan config get storage.path
-  - cmd: conan config set storage.path=c:\Users\appveyor\conanCache
   - cmd: mkdir %configuration%
   - cmd: cd %configuration%
 
@@ -34,9 +33,7 @@ build_script:
 
 test_script:
   - ctest -C %configuration% -T Test
-  - ps: ../scripts/upload-ctest-report.ps1
 
 cache:
   - C:\Users\appveyor\.conan -> conanfile.py
   - C:\.conan -> conanfile.py
-  - C:\Users\appveyor\conanCache -> conanfile.py
