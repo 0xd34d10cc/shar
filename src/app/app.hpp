@@ -37,6 +37,7 @@ private:
   void update_gui();
   void update_metrics();
   void update_title_bar();
+  void load_background_picture();
   // update config window
   std::optional<StreamState> update_config();
   void render_background();
@@ -85,22 +86,37 @@ private:
   MetricsData m_metrics_data;
 
   struct Empty {
-    explicit Empty(Context context) : m_context(context) {}
+    explicit Empty(Context context, const std::optional<BGRAFrame>& background) 
+      : m_context(context)
+    {
+      // do deepcopy of BGRAframe 
+      if (background.has_value()) {
+        auto height = background->size.height();
+        auto width = background->size.width();
+        auto n = height * width * 4;
+        m_background = BGRAFrame{};
+        m_background->data = std::make_unique<u8[]>(n);
+        memcpy(m_background->data.get(), background->data.get(), n);
+        m_background->size = Size{ height, width };
+      }
+      else {
+        m_background = std::nullopt;
+      }
+    }
 
     void stop() {}
 
     std::optional<Receiver<BGRAFrame>> start() {
-      auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
-      PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"), m_logger);
-      BGRAFrame background_frame;
-      usize n = static_cast<usize>(png_reader.get_height()) * png_reader.get_width() * png_reader.get_channels();
+      if (m_background.has_value()) {
+        auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
+        // get a background picture copy
 
-      background_frame.data = std::make_unique<u8[]>(n);
-      memcpy(background_frame.data.get(), png_reader.get_data(), n);
-      background_frame.size = Size{ static_cast<shar::usize>(png_reader.get_height()), static_cast<shar::usize>(png_reader.get_width()) };
-      
-      display_frames_tx.send(std::move(background_frame));
-      return std::move(display_frames_rx);
+        display_frames_tx.send(std::move(*m_background));
+        return std::move(display_frames_rx);
+      }
+      else {
+        return std::nullopt;
+      }
     }
 
     std::string error() const {
@@ -108,10 +124,15 @@ private:
     }
 
     Context m_context;
+    std::optional<BGRAFrame> m_background;
   };
+
+  // nullopt if we can't get picture from config
+  std::optional<BGRAFrame> m_background_picture;
 
   using Stream = std::variant<Empty, Broadcast, View>;
   Stream m_stream;
+
 
   std::optional<Receiver<BGRAFrame>> m_frames;
 };

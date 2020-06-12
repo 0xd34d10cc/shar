@@ -71,8 +71,11 @@ App::App(Config config)
     , m_url(false, false, true)
     , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
     , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
-    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)}
-    , m_stream(Empty{}) {
+    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)} 
+    , m_stream(Empty(m_context, std::nullopt))
+{
+  load_background_picture();
+  m_stream = Empty(m_context, m_background_picture);
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
   ui::Renderer::init_log(m_context.m_logger);
 
@@ -162,6 +165,24 @@ void App::update_title_bar() {
   }
 }
 
+void App::load_background_picture()
+{
+  PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"), m_context.m_logger);
+  usize height = png_reader.get_height();
+  usize width = png_reader.get_width();
+  usize n = height * width * png_reader.get_channels();
+
+  // error occured while trying to open file
+  if (n == 0) {
+    m_background_picture = std::nullopt;
+    return;
+  }
+  m_background_picture = BGRAFrame{};
+  m_background_picture->data = std::make_unique<u8[]>(n);
+  memcpy(m_background_picture->data.get(), png_reader.get_data(), n);
+  m_background_picture->size = Size{ height, width };
+}
+
 void App::update_metrics() {
   auto size = m_window.display_size();
 
@@ -207,7 +228,6 @@ std::optional<StreamState> App::update_config() {
     if (m_view_button.process(m_ui)) {
       new_state = StreamState::View;
     }
-
     nk_layout_row_dynamic(m_ui.context(), 20, 1);
     m_url.process(m_ui);
 
@@ -303,11 +323,17 @@ void App::render() {
 }
 
 void App::switch_to(StreamState new_state) {
+  // not need to change state
+  if (state() == new_state) 
+  {
+    return;
+  }
+  
   stop_stream();
 
   switch (new_state) {
     case StreamState::None:
-      m_stream.emplace<Empty>(m_context);
+      m_stream.emplace<Empty>(m_context, m_background_picture);
       break;
 
     case StreamState::Broadcast:
@@ -372,12 +398,13 @@ void App::update_gui() {
     m_last_error = e.what();
 
     if (m_stream.valueless_by_exception()) {
-      m_stream.emplace<Empty>();
+      m_stream.emplace<Empty>(m_context, m_background_picture);
     }
   }
 }
 
 int App::run() {
+  start_stream();
   while (!m_running.expired()) {
     m_ticks += 1;
 
