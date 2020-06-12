@@ -2,7 +2,8 @@
 
 #include "disable_warnings_push.hpp"
 extern "C" {
-#include <libavcodec/avdct.h>
+#include <libavutil/dict.h>
+#include <libavutil/mem.h>
 }
 #include "disable_warnings_pop.hpp"
 
