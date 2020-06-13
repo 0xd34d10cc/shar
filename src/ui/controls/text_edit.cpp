@@ -1,6 +1,6 @@
 #include "text_edit.hpp"
 
-#include "state.hpp"
+#include "ui/state.hpp"
 
 #include <cstring> // memset
 
@@ -34,20 +34,20 @@ TextEdit::~TextEdit() {
   nk_textedit_free(&m_inner);
 }
 
-std::string TextEdit::text() const {
+std::string_view TextEdit::text() const {
   const char *begin = reinterpret_cast<const char *>(
       nk_buffer_memory_const(&m_inner.string.buffer));
-  const char *end = begin + m_inner.string.len;
-  return std::string{begin, end};
+  std::size_t n = m_inner.string.len;
+  return std::string_view(begin, n);
 }
 
 void TextEdit::process(State &state) {
   nk_edit_buffer(state.context(), m_flags, &m_inner, nk_filter_default);
 }
 
-void TextEdit::set_text(const std::string &text) {
+void TextEdit::set_text(std::string_view text) {
   nk_str_clear(&m_inner.string);
-  nk_str_append_str_char(&m_inner.string, text.c_str());
+  nk_str_append_text_char(&m_inner.string, text.data(), text.size());
 }
 
 } // namespace shar::ui
