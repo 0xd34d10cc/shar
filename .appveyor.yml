@@ -11,13 +11,9 @@ configuration:
   - Release
   - Debug
 
-matrix:
-  fast_finish: true
-
 install:
   - cmd: set PATH=C:\Python38-x64\Scripts\;%PATH%
   - cmd: pip.exe install conan
-  - cmd: conan config set storage.path=C:\Users\appveyor\conanCache
   - cmd: conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - cmd: conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   - cmd: mkdir %configuration%
@@ -30,8 +26,8 @@ build_script:
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
 
 test_script:
-  - ctest -C %configuration% -T Test
+  - ctest -C %configuration%
 
 cache:
-  - C:\Users\appveyor\conanCache -> conanfile.py
-#  - C:\.conan -> conanfile.py
+  - '%userprofile%\.conan -> conanfile.py'
+  - C:\.conan -> conanfile.py
