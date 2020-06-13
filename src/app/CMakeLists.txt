@@ -9,8 +9,6 @@ endif(APPLE)
 
 add_executable(shar
                main.cpp
-               runner.hpp
-               runner.cpp
                app.hpp
                app.cpp
                broadcast.hpp
@@ -20,17 +18,17 @@ add_executable(shar
                ${SHAR_ICON}
                )
 
-if (APPLE) 
+if (APPLE)
     set_target_properties(shar PROPERTIES
                           MACOSX_BUNDLE TRUE
                          )
 elseif (WIN32)
     set_target_properties(shar PROPERTIES
                           WIN32_EXECUTABLE TRUE
-                         )    
+                         )
 endif (APPLE)
 
-                   
+
 
 target_include_directories(shar
                            PRIVATE ..
