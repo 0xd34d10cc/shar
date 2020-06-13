@@ -16,21 +16,26 @@ public:
       , m_width(0)
       , m_data(nullptr) {
     assert(!image_path.empty());
-    if (FILE* fp = fopen(image_path.string().c_str(), "rb")) {
+    if (FILE* fp = fopen(image_path.string().c_str(), "rb")) 
+    {
       png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,
                                                nullptr,
                                                nullptr,
                                                nullptr);
-      if (!png) {
+      if (!png) 
+      {
         logger.error("Can not create png read struct");
         return;
       }
       png_infop info = png_create_info_struct(png);
       if (!info)
+      {
         logger.error("Can not create png info struct");
-
+        return;
+      }
       if (setjmp(png_jmpbuf(png))) {
         logger.error("Internal error while parsing png file");
+        return;
       }
 
       png_init_io(png, fp);
@@ -72,7 +77,11 @@ public:
       png_read_update_info(png, info);
 
       // After all our hacks with image we should have RGBA image
-      assert(color_type == PNG_COLOR_TYPE_RGB_ALPHA);
+      if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) 
+      {
+        logger.error("Can't convert png to BGRA image");
+        return;
+      }
       m_channels = 4;
 
       auto bytes_in_row = m_channels * m_width;
@@ -84,6 +93,7 @@ public:
 
       for (int y = 0; y < m_height; y++) {
         auto needed_bytes = png_get_rowbytes(png, info);
+        // Might happen in case of corrupted png image. It's very rare case
         assert(needed_bytes == bytes_in_row);
         row_pointers[y] = (png_byte*)malloc(needed_bytes);
       }
