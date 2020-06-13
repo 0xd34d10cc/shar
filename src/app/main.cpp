@@ -7,16 +7,18 @@
 #include <SDL2/SDL_main.h>
 #include "disable_warnings_pop.hpp"
 
+using shar::Config;
+using shar::App;
+using shar::ui::MessageBox;
 
 int main(int argc, char* argv[]) {
   try {
-    auto config = shar::Config::from_args(argc, argv);
-    shar::App app{std::move(config)};
+    auto config = Config::from_args(argc, argv);
+    App app{std::move(config)};
     return app.run();
   } catch (const std::exception& e) {
     const auto message = fmt::format("Unhandled exception: {}", e.what());
-    auto error =
-        shar::ui::MessageBox::error("Fatal error", message);
+    auto error = MessageBox::error("Fatal error", message);
     error.show();
     return EXIT_FAILURE;
   }
