@@ -26,7 +26,7 @@ static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_lis
   if (cb_logger) {
     char buf[buf_size];
     std::memcpy(buf, log_prefix, prefix_length);
-    int n = vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
+    int n = std::vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
     if (buf[prefix_length + n - 1] == '\n') {
       buf[prefix_length + n - 1] = '\0';
     }
@@ -131,7 +131,7 @@ void Codec::open(Size frame_size, usize fps) {
   }
 
   m_context.reset();
-  
+
   m_codec = select_codec(opts, frame_size, fps);
   assert(m_context.get());
   assert(m_codec);
@@ -146,7 +146,7 @@ void Codec::open(Size frame_size, usize fps) {
 
 std::vector<Unit> Codec::encode(Frame image) {
   auto* context = m_context.get();
-  
+
   const bool width_changed = static_cast<usize>(context->width) != image.width();
   const bool height_changed = static_cast<usize>(context->height) != image.height();
   const bool resized = width_changed || height_changed;
@@ -163,7 +163,7 @@ std::vector<Unit> Codec::encode(Frame image) {
     usize fps = static_cast<usize>(context->time_base.den);
     open(image.sizes(), fps);
   }
-  
+
   int pts = next_pts();
   image.raw()->pts = pts;
 
@@ -173,7 +173,7 @@ std::vector<Unit> Codec::encode(Frame image) {
   if (ret != 0) {
     report_error(ret);
     return packets;
-  }  
+  }
 
   auto unit = Unit::allocate();
   ret = avcodec_receive_packet(context, unit.raw());
@@ -239,7 +239,7 @@ Codec::AVContextPtr Codec::create_context(usize kbits, AVCodec* codec, shar::Siz
   context->height = static_cast<int>(frame_size.height());
   // Support resolution up to 4k.
   // NOTE: the values above could be not accurate, since we didn't received any frames yet
-  context->max_pixels = 4096 * 2160;  
+  context->max_pixels = 4096 * 2160;
   context->get_buffer2 = avcodec_default_get_buffer2;
   context->get_format = get_format;
 
