@@ -167,20 +167,24 @@ void App::update_title_bar() {
 
 void App::load_background_picture()
 {
-  PNGReader png_reader(std::filesystem::path("D:\\workspace\\shar\\res\\shar.png"), m_context.m_logger);
-  usize height = png_reader.get_height();
-  usize width = png_reader.get_width();
-  usize n = height * width * png_reader.get_channels();
+  if (env::shar_dir().has_value()) {
+    PNGReader png_reader(env::shar_dir().value() / "background.png", m_context.m_logger);
+    usize height = png_reader.get_height();
+    usize width = png_reader.get_width();
+    usize n = height * width * png_reader.get_channels();
 
-  // error occured while trying to open file
-  if (n == 0) {
-    m_background_picture = std::nullopt;
+    // error occured while trying to open file
+    if (n == 0) {
+      m_background_picture = std::nullopt;
+      return;
+    }
+    m_background_picture = BGRAFrame{};
+    m_background_picture->data = png_reader.get_data();
+    m_background_picture->size = Size{ height, width };
+  }
+  else {
     return;
   }
-  m_background_picture = BGRAFrame{};
-  m_background_picture->data = std::make_unique<u8[]>(n);
-  memcpy(m_background_picture->data.get(), png_reader.get_data(), n);
-  m_background_picture->size = Size{ height, width };
 }
 
 void App::update_metrics() {
@@ -291,8 +295,8 @@ void App::render_background() {
     y_offset = (max_height - h) / 2;
     at.y += y_offset;
   }
-
-  m_renderer.render(m_background, m_window, at, x_offset, y_offset);
+  bool enable_transparency = state() == StreamState::None;
+  m_renderer.render(m_background, m_window, at, x_offset, y_offset, enable_transparency);  
 }
 
 void App::render() {
