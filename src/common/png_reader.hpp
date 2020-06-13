@@ -2,9 +2,7 @@
 
 #include "logger.hpp"
 
-#include <cassert>
 #include <filesystem>
-#include <png.h>
 
 namespace shar {
 

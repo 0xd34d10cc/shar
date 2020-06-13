@@ -491,8 +491,7 @@ void Renderer::render(Texture& texture,
   
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glEnable(GL_SCISSOR_TEST);
-  m_gl.glActiveTexture(GL_TEXTURE0);
+ m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);

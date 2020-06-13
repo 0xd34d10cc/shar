@@ -5,6 +5,7 @@
 #include "time.hpp"
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
+#include "png_reader.hpp"
 
 #include <numeric>
 #include <filesystem>

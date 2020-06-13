@@ -23,7 +23,7 @@ add_library(common
             newtype.hpp
             metrics.cpp
             metrics.hpp
-	    png_reader.hpp
+            png_reader.hpp
             png_reader.cpp
             )
 
@@ -31,13 +31,13 @@ target_include_directories(common
     PUBLIC .
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_JSONFORMODERNCPP}
     PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_CLI11}
-    PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_LIBPNG}
+    PRIVATE SYSTEM ${CONAN_INCLUDE_DIRS_LIBPNG}
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_SPDLOG}
 )
 
 target_link_libraries(common
   PUBLIC ${CONAN_LIBS_FMT}
-  PUBLIC ${CONAN_LIBS_LIBPNG}
+  PRIVATE ${CONAN_LIBS_LIBPNG}
 )
 
 target_compile_definitions(common PRIVATE ${SHAR_COMPILE_DEFINITIONS})

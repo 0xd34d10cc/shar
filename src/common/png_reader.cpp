@@ -1,5 +1,10 @@
 #include "png_reader.hpp"
 
+// clang-format off
+#include "disable_warnings_push.hpp"
+#include <png.h>
+#include "disable_warnings_pop.hpp"
+// clang-format on
 
 namespace shar {
 

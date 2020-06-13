@@ -11,8 +11,6 @@
 #else
 #include <GL/gl.h>
 #endif
-#include <SDL_surface.h>
-#include <SDL.h>
 #include "disable_warnings_pop.hpp"
 
 

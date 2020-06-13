@@ -14,7 +14,6 @@
 #include "ui/controls/button.hpp"
 #include "ui/controls/text_edit.hpp"
 #include "view.hpp"
-#include "png_reader.hpp"
 
 #include <optional>
 #include <variant>
