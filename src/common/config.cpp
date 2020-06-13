@@ -259,4 +259,4 @@ std::string Config::to_string() const {
   return config.dump(4 /* spaces */);
 }
 
-}
+} // namespace shar
