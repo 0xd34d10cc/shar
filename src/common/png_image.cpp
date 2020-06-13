@@ -1,4 +1,4 @@
-#include "png_reader.hpp"
+#include "png_image.hpp"
 
 // clang-format off
 #include "disable_warnings_push.hpp"
@@ -8,18 +8,19 @@
 
 namespace shar {
 
-PNGReader::PNGReader(std::filesystem::path image_path, Logger& logger)
+PNGImage::PNGImage(std::filesystem::path image_path, Logger& logger)
   : m_channels(0)
   , m_height(0)
   , m_width(0)
-  , m_data(nullptr) {
+  , m_data(nullptr)
+  , m_empty(true) {
   assert(!image_path.empty());
-  bool is_valid_path = std::filesystem::exists(image_path) && std::filesystem::is_regular_file(image_path);
-  if (is_valid_path;  FILE * fp = fopen(image_path.string().c_str(), "rb")) {
+  if (FILE* fp = fopen(image_path.string().c_str(), "rb")) {
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,
       nullptr,
       nullptr,
       nullptr);
+
     if (!png) {
       logger.error("Can not create png read struct");
       return;
@@ -29,8 +30,14 @@ PNGReader::PNGReader(std::filesystem::path image_path, Logger& logger)
       logger.error("Can not create png info struct");
       return;
     }
+    auto onClose = [fp, png, info]() mutable {
+      fclose(fp);
+      png_destroy_read_struct(&png, &info, NULL);
+    };
+
     if (setjmp(png_jmpbuf(png))) {
       logger.error("Internal error while parsing png file");
+      onClose();
       return;
     }
 
@@ -73,17 +80,17 @@ PNGReader::PNGReader(std::filesystem::path image_path, Logger& logger)
     png_read_update_info(png, info);
 
     // After all our hacks with image we should have RGBA image
-    if (color_type != PNG_COLOR_TYPE_RGB_ALPHA)
-    {
+    if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) {
       logger.error("Can't convert png to RGBA image");
+      onClose();
       return;
     }
     m_channels = 4;
 
     auto bytes_in_row = m_channels * m_width;
-    m_data = std::move(std::make_unique<std::uint8_t[]>(bytes_in_row * m_height));
-    std::unique_ptr<png_bytep[]> row_pointers =
-      std::make_unique<png_bytep[]>(sizeof(png_bytep) * m_height);
+    m_data = std::make_unique<std::uint8_t[]>(bytes_in_row * m_height);
+    auto row_pointers =
+      std::make_unique<png_bytep[]>(m_height);
 
     // flip RGBA to BGRA
     png_set_bgr(png);
@@ -97,9 +104,8 @@ PNGReader::PNGReader(std::filesystem::path image_path, Logger& logger)
     png_read_image(png, row_pointers.get());
 
     logger.info("Picture successfully open with path: {}", image_path.string());
-    fclose(fp);
-
-    png_destroy_read_struct(&png, &info, NULL);
+    onClose();
+    m_empty = false;
   }
   else {
     logger.error("Can't open file with path: {}", image_path.string());
@@ -107,21 +113,24 @@ PNGReader::PNGReader(std::filesystem::path image_path, Logger& logger)
 }
 
 
-std::unique_ptr<std::uint8_t[]> PNGReader::get_data() {
+std::unique_ptr<std::uint8_t[]> PNGImage::extract_data() {
   return std::move(m_data);
 }
 
-usize PNGReader::get_width() {
+usize PNGImage::get_width() {
   return m_width;
 }
 
-usize PNGReader::get_height() {
+usize PNGImage::get_height() {
   return m_height;
 }
 
-usize PNGReader::get_channels() {
+usize PNGImage::get_channels() {
   return m_channels;
 }
 
+bool PNGImage::empty() {
+  return m_empty;
+}
 
 }

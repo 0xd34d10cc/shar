@@ -85,21 +85,11 @@ private:
   MetricsData m_metrics_data;
 
   struct Empty {
-    explicit Empty(Context context, const std::optional<BGRAFrame>& background) 
-      : m_context(context)
+    explicit Empty(const std::optional<BGRAFrame>& background) 
     {
       // do deepcopy of BGRAframe 
       if (background.has_value()) {
-        auto height = background->size.height();
-        auto width = background->size.width();
-        auto n = height * width * 4;
-        m_background = BGRAFrame{};
-        m_background->data = std::make_unique<u8[]>(n);
-        memcpy(m_background->data.get(), background->data.get(), n);
-        m_background->size = Size{ height, width };
-      }
-      else {
-        m_background = std::nullopt;
+        m_background = background.value().clone();
       }
     }
 
@@ -113,16 +103,12 @@ private:
         display_frames_tx.send(std::move(*m_background));
         return std::move(display_frames_rx);
       }
-      else {
-        return std::nullopt;
-      }
     }
 
     std::string error() const {
       return "";
     }
 
-    Context m_context;
     std::optional<BGRAFrame> m_background;
   };
 

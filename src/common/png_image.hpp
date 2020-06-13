@@ -6,11 +6,11 @@
 
 namespace shar {
 
-class PNGReader {
+class PNGImage {
 public:
-  PNGReader(std::filesystem::path image_path, Logger& logger);
+  PNGImage(std::filesystem::path image_path, Logger& logger);
 
-  std::unique_ptr<std::uint8_t[]> get_data();
+  std::unique_ptr<std::uint8_t[]> extract_data();
 
   usize get_width();
 
@@ -18,11 +18,14 @@ public:
 
   usize get_channels();
 
+  bool empty();
+
 private:
   usize m_channels;
   usize m_width;
   usize m_height;
   std::unique_ptr<std::uint8_t[]> m_data;
+  bool m_empty;
 };
 
 } // namespace shar

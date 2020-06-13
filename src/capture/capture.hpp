@@ -26,6 +26,17 @@ namespace shar {
 struct BGRAFrame {
   std::unique_ptr<u8[]> data{ nullptr };
   Size size{ Size::empty() };
+
+  BGRAFrame clone() const {
+    auto height = size.height();
+    auto width = size.width();
+    auto n = height * width * 4;
+    auto new_frame = BGRAFrame{};
+    new_frame.data = std::make_unique<u8[]>(n);
+    memcpy(new_frame.data.get(), data.get(), n);
+    new_frame.size = Size{ height, width };
+    return new_frame;
+  }
 };
 
 class Capture : protected Context {
