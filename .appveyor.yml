@@ -17,9 +17,7 @@ matrix:
 install:
   - cmd: set PATH=C:\Python38-x64\Scripts\;%PATH%
   - cmd: pip.exe install conan
-  # should be C:\Users\appveyor\.conan\data
-  - cmd: conan config get storage.path
-  - cmd: wmic cpu get numberofcores
+  - cmd: conan config set storage.path=C:\Users\appveyor\conanCache
   - cmd: conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - cmd: conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
   - cmd: mkdir %configuration%
@@ -35,5 +33,5 @@ test_script:
   - ctest -C %configuration% -T Test
 
 cache:
-  - C:\Users\appveyor\.conan -> conanfile.py
-  - C:\.conan -> conanfile.py
+  - C:\Users\appveyor\conanCache -> conanfile.py
+#  - C:\.conan -> conanfile.py
