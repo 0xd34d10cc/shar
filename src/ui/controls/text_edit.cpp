@@ -47,7 +47,7 @@ void TextEdit::process(State &state) {
 
 void TextEdit::set_text(std::string_view text) {
   nk_str_clear(&m_inner.string);
-  nk_str_append_text_char(&m_inner.string, text.data(), text.size());
+  nk_str_append_text_char(&m_inner.string, text.data(), static_cast<int>(text.size()));
 }
 
 } // namespace shar::ui

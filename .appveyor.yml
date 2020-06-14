@@ -5,23 +5,17 @@ branches:
     - master
 
 platform:
-- x64
+  - x64
 
 configuration:
   - Release
   - Debug
 
-matrix:
-  fast_finish: true
-
 install:
-  - cmd: echo "Downloading conan..."
-  - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
+  - cmd: set PATH=C:\Python38-x64\Scripts\;%PATH%
   - cmd: pip.exe install conan
-  - cmd: conan user
   - cmd: conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
   - cmd: conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-  - cmd: conan config set storage.path=c:\Users\appveyor\conanCache
   - cmd: mkdir %configuration%
   - cmd: cd %configuration%
 
@@ -32,10 +26,8 @@ build_script:
   - cmd: cmake --build . --target ALL_BUILD --config %configuration%
 
 test_script:
-  - ctest -C %configuration% -T Test
-  - ps: ../scripts/upload-ctest-report.ps1
+  - ctest -C %configuration%
 
 cache:
-  - C:\Users\Appveyor\.conan -> conanfile.py
+  - '%userprofile%\.conan -> conanfile.py'
   - C:\.conan -> conanfile.py
-  - C:\Users\Appveyor\conanCache -> conanfile.py
