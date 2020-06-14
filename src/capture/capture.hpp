@@ -30,7 +30,7 @@ struct BGRAFrame {
   BGRAFrame clone() const {
     auto height = size.height();
     auto width = size.width();
-    auto n = height * width * 4;
+    auto n = size.total_pixels() * 4;
     auto new_frame = BGRAFrame{};
     new_frame.data = std::make_unique<u8[]>(n);
     memcpy(new_frame.data.get(), data.get(), n);

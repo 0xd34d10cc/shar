@@ -18,14 +18,14 @@ public:
 
   usize get_channels();
 
-  bool empty();
+  bool valid();
 
 private:
   usize m_channels;
   usize m_width;
   usize m_height;
   std::unique_ptr<std::uint8_t[]> m_data;
-  bool m_empty;
+  bool m_valid;
 };
 
 } // namespace shar

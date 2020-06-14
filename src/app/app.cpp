@@ -203,7 +203,7 @@ void App::load_background_picture()
   }
   PNGImage png_image(env::shar_dir().value() / "background.png", m_context.m_logger);
 
-  if (png_image.empty()) {
+  if (!png_image.valid()) {
     return;
   }
 

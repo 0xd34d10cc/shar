@@ -13,7 +13,7 @@ PNGImage::PNGImage(std::filesystem::path image_path, Logger& logger)
   , m_height(0)
   , m_width(0)
   , m_data(nullptr)
-  , m_empty(true) {
+  , m_valid(false) {
   assert(!image_path.empty());
   if (FILE* fp = fopen(image_path.string().c_str(), "rb")) {
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,
@@ -23,11 +23,13 @@ PNGImage::PNGImage(std::filesystem::path image_path, Logger& logger)
 
     if (!png) {
       logger.error("Can not create png read struct");
+      fclose(fp);
       return;
     }
     png_infop info = png_create_info_struct(png);
     if (!info) {
       logger.error("Can not create png info struct");
+      fclose(fp);
       return;
     }
     auto onClose = [fp, png, info]() mutable {
@@ -105,7 +107,7 @@ PNGImage::PNGImage(std::filesystem::path image_path, Logger& logger)
 
     logger.info("Picture successfully open with path: {}", image_path.string());
     onClose();
-    m_empty = false;
+    m_valid = true;
   }
   else {
     logger.error("Can't open file with path: {}", image_path.string());
@@ -129,8 +131,8 @@ usize PNGImage::get_channels() {
   return m_channels;
 }
 
-bool PNGImage::empty() {
-  return m_empty;
+bool PNGImage::valid() {
+  return m_valid;
 }
 
 }
