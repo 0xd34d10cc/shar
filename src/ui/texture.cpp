@@ -14,6 +14,7 @@
 #include "disable_warnings_pop.hpp"
 
 
+
 namespace shar::ui {
 
 Texture::Texture(Size size) noexcept

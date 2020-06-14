@@ -36,6 +36,7 @@ private:
   void update_gui();
   void update_metrics();
   void update_title_bar();
+  void load_background_picture();
   // update config window
   std::optional<StreamState> update_config();
   void render_background();
@@ -84,20 +85,39 @@ private:
   MetricsData m_metrics_data;
 
   struct Empty {
+    explicit Empty(const std::optional<BGRAFrame>& background) 
+    {
+      // do deepcopy of BGRAframe 
+      if (background.has_value()) {
+        m_background = background.value().clone();
+      }
+    }
+
     void stop() {}
 
     std::optional<Receiver<BGRAFrame>> start() {
-      // TODO: replace with once<Frame>(Frame::black())
-      return std::nullopt;
+      if (m_background.has_value()) {
+        auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
+        // get a background picture copy
+
+        display_frames_tx.send(std::move(*m_background));
+        return std::move(display_frames_rx);
+      }
     }
 
     std::string error() const {
       return "";
     }
+
+    std::optional<BGRAFrame> m_background;
   };
+
+  // nullopt if we can't get picture from config
+  std::optional<BGRAFrame> m_background_picture;
 
   using Stream = std::variant<Empty, Broadcast, View>;
   Stream m_stream;
+
 
   std::optional<Receiver<BGRAFrame>> m_frames;
 };

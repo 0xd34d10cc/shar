@@ -55,7 +55,7 @@ public:
   // TODO: decouple command list from State
   void render(State& state, const Window& window);
   void render(Texture& texture, const Window& window,
-              Point at, usize x_offset, usize y_offset);
+              Point at, usize x_offset, usize y_offset, bool render_alpha);
 
   nk_user_font* default_font_handle() const;
 

@@ -5,6 +5,7 @@
 #include "time.hpp"
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
+#include "png_image.hpp"
 
 #include <numeric>
 #include <filesystem>
@@ -71,8 +72,11 @@ App::App(Config config)
     , m_url(false, false, true)
     , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
     , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
-    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)}
-    , m_stream(Empty{}) {
+    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)} 
+    , m_stream(Empty(std::nullopt))
+{
+  load_background_picture();
+  m_stream = Empty(m_background_picture);
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
   ui::Renderer::init_log(m_context.m_logger);
 
@@ -192,6 +196,25 @@ void App::update_title_bar() {
   }
 }
 
+void App::load_background_picture()
+{
+  if (!env::shar_dir().has_value()) {
+    return;
+  }
+  PNGImage png_image(env::shar_dir().value() / "background.png", m_context.m_logger);
+
+  if (!png_image.valid()) {
+    return;
+  }
+
+  usize height = png_image.get_height();
+  usize width = png_image.get_width();
+  usize n = height * width * png_image.get_channels();
+  m_background_picture = BGRAFrame{};
+  m_background_picture->data = png_image.extract_data();
+  m_background_picture->size = Size{ height, width };
+}
+
 void App::update_metrics() {
   auto size = m_window.display_size();
 
@@ -238,7 +261,6 @@ std::optional<StreamState> App::update_config() {
     if (m_view_button.process(m_ui)) {
       new_state = StreamState::View;
     }
-
     nk_layout_row_dynamic(m_ui.context(), 20, 1);
     m_url.process(m_ui);
 
@@ -302,8 +324,8 @@ void App::render_background() {
     y_offset = (max_height - h) / 2;
     at.y += y_offset;
   }
-
-  m_renderer.render(m_background, m_window, at, x_offset, y_offset);
+  bool enable_transparency = state() == StreamState::None;
+  m_renderer.render(m_background, m_window, at, x_offset, y_offset, enable_transparency);  
 }
 
 void App::render() {
@@ -334,11 +356,16 @@ void App::render() {
 }
 
 void App::switch_to(StreamState new_state) {
+  // not need to change state
+  if (state() == new_state) {
+    return;
+  }
+  
   stop_stream();
 
   switch (new_state) {
     case StreamState::None:
-      m_stream.emplace<Empty>();
+      m_stream.emplace<Empty>(m_background_picture);
       break;
 
     case StreamState::Broadcast:
@@ -403,12 +430,13 @@ void App::update_gui() {
     m_last_error = e.what();
 
     if (m_stream.valueless_by_exception()) {
-      m_stream.emplace<Empty>();
+      m_stream.emplace<Empty>(m_background_picture);
     }
   }
 }
 
 int App::run() {
+  start_stream();
   bool updated = true;
   while (!m_running.expired()) {
     m_ticks += 1;

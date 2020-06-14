@@ -452,7 +452,8 @@ void Renderer::render(Texture& texture,
                       const Window& window,
                       Point at,
                       usize x_offset,
-                      usize y_offset) {
+                      usize y_offset,
+                      bool render_alpha) {
   // TODO: extract global setup to a separate function to reuse for UI & video rendering
   float ortho[4][4] = {
       { 2.0f,  0.0f,  0.0f,  0.0f},
@@ -472,11 +473,23 @@ void Renderer::render(Texture& texture,
   int display_height = static_cast<int>(window.display_size().height());
 
   glViewport(0, 0, display_width, display_height);
-  glDisable(GL_BLEND);
+  // Sometimes screencapturelite doing some strange staff with alpha channel
+  // So we usually skip this channel, but it's necesarry if we want to render
+  // Pictures with transparent background, so we have to handle it manually
+  if (render_alpha)
+  {
+    glEnable(GL_BLEND);
+    m_gl.glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+  else 
+  {
+    glDisable(GL_BLEND);
+  }
+  glEnable(GL_SCISSOR_TEST);
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-  glDisable(GL_SCISSOR_TEST);
-  m_gl.glActiveTexture(GL_TEXTURE0);
+ m_gl.glActiveTexture(GL_TEXTURE0);
 
   /* setup program */
   m_gl.glUseProgram(m_shader.program);
@@ -529,7 +542,10 @@ void Renderer::render(Texture& texture,
   m_gl.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
   texture.bind();
-
+  if (render_alpha)
+  {
+    glScissor(0, 0, display_width, display_height);
+  }
   void* offset = nullptr;
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, offset);
 
