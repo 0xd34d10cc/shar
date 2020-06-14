@@ -85,9 +85,9 @@ private:
   MetricsData m_metrics_data;
 
   struct Empty {
-    explicit Empty(const std::optional<BGRAFrame>& background) 
+    explicit Empty(const std::optional<BGRAFrame>& background)
     {
-      // do deepcopy of BGRAframe 
+      // do deepcopy of BGRAframe
       if (background.has_value()) {
         m_background = background.value().clone();
       }
@@ -95,14 +95,13 @@ private:
 
     void stop() {}
 
-    std::optional<Receiver<BGRAFrame>> start() {
+    Receiver<BGRAFrame> start() {
+      auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
       if (m_background.has_value()) {
-        auto [display_frames_tx, display_frames_rx] = channel<BGRAFrame>(1);
-        // get a background picture copy
-
         display_frames_tx.send(std::move(*m_background));
-        return std::move(display_frames_rx);
       }
+
+      return std::move(display_frames_rx);
     }
 
     std::string error() const {

@@ -72,7 +72,7 @@ App::App(Config config)
     , m_url(false, false, true)
     , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
     , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
-    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)} 
+    , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)}
     , m_stream(Empty(std::nullopt))
 {
   load_background_picture();
@@ -198,21 +198,20 @@ void App::update_title_bar() {
 
 void App::load_background_picture()
 {
-  if (!env::shar_dir().has_value()) {
-    return;
-  }
-  PNGImage png_image(env::shar_dir().value() / "background.png", m_context.m_logger);
-
-  if (!png_image.valid()) {
+  const auto dir = env::shar_dir();
+  if (!dir.has_value()) {
     return;
   }
 
-  usize height = png_image.get_height();
-  usize width = png_image.get_width();
-  usize n = height * width * png_image.get_channels();
+  const auto path = dir.value() / "background.png";
+  PNGImage image(path, m_context.m_logger);
+  if (!image.valid()) {
+    return;
+  }
+
   m_background_picture = BGRAFrame{};
-  m_background_picture->data = png_image.extract_data();
-  m_background_picture->size = Size{ height, width };
+  m_background_picture->data = image.extract_data();
+  m_background_picture->size = image.size();
 }
 
 void App::update_metrics() {
@@ -325,7 +324,7 @@ void App::render_background() {
     at.y += y_offset;
   }
   bool enable_transparency = state() == StreamState::None;
-  m_renderer.render(m_background, m_window, at, x_offset, y_offset, enable_transparency);  
+  m_renderer.render(m_background, m_window, at, x_offset, y_offset, enable_transparency);
 }
 
 void App::render() {
@@ -360,7 +359,7 @@ void App::switch_to(StreamState new_state) {
   if (state() == new_state) {
     return;
   }
-  
+
   stop_stream();
 
   switch (new_state) {
