@@ -1,14 +1,4 @@
-.vscode/
-build/
-debug/
-release
-*.exe
-*.dll
-*.pdb
-/.vs
-*.log
-*.aps
-
-#Added by cargo
+.vscode
+.vs
 
 /target
