@@ -8,3 +8,7 @@ release
 /.vs
 *.log
 *.aps
+
+#Added by cargo
+
+/target
