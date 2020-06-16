@@ -38,6 +38,7 @@ impl Application for App {
             Message::Screenshot => {
                 match self.capturer.frame() {
                     Ok(frame) => {
+                        log::info!("Successfully capturead a frame");
                         let pixels = frame.to_vec();
                         let width = self.capturer.width() as u32;
                         let height = self.capturer.height() as u32;
@@ -47,6 +48,7 @@ impl Application for App {
                     // frame is not yet ready, resend message after 10ms
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                         return Command::from(async {
+                            log::info!("Got WouldBlock from capturer");
                             tokio::time::delay_for(std::time::Duration::from_millis(10)).await;
                             Message::Screenshot
                         });
@@ -74,6 +76,9 @@ impl Application for App {
 }
 
 fn main() -> Result<()> {
+    dotenv::dotenv().ok();
+    env_logger::init();
+
     let display = Display::primary().context("Unable to get primary display")?;
     let capturer = Capturer::new(display).context("Unable to create display capturer")?;
     App::run(Settings::with_flags(capturer));

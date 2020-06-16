@@ -11,3 +11,6 @@ iced = { version = "0.1.1", features = ["image", "tokio"] }
 scrap = "0.5.0"
 anyhow = "1.0.31"
 tokio = { version = "0.2.21", features = ["time"] }
+log = "0.4.8"
+env_logger = "0.7.1"
+dotenv = "0.15.0"
