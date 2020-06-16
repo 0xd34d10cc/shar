@@ -1,50 +1,32 @@
 use std::hash::{Hash, Hasher};
-use std::time::Duration;
 use std::io::ErrorKind;
+use std::time::Duration;
 
 use anyhow::{anyhow, Result};
-use scrap::{Capturer, Display};
-use iced::Subscription;
-use iced::image;
-use iced_native::subscription::Recipe;
-use tokio::sync::mpsc::{self, error::TrySendError};
 use futures::stream::{BoxStream, StreamExt};
-
-
-// fn capture(display: Display) -> Result<mpsc::Receiver<image::Handle>>  {
-//     let (sender, receiver) = mpsc::channel(10);
-//     let capturer = Capturer::new(display).context("Unable to create display capturer")?;
-
-//     std::thread::spawn(|| {
-
-//     })
-
-//     receiver
-// }
-
+use iced::{image, Subscription};
+use scrap::{Capturer, Display};
+use tokio::sync::mpsc::{self, error::TrySendError};
 
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
-    Subscription::from_recipe(CaptureDisplay {
-        id,
-        fps,
-    })
+    Subscription::from_recipe(CaptureDisplay { id, fps })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DisplayID {
     Primary,
-    Index(usize)
+    Index(usize),
 }
 
-#[derive(Debug, Clone)]
-struct CaptureDisplay {
-    id: DisplayID,
-    fps: u32,
+#[derive(Debug, Clone, Hash)]
+pub struct CaptureDisplay {
+    pub id: DisplayID,
+    pub fps: u32,
 }
 
 impl CaptureDisplay {
-    fn spawn_capturer(&self) -> Result<mpsc::Receiver<image::Handle>> {
-        let (mut sender, receiver) = mpsc::channel(10);
+    pub fn start(&self) -> Result<mpsc::Receiver<image::Handle>> {
+        let (mut sender, receiver) = mpsc::channel(5);
 
         let config = self.clone();
         std::thread::spawn(move || {
@@ -58,13 +40,14 @@ impl CaptureDisplay {
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
                         std::thread::sleep(Duration::from_millis(1));
                         continue;
-                    },
+                    }
                     Err(e) => panic!("Failed to capture the frame: {}", e),
                 };
 
                 let width = capturer.width() as u32;
                 let height = capturer.height() as u32;
                 let handle = image::Handle::from_pixels(width, height, pixels);
+
                 if let Err(TrySendError::Closed(_)) = sender.try_send(handle) {
                     break;
                 }
@@ -81,29 +64,32 @@ impl CaptureDisplay {
             DisplayID::Primary => {
                 let display = Display::primary()?;
                 Ok(display)
-            },
+            }
             DisplayID::Index(i) => {
                 let displays = Display::all().unwrap();
-                let display = displays.into_iter().skip(i).next().ok_or_else(|| {
-                    anyhow!("Display index {} is out of range", i)
-                })?;
+                let display = displays
+                    .into_iter()
+                    .skip(i)
+                    .next()
+                    .ok_or_else(|| anyhow!("Display index {} is out of range", i))?;
                 Ok(display)
             }
         }
     }
 }
 
-
-impl<H, I> Recipe<H, I> for CaptureDisplay where H: Hasher {
+impl<H, I> iced_native::subscription::Recipe<H, I> for CaptureDisplay
+where
+    H: Hasher,
+{
     type Output = image::Handle;
 
     fn hash(&self, state: &mut H) {
-        self.id.hash(state);
-        self.fps.hash(state);
+        <Self as Hash>::hash(self, state);
     }
 
     fn stream(self: Box<Self>, _input: BoxStream<'static, I>) -> BoxStream<'static, Self::Output> {
-        let receiver = self.spawn_capturer().unwrap();
+        let receiver = self.start().unwrap();
         receiver.boxed()
     }
 }
