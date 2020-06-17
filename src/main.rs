@@ -10,16 +10,15 @@ use tokio::sync::mpsc::{self, Sender};
 use url::Url;
 
 use crate::capture::DisplayID;
-use crate::view::view;
 use crate::stream::stream;
+use crate::view::view;
 
 mod capture;
 mod codec;
-mod stream;
-mod view;
 mod net;
 mod resolve;
-
+mod stream;
+mod view;
 
 fn background() -> image::Handle {
     const BACKGROUND_IMAGE: &[u8] = include_bytes!("../resources/background.png");

@@ -7,7 +7,10 @@ pub trait Encoder: Send + 'static {
     fn encode(&mut self, frame: Self::Frame) -> Result<BytesMut>;
 }
 
-impl<E, F> Encoder for Box<E> where E: Encoder<Frame=F> + ?Sized {
+impl<E, F> Encoder for Box<E>
+where
+    E: Encoder<Frame = F> + ?Sized,
+{
     type Frame = F;
 
     fn encode(&mut self, frame: Self::Frame) -> Result<BytesMut> {

@@ -9,8 +9,8 @@ use tokio::sync::mpsc::{self, Sender};
 use url::Url;
 
 use crate::codec::{self, Decoder};
-use crate::resolve;
 use crate::net::TcpReceiver;
+use crate::resolve;
 
 // NOTE: assumes zero configuration, i.e. Decoder implements Default
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

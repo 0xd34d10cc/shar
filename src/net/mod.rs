@@ -1,3 +1,3 @@
 mod tcp;
 
-pub use tcp::{TcpSender, TcpReceiver};
+pub use tcp::{TcpReceiver, TcpSender};

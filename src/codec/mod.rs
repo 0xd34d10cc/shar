@@ -1,7 +1,7 @@
-mod encoder;
 mod decoder;
+mod encoder;
 mod null;
 
-pub use encoder::Encoder;
 pub use decoder::Decoder;
+pub use encoder::Encoder;
 pub use null::Null;

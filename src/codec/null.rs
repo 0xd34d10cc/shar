@@ -1,8 +1,8 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use iced::image;
 
-use crate::codec::{Encoder, Decoder};
+use crate::codec::{Decoder, Encoder};
 
 // Codec which does not actually compress the data
 pub struct Null;
@@ -29,7 +29,6 @@ impl Encoder for Null {
             data => Err(anyhow!("Unexpected frame data format: {:?}", data)),
         }
     }
-
 }
 
 impl Decoder for Null {
@@ -41,6 +40,6 @@ impl Decoder for Null {
         let height = packet.get_u32_le();
         let pixels = packet.to_vec();
         let image = image::Handle::from_pixels(width, height, pixels);
-       Ok(vec![image])
+        Ok(vec![image])
     }
 }

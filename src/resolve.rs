@@ -1,8 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use anyhow::{anyhow, Result, Context};
-use url::{Url, Host};
-
+use anyhow::{anyhow, Context, Result};
+use url::{Host, Url};
 
 fn localhost() -> IpAddr {
     IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))
@@ -27,7 +26,7 @@ pub async fn address_of(url: Url) -> Result<SocketAddr> {
             } else {
                 resolve(name).await.context("Hostname resolution failed")?
             }
-        },
+        }
         Some(Host::Ipv4(ip)) => IpAddr::V4(ip),
         Some(Host::Ipv6(ip)) => IpAddr::V6(ip),
     };

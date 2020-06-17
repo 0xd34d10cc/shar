@@ -8,12 +8,11 @@ use crate::codec::Encoder;
 use crate::net::TcpSender;
 use crate::resolve;
 
-
 // p2p sender
 pub async fn stream<S, E>(url: Url, mut encoder: E, mut frames: S) -> Result<()>
 where
     S: Stream<Item = image::Handle> + Unpin + Send + 'static,
-    E: Encoder<Frame = image::Handle>
+    E: Encoder<Frame = image::Handle>,
 {
     match url.scheme() {
         "tcp" => {
@@ -37,7 +36,9 @@ where
                 }
             });
 
-            TcpSender::new(receiver.map(|packet| packet.freeze())).stream_on(address).await?;
+            TcpSender::new(receiver.map(|packet| packet.freeze()))
+                .stream_on(address)
+                .await?;
             Ok(())
         }
         scheme => Err(anyhow!("Unsupported sender protocol: {}", scheme)),

@@ -8,7 +8,6 @@ use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 use tokio::sync::mpsc::{self, error::TrySendError};
 
-
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
 }
