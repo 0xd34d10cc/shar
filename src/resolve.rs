@@ -9,8 +9,6 @@ fn localhost() -> IpAddr {
 }
 
 async fn resolve(hostname: &str) -> Result<IpAddr> {
-    log::debug!("Resolving: {}", hostname);
-
     let mut addresses = tokio::net::lookup_host(&hostname).await?;
     let address = addresses
         .next()
@@ -36,5 +34,7 @@ pub async fn address_of(url: Url) -> Result<SocketAddr> {
 
     let port = url.port_or_known_default().unwrap_or(1337);
     let address = SocketAddr::new(ip, port);
+
+    log::info!("Resolved {} to {}", url, address);
     Ok(address)
 }

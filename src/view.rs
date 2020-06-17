@@ -87,7 +87,6 @@ where
                 }
             });
 
-            log::debug!("creating TcpReceiver");
             TcpReceiver::new(sender).receive(address).await;
             Ok(())
         }

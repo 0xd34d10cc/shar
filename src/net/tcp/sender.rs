@@ -29,7 +29,6 @@ where
     }
 
     pub async fn stream_on(&mut self, address: SocketAddr) -> Result<()> {
-        log::debug!("tcp sender stream on");
         let mut listener = TcpListener::bind(address).await?;
         loop {
             select! {
@@ -47,7 +46,6 @@ where
                     }
                 },
                 frame = self.frames.next().fuse() => {
-                    log::debug!("tcp sender received frame");
                     match frame {
                         Some(frame) => self.send(frame).await, // FIXME: blocks current task from receiving connections
                         None => {
@@ -63,13 +61,13 @@ where
     async fn send(&mut self, frame: Bytes) {
         let mut ids = Vec::new();
         for (id, sender) in self.clients.iter_mut() {
-            log::debug!("Sending frame to {}", id);
             if let Err(_) = sender.send(frame.clone()).await {
                 ids.push(*id);
             }
         }
 
         for id in ids {
+            log::info!("Client with ID={} was disconnected", id);
             self.clients.remove(&id);
         }
     }
