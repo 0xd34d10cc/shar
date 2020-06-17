@@ -8,6 +8,7 @@ use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 use tokio::sync::mpsc::{self, error::TrySendError};
 
+
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
 }
@@ -15,6 +16,9 @@ pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DisplayID {
     Primary,
+
+    // TODO: allow to pick monitor to capture
+    #[allow(unused)]
     Index(usize),
 }
 
@@ -38,7 +42,7 @@ impl CaptureDisplay {
                 let pixels = match capturer.frame() {
                     Ok(frame) => frame.to_vec(),
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
-                        std::thread::sleep(Duration::from_millis(1));
+                        // std::thread::sleep(Duration::from_millis(1));
                         continue;
                     }
                     Err(e) => panic!("Failed to capture the frame: {}", e),

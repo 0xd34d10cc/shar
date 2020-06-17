@@ -9,12 +9,17 @@ use once_cell::sync::OnceCell;
 use tokio::sync::mpsc::{self, Sender};
 use url::Url;
 
-use capture::DisplayID;
+use crate::capture::DisplayID;
+use crate::view::view;
+use crate::stream::stream;
 
 mod capture;
 mod codec;
 mod stream;
-mod tcp;
+mod view;
+mod net;
+mod resolve;
+
 
 fn background() -> image::Handle {
     const BACKGROUND_IMAGE: &[u8] = include_bytes!("../resources/background.png");
@@ -114,7 +119,7 @@ impl Application for App {
 
                 messages
             }
-            Some(StreamState::Viewing(url)) => stream::view(url.clone()).map(Message::UpdateFrame),
+            Some(StreamState::Viewing(url)) => view(url.clone()).map(Message::UpdateFrame),
         }
     }
 
@@ -143,7 +148,7 @@ impl Application for App {
 
                     self.stream_sender = Some(sender);
                     return Command::from(async move {
-                        let status = crate::stream::on(url.clone(), receiver).await;
+                        let status = stream(url.clone(), codec::Null, receiver).await;
                         Message::StreamFinished(url, status.err().map(|e| e.to_string()))
                     });
                 }
