@@ -48,7 +48,7 @@ struct UIState {
 
 #[derive(Debug)]
 enum StreamState {
-    Streaming,
+    Streaming(Url),
     Viewing(Url),
 }
 
@@ -112,7 +112,7 @@ impl Application for App {
     fn subscription(&self) -> Subscription<Self::Message> {
         match &self.state {
             None => Subscription::none(),
-            Some(StreamState::Streaming) => {
+            Some(StreamState::Streaming(_)) => {
                 let handles = capture::capture(DisplayID::Primary, 30);
                 let messages = handles.map(Message::UpdateFrame);
 
@@ -139,7 +139,7 @@ impl Application for App {
             }
             Message::Stream => {
                 if let Some(ref url) = self.url {
-                    self.state = Some(StreamState::Streaming);
+                    self.state = Some(StreamState::Streaming(url.clone()));
                     log::info!("Start streaming to {}", url);
 
                     let (sender, receiver) = mpsc::channel(5);

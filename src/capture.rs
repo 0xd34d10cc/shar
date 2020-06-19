@@ -8,6 +8,7 @@ use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 use tokio::sync::mpsc::{self, error::TrySendError};
 
+
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
 }
@@ -41,7 +42,7 @@ impl CaptureDisplay {
                 let pixels = match capturer.frame() {
                     Ok(frame) => frame.to_vec(),
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
-                        // std::thread::sleep(Duration::from_millis(1));
+                        std::thread::sleep(Duration::from_millis(1));
                         continue;
                     }
                     Err(e) => panic!("Failed to capture the frame: {}", e),
@@ -51,8 +52,12 @@ impl CaptureDisplay {
                 let height = capturer.height() as u32;
                 let handle = image::Handle::from_pixels(width, height, pixels);
 
-                if let Err(TrySendError::Closed(_)) = sender.try_send(handle) {
-                    break;
+                match sender.try_send(handle) {
+                    Ok(_) => {}
+                    Err(TrySendError::Closed(_)) => break,
+                    Err(TrySendError::Full(_)) => {
+                        log::warn!("Captured frame drops because consumer could not keep up");
+                    }
                 }
 
                 std::thread::sleep(period);

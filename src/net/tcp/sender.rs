@@ -61,6 +61,7 @@ where
     async fn send(&mut self, frame: Bytes) {
         let mut ids = Vec::new();
         for (id, sender) in self.clients.iter_mut() {
+            // FIXME: single slow user could block this whole task
             if let Err(_) = sender.send(frame.clone()).await {
                 ids.push(*id);
             }
