@@ -51,9 +51,6 @@ impl Decoder {
 
     pub fn decode(&mut self, mut unit: Unit, frames: &mut Vec<Frame>) -> Result<()> {
         unsafe {
-            let len = unit.data().len();
-            log::error!("decoder received [{}]: {:x?}", len, &unit.data()[(len - 32)..]);
-
             let code = ff::avcodec_send_packet(self.context.as_mut_ptr(), unit.as_mut_ptr());
             if code != 0 {
                 // FIXME: handle abscence of I-frames correctly

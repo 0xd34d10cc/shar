@@ -78,8 +78,8 @@ impl Encoder {
                 match error.kind() {
                     ErrorKind::Success => {
                         let len = unit.data().len();
-                        log::error!("produced [{}]: {:x?}", len, &unit.data()[(len - 32)..]);
-
+                        // NOTE: the underlying memory of |unit| could be reused by codec, so we
+                        //       have to do memcpy here
                         let cpy = Unit::from_data(unit.data());
                         units.push(cpy);
                         unit = Unit::empty();

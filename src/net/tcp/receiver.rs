@@ -59,11 +59,6 @@ where
                     break;
                 }
 
-                //if size > buffer.capacity() {
-                //    let additional = size - buffer.capacity();
-                //    buffer.reserve(additional);
-                //}
-
                 buffer.resize(size, 0);
                 assert_eq!(buffer.len(), size);
                 if let Err(e) = stream.read_exact(&mut buffer[0..size]).await {
@@ -71,7 +66,6 @@ where
                     break;
                 }
 
-                log::error!("net received [{}]: {:x?}", size, &buffer[(size - 32)..]);
                 let unit = U::from_packet(&buffer[0..size]);
                 if let Err(_) = self.sink.send(unit).await {
                     log::error!("tcp receiver closed: consumer dropped the channel");
