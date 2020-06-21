@@ -31,9 +31,9 @@ impl<U> Client<U> where U: Unit {
     }
 
     async fn send(&mut self, data: &[u8], is_idr: bool) -> std::io::Result<()> {
-        if !self.idr_received && !is_idr {
-            return Ok(());
-        }
+        //if !self.idr_received && !is_idr {
+        //    return Ok(());
+        //}
 
         self.idr_received = true;
 

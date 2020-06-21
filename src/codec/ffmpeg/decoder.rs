@@ -148,7 +148,6 @@ impl codec::Decoder for Decoder {
             // convert from yuv to bgra
             // convert to Handle
             let (width, height, pixels) = to_bgra(frame);
-            log::warn!("Producing the frame of size {:?}",  (width, height));
             frames.push(image::Handle::from_pixels(
                 width as u32,
                 height as u32,
