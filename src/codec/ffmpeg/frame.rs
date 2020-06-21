@@ -1,7 +1,7 @@
 use ffmpeg_sys_next as ff;
 
 fn luma(r: u8, g: u8, b: u8) -> u8 {
-    ((66 * r as i32 + 129 * g as i32 + 25 * b as i32) >> 8 + 16) as u8
+    (((66 * r as i32 + 129 * g as i32 + 25 * b as i32) >> 8) + 16) as u8
 }
 
 unsafe fn to_yuv420(

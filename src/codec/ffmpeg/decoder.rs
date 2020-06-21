@@ -132,6 +132,8 @@ fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
                 i += 4;
             }
         }
+
+        data.set_len(width * height * 4);
     }
 
     (width, height, data)
