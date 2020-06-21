@@ -1,30 +1,35 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::ops::Deref;
+use std::marker::PhantomData;
 
 use anyhow::Result;
-use bytes::Bytes;
 use futures::future::FutureExt;
 use futures::select;
 use futures::stream::{Stream, StreamExt};
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::mpsc::{self, Sender};
 
-pub struct TcpSender<S> {
+pub struct TcpSender<S, U> {
     frames: S,
     client_id: usize,
-    clients: HashMap<usize, Sender<Bytes>>,
+    clients: HashMap<usize, TcpStream>,
+
+    _unit: PhantomData<U>,
 }
 
-impl<S> TcpSender<S>
+impl<S, U> TcpSender<S, U>
 where
-    S: Stream<Item = Bytes> + Unpin,
+    S: Stream<Item = U> + Unpin,
+    U: Deref<Target=[u8]>,
 {
     pub fn new(frames: S) -> Self {
         TcpSender {
             frames,
             client_id: 0,
             clients: HashMap::new(),
+
+            _unit: PhantomData,
         }
     }
 
@@ -47,7 +52,7 @@ where
                 },
                 frame = self.frames.next().fuse() => {
                     match frame {
-                        Some(frame) => self.send(frame).await, // FIXME: blocks current task from receiving connections
+                        Some(frame) => self.send(frame).await,
                         None => {
                             log::info!("tcp sender stop: no more frames");
                             break Ok(())
@@ -58,11 +63,14 @@ where
         }
     }
 
-    async fn send(&mut self, frame: Bytes) {
+    async fn send(&mut self, unit: U) {
+        let buffer = unit.deref();
+
         let mut ids = Vec::new();
         for (id, sender) in self.clients.iter_mut() {
             // FIXME: single slow user could block this whole task
-            if let Err(_) = sender.send(frame.clone()).await {
+            if let Err(e) = sender.write_all(buffer).await {
+                log::error!("tcp send failed: {}", e);
                 ids.push(*id);
             }
         }
@@ -73,20 +81,9 @@ where
         }
     }
 
-    fn accept(&mut self, mut client: TcpStream) {
-        let (sender, mut receiver) = mpsc::channel::<Bytes>(5);
-
+    fn accept(&mut self, client: TcpStream) {
         self.client_id += 1;
-        self.clients.insert(self.client_id, sender);
-
+        self.clients.insert(self.client_id, client);
         log::info!("Client {} connected", self.client_id);
-        tokio::spawn(async move {
-            while let Some(buffer) = receiver.next().await {
-                if let Err(e) = client.write_all(&buffer).await {
-                    log::error!("tcp send failed: {}", e);
-                    break;
-                }
-            }
-        });
     }
 }

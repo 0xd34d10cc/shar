@@ -1,19 +1,23 @@
+use std::ops::Deref;
 use anyhow::Result;
-use bytes::BytesMut;
 
 pub trait Encoder: Send + 'static {
-    type Frame;
+    type Frame: Send + 'static;
+    type Unit: Deref<Target=[u8]> + Send + 'static;
 
-    fn encode(&mut self, frame: Self::Frame) -> Result<BytesMut>;
+    fn encode(&mut self, frame: Self::Frame, units: &mut Vec<Self::Unit>) -> Result<()>;
 }
 
-impl<E, F> Encoder for Box<E>
+impl<E, F, U> Encoder for Box<E>
 where
-    E: Encoder<Frame = F> + ?Sized,
+    E: Encoder<Frame = F, Unit = U> + ?Sized,
+    F: Send + 'static,
+    U: Deref<Target=[u8]> + Send + 'static,
 {
     type Frame = F;
+    type Unit = U;
 
-    fn encode(&mut self, frame: Self::Frame) -> Result<BytesMut> {
-        <E as Encoder>::encode(self, frame)
+    fn encode(&mut self, frame: Self::Frame, units: &mut Vec<Self::Unit>) -> Result<()> {
+        <E as Encoder>::encode(self, frame, units)
     }
 }

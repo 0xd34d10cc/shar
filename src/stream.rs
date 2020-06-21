@@ -21,24 +21,26 @@ where
 
             // encoder thread
             tokio::spawn(async move {
+                let mut units = Vec::new();
                 while let Some(frame) = frames.next().await {
-                    let packet = match encoder.encode(frame) {
-                        Ok(packet) => packet,
-                        Err(e) => {
-                            log::error!("Failed to encode a packet: {}", e);
-                            break;
-                        }
+                    if let Err(e) = encoder.encode(frame, &mut units) {
+                        log::error!("Failed to encode frame: {}", e);
+                        break;
                     };
 
-                    if let Err(_) = sender.send(packet).await {
-                        break;
+                    log::debug!(
+                        "Successfully encoded a frame. Units size: {}",
+                        units.iter().map(|unit| unit.len()).sum::<usize>()
+                    );
+                    for unit in units.drain(..) {
+                        if let Err(_) = sender.send(unit).await {
+                            break;
+                        }
                     }
                 }
             });
 
-            TcpSender::new(receiver.map(|packet| packet.freeze()))
-                .stream_on(address)
-                .await?;
+            TcpSender::new(receiver).stream_on(address).await?;
             Ok(())
         }
         scheme => Err(anyhow!("Unsupported sender protocol: {}", scheme)),

@@ -147,8 +147,24 @@ impl Application for App {
 
                     self.stream_sender = Some(sender);
                     return Command::from(async move {
-                        let status = stream(url.clone(), codec::Null, receiver).await;
-                        Message::StreamFinished(url, status.err().map(|e| e.to_string()))
+                        // TODO: unhardcode
+                        let config = codec::Config {
+                            bitrate: 5000,
+                            fps: 30,
+                            gop: 30,
+                            width: 1920,
+                            height: 1080,
+                        };
+                        match codec::ffmpeg::Encoder::new(config) {
+                            Ok(encoder) => {
+                                let status = stream(url.clone(), encoder, receiver).await;
+                                Message::StreamFinished(url, status.err().map(|e| e.to_string()))
+                            },
+                            Err(e) => {
+                                log::error!("Failed to create encoder: {}", e);
+                                Message::StreamFinished(url, Some(e.to_string()))
+                            }
+                        }
                     });
                 }
                 Command::none()

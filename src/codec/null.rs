@@ -10,8 +10,9 @@ pub struct Null;
 impl Encoder for Null {
     // TODO: decouple from iced structures
     type Frame = image::Handle;
+    type Unit = BytesMut;
 
-    fn encode(&mut self, frame: Self::Frame) -> Result<BytesMut> {
+    fn encode(&mut self, frame: Self::Frame, units: &mut Vec<Self::Unit>) -> Result<()> {
         use iced_native::image::Data;
 
         match frame.data() {
@@ -24,7 +25,8 @@ impl Encoder for Null {
                 buffer.put_u32_le(*width);
                 buffer.put_u32_le(*height);
                 buffer.extend(pixels);
-                Ok(buffer)
+                units.push(buffer);
+                Ok(())
             }
             data => Err(anyhow!("Unexpected frame data format: {:?}", data)),
         }
