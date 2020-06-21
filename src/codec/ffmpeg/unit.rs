@@ -21,9 +21,7 @@ impl crate::codec::Unit for Unit {
 
     fn is_idr(&self) -> bool {
         // FIXME: keyframe != idr
-        unsafe {
-            ((*self.inner).flags & ff::AV_PKT_FLAG_KEY) != 0
-        }
+        unsafe { ((*self.inner).flags & ff::AV_PKT_FLAG_KEY) != 0 }
     }
 
     fn data(&self) -> &[u8] {

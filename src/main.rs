@@ -159,7 +159,7 @@ impl Application for App {
                             Ok(encoder) => {
                                 let status = stream(url.clone(), encoder, receiver).await;
                                 Message::StreamFinished(url, status.err().map(|e| e.to_string()))
-                            },
+                            }
                             Err(e) => {
                                 log::error!("Failed to create encoder: {}", e);
                                 Message::StreamFinished(url, Some(e.to_string()))

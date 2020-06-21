@@ -1,17 +1,16 @@
 use std::ffi::CStr;
 
 use anyhow::{anyhow, Result};
+use ffmpeg_sys_next as ff;
 use iced::image;
 use iced_native::image::Data;
-use ffmpeg_sys_next as ff;
 
 use super::codec::Codec;
 use super::context::Context;
+use super::error::{Error, ErrorKind};
 use super::frame::Frame;
 use super::unit::Unit;
-use super::error::{Error, ErrorKind};
 use crate::codec;
-
 
 pub struct Encoder {
     context: Context,
@@ -44,9 +43,8 @@ impl Encoder {
 
         // TODO: allow to customize
         let mut opts: *mut ff::AVDictionary = std::ptr::null_mut();
-        let code = unsafe {
-            ff::avcodec_open2(context.as_mut_ptr(), codec.as_mut_ptr(), &mut opts)
-        };
+        let code =
+            unsafe { ff::avcodec_open2(context.as_mut_ptr(), codec.as_mut_ptr(), &mut opts) };
         if code < 0 {
             return Err(Error::from_code(code).into());
         }
@@ -83,7 +81,7 @@ impl Encoder {
                         let cpy = Unit::from_data(unit.data());
                         units.push(cpy);
                         unit = Unit::empty();
-                    },
+                    }
                     ErrorKind::WouldBlock => break,
                     _ => return Err(error.into()),
                 }

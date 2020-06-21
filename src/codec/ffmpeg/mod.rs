@@ -1,12 +1,12 @@
 mod codec;
 mod context;
-mod encoder;
 mod decoder;
+mod encoder;
+mod error;
 mod frame;
 mod unit;
-mod error;
 
-pub use encoder::Encoder;
 pub use decoder::Decoder;
-pub use unit::Unit;
+pub use encoder::Encoder;
 pub use frame::Frame;
+pub use unit::Unit;

@@ -52,10 +52,7 @@ where
                 let size = u32::from_le_bytes(packet_len) as usize;
                 if size > 1024 * 1024 * 8 {
                     // 8 mb
-                    log::error!(
-                        "Packet size is too big: {} total bytes",
-                        size
-                    );
+                    log::error!("Packet size is too big: {} total bytes", size);
                     break;
                 }
 

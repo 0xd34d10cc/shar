@@ -1,14 +1,14 @@
-mod unit;
 mod decoder;
 mod encoder;
+mod unit;
 
 pub mod null;
 pub use null::Null;
 pub mod ffmpeg;
 
-pub use unit::Unit;
 pub use decoder::Decoder;
 pub use encoder::Encoder;
+pub use unit::Unit;
 
 #[derive(Clone, Copy)]
 pub struct Config {

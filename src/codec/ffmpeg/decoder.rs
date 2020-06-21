@@ -99,9 +99,8 @@ fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
     let mut data: Vec<u8> = Vec::with_capacity(width * height * 4);
 
     let yi = |x, y| (y * yline + x) as isize;
-    let ui = |x, y| ((y/2) * uline + x/2) as isize;
-    let vi = |x, y| ((y/2) * vline + x/2) as isize;
-
+    let ui = |x, y| ((y / 2) * uline + x / 2) as isize;
+    let vi = |x, y| ((y / 2) * vline + x / 2) as isize;
 
     unsafe {
         let dst = data.as_mut_ptr();

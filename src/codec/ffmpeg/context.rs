@@ -1,11 +1,11 @@
 use ffmpeg_sys_next as ff;
 
-use crate::codec;
 use super::codec::Codec;
+use crate::codec;
 
 pub struct Context {
     codec: Codec,
-    ptr: *mut ff::AVCodecContext
+    ptr: *mut ff::AVCodecContext,
 }
 
 unsafe impl Send for Context {}
@@ -31,7 +31,10 @@ impl Context {
             (*context).max_pixels = 4096 * 2160;
             (*context).get_buffer2 = Some(ff::avcodec_default_get_buffer2);
 
-            unsafe extern "C" fn get_format(_context: *mut ff::AVCodecContext, fmts: *const ff::AVPixelFormat) -> ff::AVPixelFormat {
+            unsafe extern "C" fn get_format(
+                _context: *mut ff::AVCodecContext,
+                fmts: *const ff::AVPixelFormat,
+            ) -> ff::AVPixelFormat {
                 let mut p = fmts;
                 while *p != ff::AVPixelFormat::AV_PIX_FMT_NONE {
                     if *p == ff::AVPixelFormat::AV_PIX_FMT_YUV420P {
@@ -50,10 +53,9 @@ impl Context {
             (*context).sample_aspect_ratio.num = (config.width / divisor) as i32;
             (*context).sample_aspect_ratio.den = (config.height / divisor) as i32;
 
-
             Context {
                 codec,
-                ptr: context
+                ptr: context,
             }
         }
     }

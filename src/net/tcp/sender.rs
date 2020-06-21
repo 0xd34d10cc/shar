@@ -1,15 +1,15 @@
 use std::collections::HashMap;
-use std::net::SocketAddr;
 use std::marker::PhantomData;
+use std::net::SocketAddr;
 
 use anyhow::Result;
+use bytes::buf::ext::BufExt;
+use bytes::Buf;
 use futures::future::FutureExt;
 use futures::select;
 use futures::stream::{Stream, StreamExt};
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
-use bytes::Buf;
-use bytes::buf::ext::BufExt;
 
 use crate::codec::Unit;
 
@@ -20,7 +20,10 @@ struct Client<U> {
     _unit: PhantomData<U>,
 }
 
-impl<U> Client<U> where U: Unit {
+impl<U> Client<U>
+where
+    U: Unit,
+{
     fn new(stream: TcpStream) -> Self {
         Client {
             stream,
@@ -43,7 +46,6 @@ impl<U> Client<U> where U: Unit {
         Ok(())
     }
 }
-
 
 pub struct TcpSender<S, U> {
     units: S,

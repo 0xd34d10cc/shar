@@ -8,7 +8,6 @@ use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 use tokio::sync::mpsc::{self, error::TrySendError};
 
-
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
 }
@@ -50,7 +49,7 @@ impl CaptureDisplay {
 
                 let width = capturer.width() as u32;
                 let height = capturer.height() as u32;
-                
+
                 // set alpha to 1
                 let len = pixels.len();
                 let mut i = 3;

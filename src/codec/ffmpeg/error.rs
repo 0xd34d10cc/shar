@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 use ffmpeg_sys_next as ff;
 use libc::c_int;
@@ -21,9 +21,7 @@ impl Error {
             code = ff::AVERROR(code);
         }
 
-        Error {
-            code
-        }
+        Error { code }
     }
 
     pub fn is_success(&self) -> bool {
