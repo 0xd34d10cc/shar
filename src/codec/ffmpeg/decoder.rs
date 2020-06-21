@@ -64,6 +64,9 @@ impl Decoder {
                 let error = Error::from_code(code);
                 match error.kind() {
                     ErrorKind::Success => {
+                        unsafe {
+                        debug_assert_eq!((*frame.as_mut_ptr()).format, ff::AVPixelFormat::AV_PIX_FMT_YUV420P as i32);
+                        }
                         frames.push(frame);
                         frame = Frame::empty();
                     }
@@ -89,7 +92,7 @@ fn as_byte(x: i32) -> u8 {
     return x as u8;
 }
 
-fn from_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
+fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
     let (ys, yline) = frame.channel(0);
     let (us, uline) = frame.channel(1);
     let (vs, vline) = frame.channel(2);
@@ -145,7 +148,8 @@ impl codec::Decoder for Decoder {
         for frame in ff_frames {
             // convert from yuv to bgra
             // convert to Handle
-            let (width, height, pixels) = from_bgra(frame);
+            let (width, height, pixels) = to_bgra(frame);
+            log::warn!("Producing the frame of size {:?}",  (width, height));
             frames.push(image::Handle::from_pixels(
                 width as u32,
                 height as u32,

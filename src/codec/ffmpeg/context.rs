@@ -37,10 +37,16 @@ impl Context {
                     p = p.offset(1);
                 }
 
+                assert!(false);
                 return ff::AVPixelFormat::AV_PIX_FMT_NONE;
             }
 
             (*context).get_format = Some(get_format);
+
+            let divisor = num_integer::gcd(config.width, config.height);
+            (*context).sample_aspect_ratio.num = (config.width / divisor) as i32;
+            (*context).sample_aspect_ratio.den = (config.height / divisor) as i32;
+            
 
             Context {
                 codec,

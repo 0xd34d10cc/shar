@@ -60,13 +60,13 @@ where
                 }
 
                 log::debug!("Receiving packet of size {}", size);
-                if size > buffer.capacity() {
-                    let additional = size - buffer.capacity();
-                    buffer.reserve(additional);
-                }
+                //if size > buffer.capacity() {
+                //    let additional = size - buffer.capacity();
+                //    buffer.reserve(additional);
+                //}
 
-                unsafe { buffer.set_len(size) };
-                if let Err(e) = stream.read_exact(&mut buffer).await {
+                buffer.resize(size, 0);
+                if let Err(e) = stream.read_exact(&mut buffer[..]).await {
                     log::error!("Failed to receive entire packet: {}", e);
                     break;
                 }

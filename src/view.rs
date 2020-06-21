@@ -18,21 +18,23 @@ pub enum DecoderId {
     Ffmpeg,
 }
 
+type Unit = codec::ffmpeg::Unit;
+
 impl DecoderId {
-    fn build_decoder(&self) -> Box<dyn Decoder<Frame = image::Handle, Unit=codec::null::Unit>> {
+    fn build_decoder(&self) -> Box<dyn Decoder<Frame = image::Handle, Unit=Unit>> {
         match self {
             DecoderId::Ffmpeg => Box::new(
-                codec::Null
-                // codec::ffmpeg::Decoder::new(
-                //     // FIXME: unhardcode
-                //     codec::Config {
-                //         bitrate: 5000,
-                //         fps: 30,
-                //         gop: 30,
-                //         width: 1920,
-                //         height: 1080,
-                //     }
-                // ).unwrap()
+                 // codec::Null
+                 codec::ffmpeg::Decoder::new(
+                     // FIXME: unhardcode
+                     codec::Config {
+                         bitrate: 5000,
+                         fps: 30,
+                         gop: 30,
+                         width: 1920,
+                         height: 1080,
+                     }
+                 ).unwrap()
             )
         }
     }
@@ -74,7 +76,7 @@ pub fn view(url: Url) -> Subscription<image::Handle> {
 
 async fn receive_from<D>(url: Url, mut consumer: Sender<image::Handle>, mut decoder: D) -> Result<()>
 where
-    D: Decoder<Frame = image::Handle, Unit = codec::null::Unit>,
+    D: Decoder<Frame = image::Handle, Unit = Unit>,
 {
     match url.scheme() {
         "tcp" => {

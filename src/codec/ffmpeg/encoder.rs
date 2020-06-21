@@ -21,7 +21,9 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(config: codec::Config) -> Result<Self> {
-        let priority_list = [b"h264_nvenc\0"];
+        let priority_list = [
+            //b"h264_nvenc\0"
+        ];
 
         let mut codec = None;
         for &name in priority_list.iter() {

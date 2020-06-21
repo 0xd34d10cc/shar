@@ -39,7 +39,7 @@ impl CaptureDisplay {
             let period = Duration::from_secs(1) / config.fps;
 
             loop {
-                let pixels = match capturer.frame() {
+                let mut pixels = match capturer.frame() {
                     Ok(frame) => frame.to_vec(),
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
                         std::thread::sleep(Duration::from_millis(1));
@@ -50,6 +50,15 @@ impl CaptureDisplay {
 
                 let width = capturer.width() as u32;
                 let height = capturer.height() as u32;
+                
+                // set alpha to 1
+                let len = pixels.len();
+                let mut i = 3;
+                while i < len {
+                    pixels[i] = 0xff;
+                    i += 4;
+                }
+
                 let handle = image::Handle::from_pixels(width, height, pixels);
 
                 match sender.try_send(handle) {
