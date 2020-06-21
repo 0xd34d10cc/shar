@@ -7,10 +7,26 @@ use crate::codec::{Decoder, Encoder};
 // Codec which does not actually compress the data
 pub struct Null;
 
+pub struct Unit(Bytes);
+
+impl super::Unit for Unit {
+    fn from_packet(data: &[u8]) -> Self {
+        Unit(Bytes::copy_from_slice(data))
+    }
+
+    fn is_idr(&self) -> bool {
+        true
+    }
+
+    fn data(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl Encoder for Null {
     // TODO: decouple from iced structures
     type Frame = image::Handle;
-    type Unit = BytesMut;
+    type Unit = Unit;
 
     fn encode(&mut self, frame: Self::Frame, units: &mut Vec<Self::Unit>) -> Result<()> {
         use iced_native::image::Data;
@@ -25,7 +41,7 @@ impl Encoder for Null {
                 buffer.put_u32_le(*width);
                 buffer.put_u32_le(*height);
                 buffer.extend(pixels);
-                units.push(buffer);
+                units.push(Unit(buffer.freeze()));
                 Ok(())
             }
             data => Err(anyhow!("Unexpected frame data format: {:?}", data)),
@@ -35,13 +51,14 @@ impl Encoder for Null {
 
 impl Decoder for Null {
     type Frame = image::Handle;
+    type Unit = Unit;
 
-    // FIXME: use smallvec
-    fn decode(&mut self, mut packet: Bytes) -> Result<Vec<Self::Frame>> {
-        let width = packet.get_u32_le();
-        let height = packet.get_u32_le();
-        let pixels = packet.to_vec();
-        let image = image::Handle::from_pixels(width, height, pixels);
-        Ok(vec![image])
+    fn decode(&mut self, mut unit: Unit, frames: &mut Vec<Self::Frame>) -> Result<()> {
+        let width = unit.0.get_u32_le();
+        let height = unit.0.get_u32_le();
+        let pixels = unit.0.to_vec();
+        let frame = image::Handle::from_pixels(width, height, pixels);
+        frames.push(frame);
+        Ok(())
     }
 }

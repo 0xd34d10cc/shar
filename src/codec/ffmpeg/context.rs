@@ -11,7 +11,7 @@ pub struct Context {
 unsafe impl Send for Context {}
 
 impl Context {
-    pub fn new(codec: Codec, config: codec::Config) -> Self {
+    pub fn new(mut codec: Codec, config: codec::Config) -> Self {
         unsafe {
             let context = ff::avcodec_alloc_context3(codec.as_mut_ptr());
             debug_assert!(!context.is_null());

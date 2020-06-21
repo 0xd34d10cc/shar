@@ -12,6 +12,7 @@ use super::unit::Unit;
 use super::error::{Error, ErrorKind};
 use crate::codec;
 
+
 pub struct Encoder {
     context: Context,
     config: codec::Config,
@@ -33,7 +34,7 @@ impl Encoder {
         }
 
         // NOTE: this might fail if ffmpeg was built without x264
-        let codec = codec
+        let mut codec = codec
             .or_else(Codec::default_encoder)
             .ok_or_else(|| anyhow!("Could not find any ffmpeg encoders"))?;
 

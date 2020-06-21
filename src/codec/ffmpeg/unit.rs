@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use ffmpeg_sys_next as ff;
 
 pub struct Unit {
@@ -16,6 +14,23 @@ impl Drop for Unit {
     }
 }
 
+impl crate::codec::Unit for Unit {
+    fn from_packet(data: &[u8]) -> Self {
+        Self::from_data(data)
+    }
+
+    fn is_idr(&self) -> bool {
+        // FIXME: keyframe != idr
+        unsafe {
+            ((*self.inner).flags & ff::AV_PKT_FLAG_KEY) != 0
+        }
+    }
+
+    fn data(&self) -> &[u8] {
+        Unit::data(self)
+    }
+}
+
 impl Unit {
     pub fn from_data(data: &[u8]) -> Self {
         unsafe {
@@ -29,32 +44,22 @@ impl Unit {
             (*unit).data = (*buffer).data;
             (*unit).size = (*buffer).size;
 
-            Unit {
-                inner: unit
-            }
+            Unit { inner: unit }
         }
     }
 
     pub fn empty() -> Self {
         unsafe {
             let unit = ff::av_packet_alloc();
-            Unit {
-                inner: unit,
-            }
+            Unit { inner: unit }
         }
     }
 
     pub fn as_mut_ptr(&mut self) -> *mut ff::AVPacket {
         self.inner
     }
-}
 
-impl Deref for Unit {
-    type Target = [u8];
-
-    fn deref(&self) -> &Self::Target {
-        unsafe {
-            std::slice::from_raw_parts((*self.inner).data, (*self.inner).size as usize)
-        }
+    pub fn data(&self) -> &[u8] {
+        unsafe { std::slice::from_raw_parts((*self.inner).data, (*self.inner).size as usize) }
     }
 }

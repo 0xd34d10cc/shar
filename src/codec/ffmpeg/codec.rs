@@ -50,7 +50,7 @@ impl Codec {
         }
     }
 
-    pub fn as_mut_ptr(&self) -> *mut ff::AVCodec {
+    pub fn as_mut_ptr(&mut self) -> *mut ff::AVCodec {
         self.0
     }
 }

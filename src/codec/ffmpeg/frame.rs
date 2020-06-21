@@ -4,14 +4,21 @@ fn luma(r: u8, g: u8, b: u8) -> u8 {
     ((66 * r as i32 + 129 * g as i32 + 25 * b as i32) >> 8 + 16) as u8
 }
 
-unsafe fn to_yuv420(bgra: &[u8], width: usize, height: usize) -> (Box<[u8]>, usize /* ysize */, usize /* uvsize */) {
+unsafe fn to_yuv420(
+    bgra: &[u8],
+    width: usize,
+    height: usize,
+) -> (Box<[u8]>, usize /* ysize */, usize /* uvsize */) {
     let ysize = width * height;
     let uvsize = width * height / 4;
     let mut buffer = vec![0; ysize + uvsize + uvsize].into_boxed_slice();
 
     let ys = buffer.as_mut_ptr();
     let us = buffer.as_mut_ptr().offset(ysize as isize);
-    let vs = buffer.as_mut_ptr().offset(ysize as isize).offset(uvsize as isize);
+    let vs = buffer
+        .as_mut_ptr()
+        .offset(ysize as isize)
+        .offset(uvsize as isize);
 
     let mut i: usize = 0;
     let mut ui: usize = 0;
@@ -47,8 +54,7 @@ unsafe fn to_yuv420(bgra: &[u8], width: usize, height: usize) -> (Box<[u8]>, usi
 
                 x += 2;
             }
-        }
-        else {
+        } else {
             for _x in 0..width {
                 let r = *bgra.get_unchecked(4 * i + 2);
                 let g = *bgra.get_unchecked(4 * i + 1);
@@ -67,7 +73,10 @@ unsafe fn to_yuv420(bgra: &[u8], width: usize, height: usize) -> (Box<[u8]>, usi
 
 pub struct Frame {
     inner: *mut ff::AVFrame,
-    data: Box<[u8]>,
+
+    // NOTE: this field is here only to control the lifetime of AVFrame undelying buffer
+    #[allow(unused)]
+    data: Option<Box<[u8]>>,
 }
 
 impl Frame {
@@ -81,11 +90,14 @@ impl Frame {
 
             (*frame).format = ff::AVPixelFormat::AV_PIX_FMT_YUV420P as i32;
             (*frame).height = height as i32;
-            (*frame).width = width  as i32;
+            (*frame).width = width as i32;
 
             (*frame).data[0] = yuv.as_mut_ptr();
             (*frame).data[1] = yuv.as_mut_ptr().offset(ysize as isize);
-            (*frame).data[2] = yuv.as_mut_ptr().offset(ysize as isize).offset(uvsize as isize);
+            (*frame).data[2] = yuv
+                .as_mut_ptr()
+                .offset(ysize as isize)
+                .offset(uvsize as isize);
 
             (*frame).extended_data = &mut (*frame).data[0] as *mut _;
 
@@ -99,9 +111,38 @@ impl Frame {
 
             Frame {
                 inner: frame,
-                data: yuv,
+                data: Some(yuv),
             }
         }
+    }
+
+    pub fn empty() -> Self {
+        unsafe {
+            let frame = ff::av_frame_alloc();
+            debug_assert!(!frame.is_null());
+
+            Frame {
+                inner: frame,
+                data: None,
+            }
+        }
+    }
+
+    pub fn channel(&self, index: usize) -> (*const u8, usize) {
+        unsafe {
+            let data = (*self.inner).data[index];
+            let linesize = (*self.inner).linesize[index] as usize;
+
+            (data, linesize)
+        }
+    }
+
+    pub fn width(&self) -> usize {
+        unsafe { (*self.inner).width as usize }
+    }
+
+    pub fn height(&self) -> usize {
+        unsafe { (*self.inner).height as usize }
     }
 
     pub fn set_pts(&mut self, pts: usize) {

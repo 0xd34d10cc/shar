@@ -1,18 +1,30 @@
+use std::marker::PhantomData;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use bytes::BytesMut;
+use futures::sink::{Sink, SinkExt};
 use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
-use tokio::sync::mpsc::Sender;
 
-pub struct TcpReceiver {
-    sink: Sender<BytesMut>, // does not implement Sink
+use crate::codec::Unit;
+
+pub struct TcpReceiver<S, U> {
+    sink: S,
+
+    _unit: PhantomData<U>,
 }
 
-impl TcpReceiver {
-    pub fn new(sink: Sender<BytesMut>) -> Self {
-        TcpReceiver { sink }
+impl<S, U> TcpReceiver<S, U>
+where
+    S: Sink<U> + Unpin,
+    U: Unit,
+{
+    pub fn new(sink: S) -> Self {
+        TcpReceiver {
+            sink,
+
+            _unit: PhantomData,
+        }
     }
 
     pub async fn receive(&mut self, address: SocketAddr) {
@@ -27,54 +39,43 @@ impl TcpReceiver {
                 }
             };
 
-            let mut buffer = BytesMut::with_capacity(4096);
+            let mut packet_len = [0u8; 4];
+            let mut buffer = Vec::with_capacity(4096);
             loop {
-                if buffer.capacity() < 4096 {
-                    buffer.reserve(4096);
-                }
+                buffer.clear();
 
-                let n = match stream.read_buf(&mut buffer).await {
-                    Ok(n) => n,
-                    Err(e) => {
-                        log::error!("tcp recv failed: {}", e);
-                        break;
-                    }
+                if let Err(e) = stream.read_exact(&mut packet_len).await {
+                    log::error!("tcp recv failed: {}", e);
+                    break;
                 };
 
-                if n < 8 {
-                    continue;
-                }
-
-                let width = u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
-                let height = u32::from_le_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]);
-                let total_bytes = (width * height * 4) as usize;
-                if total_bytes > 1024 * 1024 * 8 {
+                let size = u32::from_le_bytes(packet_len) as usize;
+                if size > 1024 * 1024 * 8 {
                     // 8 mb
                     log::error!(
-                        "Received too big frame: {}x{} ({} total bytes)",
-                        width,
-                        height,
-                        total_bytes
+                        "Packet size is too big: {} total bytes",
+                        size
                     );
                     break;
                 }
 
-                if buffer.len() < total_bytes + 8 {
-                    buffer.reserve(total_bytes + 8 - buffer.len());
+                log::debug!("Receiving packet of size {}", size);
+                if size > buffer.capacity() {
+                    let additional = size - buffer.capacity();
+                    buffer.reserve(additional);
                 }
 
-                unsafe { buffer.set_len(total_bytes + 8) };
-                if let Err(e) = stream.read_exact(&mut buffer[n..]).await {
-                    log::error!("Failed to receive entire frame: {}", e);
+                unsafe { buffer.set_len(size) };
+                if let Err(e) = stream.read_exact(&mut buffer).await {
+                    log::error!("Failed to receive entire packet: {}", e);
                     break;
                 }
 
-                if let Err(_) = self.sink.send(buffer.split()).await {
+                let unit = U::from_packet(&buffer);
+                if let Err(_) = self.sink.send(unit).await {
                     log::error!("tcp receiver closed: consumer dropped the channel");
-                    return;
+                    break;
                 }
-
-                buffer.reserve(total_bytes + 8);
             }
         }
     }

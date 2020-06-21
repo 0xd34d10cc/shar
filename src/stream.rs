@@ -24,14 +24,10 @@ where
                 let mut units = Vec::new();
                 while let Some(frame) = frames.next().await {
                     if let Err(e) = encoder.encode(frame, &mut units) {
-                        log::error!("Failed to encode frame: {}", e);
+                        log::error!("Failed to encode a frame: {}", e);
                         break;
                     };
 
-                    log::debug!(
-                        "Successfully encoded a frame. Units size: {}",
-                        units.iter().map(|unit| unit.len()).sum::<usize>()
-                    );
                     for unit in units.drain(..) {
                         if let Err(_) = sender.send(unit).await {
                             break;

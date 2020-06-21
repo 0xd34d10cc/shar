@@ -157,7 +157,7 @@ impl Application for App {
                         };
                         match codec::ffmpeg::Encoder::new(config) {
                             Ok(encoder) => {
-                                let status = stream(url.clone(), encoder, receiver).await;
+                                let status = stream(url.clone(), codec::Null, receiver).await;
                                 Message::StreamFinished(url, status.err().map(|e| e.to_string()))
                             },
                             Err(e) => {

@@ -8,3 +8,5 @@ mod error;
 
 pub use encoder::Encoder;
 pub use decoder::Decoder;
+pub use unit::Unit;
+pub use frame::Frame;
