@@ -31,20 +31,24 @@ impl<U> Client<U> where U: Unit {
     }
 
     async fn send(&mut self, data: &[u8], is_idr: bool) -> std::io::Result<()> {
-        if !self.idr_received && !is_idr {
-            return Ok(());
-        }
+        // if !self.idr_received && !is_idr {
+        //     return Ok(());
+        // }
 
         self.idr_received = true;
 
+        log::error!("Sending [{}]: {:x?}", data.len(), &data[(data.len() - 32)..]);
+
 
         let length = (data.len() as u32).to_le_bytes();
-        let mut packet = length.chain(data);
+        self.stream.write_all(&length).await?;
+        self.stream.write_all(data).await?;
 
-        log::debug!("Sending packet of size {}", data.len());
-        while packet.has_remaining() {
-            self.stream.write_buf(&mut packet).await?;
-        }
+        // let mut packet = length.chain(data);
+
+        // while packet.has_remaining() {
+        //     self.stream.write_buf(&mut packet).await?;
+        // }
 
         Ok(())
     }
@@ -52,7 +56,7 @@ impl<U> Client<U> where U: Unit {
 
 
 pub struct TcpSender<S, U> {
-    frames: S,
+    units: S,
     client_id: usize,
     clients: HashMap<usize, Client<U>>,
 
@@ -64,9 +68,9 @@ where
     S: Stream<Item = U> + Unpin,
     U: Unit,
 {
-    pub fn new(frames: S) -> Self {
+    pub fn new(units: S) -> Self {
         TcpSender {
-            frames,
+            units,
             client_id: 0,
             clients: HashMap::new(),
 
@@ -91,9 +95,9 @@ where
                         },
                     }
                 },
-                frame = self.frames.next().fuse() => {
-                    match frame {
-                        Some(frame) => self.send(frame).await,
+                unit = self.units.next().fuse() => {
+                    match unit {
+                        Some(unit) => self.send(unit).await,
                         None => {
                             log::info!("tcp sender stop: no more frames");
                             break Ok(())

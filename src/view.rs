@@ -30,7 +30,7 @@ impl DecoderId {
                      codec::Config {
                          bitrate: 5000,
                          fps: 30,
-                         gop: 30,
+                         gop: 3,
                          width: 1920,
                          height: 1080,
                      }

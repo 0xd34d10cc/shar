@@ -13,6 +13,9 @@ unsafe impl Send for Context {}
 impl Context {
     pub fn new(mut codec: Codec, config: codec::Config) -> Self {
         unsafe {
+            // setup logger
+            // ff::av_log_set_level(ff::AV_LOG_DEBUG);
+
             let context = ff::avcodec_alloc_context3(codec.as_mut_ptr());
             debug_assert!(!context.is_null());
 
@@ -46,7 +49,7 @@ impl Context {
             let divisor = num_integer::gcd(config.width, config.height);
             (*context).sample_aspect_ratio.num = (config.width / divisor) as i32;
             (*context).sample_aspect_ratio.den = (config.height / divisor) as i32;
-            
+
 
             Context {
                 codec,

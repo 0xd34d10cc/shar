@@ -39,7 +39,7 @@ where
                 }
             };
 
-            let mut packet_len = [0u8; 4];
+            let mut packet_len: [u8; 4] = [0u8; 4];
             let mut buffer = Vec::with_capacity(4096);
             loop {
                 buffer.clear();
@@ -59,19 +59,20 @@ where
                     break;
                 }
 
-                log::debug!("Receiving packet of size {}", size);
                 //if size > buffer.capacity() {
                 //    let additional = size - buffer.capacity();
                 //    buffer.reserve(additional);
                 //}
 
                 buffer.resize(size, 0);
-                if let Err(e) = stream.read_exact(&mut buffer[..]).await {
+                assert_eq!(buffer.len(), size);
+                if let Err(e) = stream.read_exact(&mut buffer[0..size]).await {
                     log::error!("Failed to receive entire packet: {}", e);
                     break;
                 }
 
-                let unit = U::from_packet(&buffer);
+                log::error!("net received [{}]: {:x?}", size, &buffer[(size - 32)..]);
+                let unit = U::from_packet(&buffer[0..size]);
                 if let Err(_) = self.sink.send(unit).await {
                     log::error!("tcp receiver closed: consumer dropped the channel");
                     break;

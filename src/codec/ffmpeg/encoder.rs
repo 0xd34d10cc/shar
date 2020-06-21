@@ -77,7 +77,11 @@ impl Encoder {
                 let error = Error::from_code(code);
                 match error.kind() {
                     ErrorKind::Success => {
-                        units.push(unit);
+                        let len = unit.data().len();
+                        log::error!("produced [{}]: {:x?}", len, &unit.data()[(len - 32)..]);
+
+                        let cpy = Unit::from_data(unit.data());
+                        units.push(cpy);
                         unit = Unit::empty();
                     },
                     ErrorKind::WouldBlock => break,
