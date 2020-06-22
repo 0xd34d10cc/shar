@@ -1,6 +1,0 @@
-add_subdirectory(common)
-add_subdirectory(net)
-add_subdirectory(codec)
-add_subdirectory(capture)
-add_subdirectory(ui)
-add_subdirectory(app)

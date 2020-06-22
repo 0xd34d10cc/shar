@@ -1,10 +1,4 @@
-.vscode/
-build/
-debug/
-release
-*.exe
-*.dll
-*.pdb
-/.vs
-*.log
-*.aps
+.vscode
+.vs
+Cargo.lock
+/target
