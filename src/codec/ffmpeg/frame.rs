@@ -79,6 +79,14 @@ pub struct Frame {
     data: Option<Box<[u8]>>,
 }
 
+impl Drop for Frame {
+    fn drop(&mut self) {
+        unsafe {
+            ff::av_frame_free(&mut self.inner);
+        }
+    }
+}
+
 impl Frame {
     pub fn from_bgra(data: &[u8], width: usize, height: usize) -> Self {
         unsafe {
