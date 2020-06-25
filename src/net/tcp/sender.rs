@@ -3,8 +3,6 @@ use std::marker::PhantomData;
 use std::net::SocketAddr;
 
 use anyhow::Result;
-use bytes::buf::ext::BufExt;
-use bytes::Buf;
 use futures::future::FutureExt;
 use futures::select;
 use futures::stream::{Stream, StreamExt};
@@ -33,7 +31,8 @@ where
         }
     }
 
-    async fn send(&mut self, data: &[u8], is_idr: bool) -> std::io::Result<()> {
+    async fn send(&mut self, data: &[u8], _is_idr: bool) -> std::io::Result<()> {
+        // FIXME: this flag is not correct for nvenc (and maybe other codecs)
         //if !self.idr_received && !is_idr {
         //    return Ok(());
         //}

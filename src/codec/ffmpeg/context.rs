@@ -4,7 +4,6 @@ use super::codec::Codec;
 use crate::codec;
 
 pub struct Context {
-    codec: Codec,
     ptr: *mut ff::AVCodecContext,
 }
 
@@ -54,14 +53,9 @@ impl Context {
             (*context).sample_aspect_ratio.den = (config.height / divisor) as i32;
 
             Context {
-                codec,
                 ptr: context,
             }
         }
-    }
-
-    pub fn codec(&self) -> Codec {
-        self.codec
     }
 
     pub fn as_mut_ptr(&mut self) -> *mut ff::AVCodecContext {

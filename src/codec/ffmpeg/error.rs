@@ -24,10 +24,6 @@ impl Error {
         Error { code }
     }
 
-    pub fn is_success(&self) -> bool {
-        self.kind() == ErrorKind::Success
-    }
-
     pub fn kind(&self) -> ErrorKind {
         match self.code {
             0 => ErrorKind::Success,

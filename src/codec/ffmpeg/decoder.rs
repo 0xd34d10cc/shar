@@ -13,7 +13,6 @@ use crate::codec;
 
 pub struct Decoder {
     context: Context,
-    config: codec::Config,
 }
 
 impl Decoder {
@@ -46,7 +45,7 @@ impl Decoder {
             return Err(Error::from_code(code).into());
         }
 
-        Ok(Decoder { context, config })
+        Ok(Decoder { context })
     }
 
     pub fn decode(&mut self, mut unit: Unit, frames: &mut Vec<Frame>) -> Result<()> {

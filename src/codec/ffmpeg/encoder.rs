@@ -75,9 +75,9 @@ impl Encoder {
                 let error = Error::from_code(code);
                 match error.kind() {
                     ErrorKind::Success => {
-                        let len = unit.data().len();
                         // NOTE: the underlying memory of |unit| could be reused by codec, so we
                         //       have to do memcpy here
+                        // TODO: find out which fields of AVPacket signal that data is non-owned
                         let cpy = Unit::from_data(unit.data());
                         units.push(cpy);
                         unit = Unit::empty();
