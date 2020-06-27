@@ -16,7 +16,7 @@ use zerocopy::{AsBytes, ByteSlice, ByteSliceMut, FromBytes, LayoutVerified, Unal
 // The first twelve octets are present in every RTP packet, while the
 // list of CSRC identifiers is present only when inserted by a mixer.
 #[derive(FromBytes, AsBytes, Unaligned)]
-#[repr(C)]
+#[repr(C, packed)]
 pub struct Header {
     flags: u8,
     payload_type: u8, // and marker
@@ -182,13 +182,13 @@ mod tests {
         let mut packet = Packet::new(&mut data[..]).unwrap();
 
         {
-        let header = packet.header_mut();
-        header.set_version(2);
-        header.set_payload_type(42);
-        header.set_sequence(1337);
-        header.set_timestamp(45678);
-        header.set_ssrc(0xd34d10cc);
-        packet.payload_mut()[..4].copy_from_slice(&[0xd3, 0x3d, 0x10, 0xcc]);
+            let header = packet.header_mut();
+            header.set_version(2);
+            header.set_payload_type(42);
+            header.set_sequence(1337);
+            header.set_timestamp(45678);
+            header.set_ssrc(0xd34d10cc);
+            packet.payload_mut()[..4].copy_from_slice(&[0xd3, 0x3d, 0x10, 0xcc]);
         }
 
         let header = packet.header();
