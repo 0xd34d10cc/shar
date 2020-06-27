@@ -23,3 +23,5 @@ once_cell = "1.4.0"
 ffmpeg-sys-next = { git = "https://github.com/0xd34d10cc/rust-ffmpeg-sys", branch = "vcpkg", features = ["static"] }
 num-integer = "0.1.43"
 libc = "0.2.71"
+zerocopy = "0.3.0"
+byteorder = "1.3.4"
