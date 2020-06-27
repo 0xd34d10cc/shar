@@ -33,9 +33,9 @@ where
 
     async fn send(&mut self, data: &[u8], _is_idr: bool) -> std::io::Result<()> {
         // FIXME: this flag is not correct for nvenc (and maybe other codecs)
-        //if !self.idr_received && !is_idr {
-        //    return Ok(());
-        //}
+        // if !self.idr_received && !is_idr {
+        //     return Ok(());
+        // }
 
         self.idr_received = true;
 
