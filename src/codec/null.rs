@@ -21,6 +21,10 @@ impl super::Unit for Unit {
     fn data(&self) -> &[u8] {
         &self.0
     }
+
+    fn timestamp(&self) -> u64 {
+        0
+    }
 }
 
 impl Encoder for Null {

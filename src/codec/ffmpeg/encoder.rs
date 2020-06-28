@@ -78,7 +78,8 @@ impl Encoder {
                         // NOTE: the underlying memory of |unit| could be reused by codec, so we
                         //       have to do memcpy here
                         // TODO: find out which fields of AVPacket signal that data is non-owned
-                        let cpy = Unit::from_data(unit.data());
+                        let mut cpy = Unit::from_data(unit.data());
+                        cpy.set_pts(unit.pts());
                         units.push(cpy);
                         unit = Unit::empty();
                     }

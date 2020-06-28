@@ -27,6 +27,10 @@ impl crate::codec::Unit for Unit {
     fn data(&self) -> &[u8] {
         Unit::data(self)
     }
+
+    fn timestamp(&self) -> u64 {
+        self.pts() as u64
+    }
 }
 
 impl Unit {
@@ -50,6 +54,18 @@ impl Unit {
         unsafe {
             let unit = ff::av_packet_alloc();
             Unit { inner: unit }
+        }
+    }
+
+    pub fn pts(&self) -> i64 {
+        unsafe {
+            (*self.inner).pts
+        }
+    }
+
+    pub fn set_pts(&mut self, pts: i64) {
+        unsafe {
+            (*self.inner).pts = pts;
         }
     }
 

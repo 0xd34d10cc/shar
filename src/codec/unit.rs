@@ -3,4 +3,5 @@ pub trait Unit: Send + 'static {
 
     fn data(&self) -> &[u8];
     fn is_idr(&self) -> bool;
+    fn timestamp(&self) -> u64;
 }
