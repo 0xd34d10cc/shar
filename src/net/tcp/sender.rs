@@ -46,7 +46,7 @@ where
     }
 }
 
-pub struct TcpSender<S, U> {
+pub struct Sender<S, U> {
     units: S,
     client_id: usize,
     clients: HashMap<usize, Client<U>>,
@@ -54,13 +54,13 @@ pub struct TcpSender<S, U> {
     _unit: PhantomData<U>,
 }
 
-impl<S, U> TcpSender<S, U>
+impl<S, U> Sender<S, U>
 where
     S: Stream<Item = U> + Unpin,
     U: Unit,
 {
     pub fn new(units: S) -> Self {
-        TcpSender {
+        Sender {
             units,
             client_id: 0,
             clients: HashMap::new(),

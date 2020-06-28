@@ -9,7 +9,7 @@ use iced_native::Subscription;
 use url::Url;
 
 use crate::codec::{self, Decoder};
-use crate::net::TcpReceiver;
+use crate::net::tcp;
 use crate::resolve;
 
 // NOTE: assumes zero configuration, i.e. Decoder implements Default
@@ -104,7 +104,7 @@ where
                 }
             });
 
-            TcpReceiver::new(sender).receive(address).await;
+            tcp::Receiver::new(sender).receive(address).await;
             Ok(())
         }
         scheme => Err(anyhow!("Unsupported receiver protocol: {}", scheme)),

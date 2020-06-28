@@ -1,7 +1,7 @@
 use std::time::Instant;
 use std::net::SocketAddr;
+use std::io;
 
-use anyhow::Result;
 use tokio::net::UdpSocket;
 use futures::stream::{Stream, StreamExt};
 
@@ -31,7 +31,7 @@ impl<S, U> Sender<S> where S: Stream<Item=U>  + Unpin, U: Unit {
         }
     }
 
-    pub async fn stream_to(&mut self, remote: SocketAddr) -> Result<()> {
+    pub async fn stream_to(&mut self, remote: SocketAddr) -> io::Result<()> {
         let local: SocketAddr = ([0, 0, 0, 0], 0).into();
         // ...why the heck are these async? -_-
         let mut socket = UdpSocket::bind(local).await?;

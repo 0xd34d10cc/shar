@@ -8,19 +8,19 @@ use tokio::net::TcpStream;
 
 use crate::codec::Unit;
 
-pub struct TcpReceiver<S, U> {
+pub struct Receiver<S, U> {
     sink: S,
 
     _unit: PhantomData<U>,
 }
 
-impl<S, U> TcpReceiver<S, U>
+impl<S, U> Receiver<S, U>
 where
     S: Sink<U> + Unpin,
     U: Unit,
 {
     pub fn new(sink: S) -> Self {
-        TcpReceiver {
+        Receiver {
             sink,
 
             _unit: PhantomData,
