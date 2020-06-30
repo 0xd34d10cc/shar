@@ -1,13 +1,13 @@
-use std::time::Duration;
-use std::net::SocketAddr;
 use std::io;
+use std::net::SocketAddr;
+use std::time::Duration;
 
-use tokio::net::UdpSocket;
 use futures::stream::{Stream, StreamExt};
+use tokio::net::UdpSocket;
 
-use crate::codec::Unit;
-use super::packetizer::Packetizer;
 use super::packet::Packet;
+use super::packetizer::Packetizer;
+use crate::codec::Unit;
 
 pub struct Sender<S> {
     units: S,
@@ -15,13 +15,13 @@ pub struct Sender<S> {
     sequence: u16,
 }
 
-impl<S, U> Sender<S> where S: Stream<Item=U>  + Unpin, U: Unit {
+impl<S, U> Sender<S>
+where
+    S: Stream<Item = U> + Unpin,
+    U: Unit,
+{
     pub fn new(units: S) -> Self {
-        Sender {
-            units,
-
-            sequence: 0,
-        }
+        Sender { units, sequence: 0 }
     }
 
     pub async fn stream_to(&mut self, remote: SocketAddr) -> io::Result<()> {

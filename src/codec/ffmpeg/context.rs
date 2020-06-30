@@ -52,9 +52,7 @@ impl Context {
             (*context).sample_aspect_ratio.num = (config.width / divisor) as i32;
             (*context).sample_aspect_ratio.den = (config.height / divisor) as i32;
 
-            Context {
-                ptr: context,
-            }
+            Context { ptr: context }
         }
     }
 
