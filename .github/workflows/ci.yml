@@ -13,8 +13,8 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - name: Install ffmpeg
-        run: sudo apt-get install ffmpeg
+      - name: Install ffmpeg libs
+        run: sudo apt-get install libavcodec-dev libavutil-dev libavfilter-dev libavdevice-dev libavresample-dev libswscale-dev libswresample-dev
 
       - name: Checkout sources
         uses: actions/checkout@v2
