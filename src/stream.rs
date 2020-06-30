@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 use url::Url;
 
 use crate::codec::Encoder;
-use crate::net::{tcp, rtp};
+use crate::net::{rtp, tcp};
 use crate::resolve;
 
 // p2p sender
@@ -38,7 +38,7 @@ where
 
             tcp::Sender::new(receiver).stream_on(address).await?;
             Ok(())
-        },
+        }
         "rtp" => {
             let address = resolve::address_of(url).await?;
             let (mut sender, receiver) = mpsc::channel(5);

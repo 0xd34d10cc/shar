@@ -58,9 +58,7 @@ impl Unit {
     }
 
     pub fn pts(&self) -> i64 {
-        unsafe {
-            (*self.inner).pts
-        }
+        unsafe { (*self.inner).pts }
     }
 
     pub fn set_pts(&mut self, pts: i64) {
