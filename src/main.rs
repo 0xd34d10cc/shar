@@ -20,6 +20,7 @@ mod resolve;
 mod stream;
 mod view;
 
+
 fn background() -> image::Handle {
     const BACKGROUND_IMAGE: &[u8] = include_bytes!("../resources/background.png");
     static BACKGROUND: OnceCell<image::Handle> = OnceCell::new();
