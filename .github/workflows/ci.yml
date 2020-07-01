@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install ffmpeg libs
-        run: sudo apt-get install libavcodec-dev libavutil-dev libavfilter-dev libavdevice-dev libavresample-dev libswscale-dev libswresample-dev
+        run: sudo apt-get install libavcodec-dev
 
       - name: Checkout sources
         uses: actions/checkout@v2
