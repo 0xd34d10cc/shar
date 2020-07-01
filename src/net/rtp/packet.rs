@@ -20,12 +20,12 @@ use zerocopy::{AsBytes, ByteSlice, ByteSliceMut, FromBytes, LayoutVerified, Unal
 pub struct Header {
     flags: u8,
     payload_type: u8, // and marker
-    pub sequence: U16<NetworkEndian>,
-    pub timestamp: U32<NetworkEndian>,
-    pub ssrc: U32<NetworkEndian>,
-    // contributing_source: U32<NetworkEndian>
+    sequence: U16<NetworkEndian>,
+    timestamp: U32<NetworkEndian>,
+    ssrc: U32<NetworkEndian>,
 }
 
+#[allow(unused)] // TODO: remove after rtp receiver is implemented
 impl Header {
     pub fn version(&self) -> u8 {
         self.flags >> 6
@@ -36,7 +36,6 @@ impl Header {
         self.flags |= version << 6;
     }
 
-    // TODO: use bitflags?
     pub fn has_padding(&self) -> bool {
         (self.flags & (1 << 5)) != 0
     }
@@ -51,14 +50,6 @@ impl Header {
 
     pub fn has_extensions(&self) -> bool {
         (self.flags & (1 << 4)) != 0
-    }
-
-    pub fn set_extensions(&mut self, ext: bool) {
-        if ext {
-            self.flags |= 1 << 4;
-        } else {
-            self.flags &= !(1 << 4);
-        }
     }
 
     pub fn contributors_count(&self) -> u8 {
@@ -108,6 +99,7 @@ pub struct Packet<B> {
     payload: B,
 }
 
+#[allow(unused)] // TODO: remove after rtp receiver is implemented
 impl<B> Packet<B>
 where
     B: ByteSlice,

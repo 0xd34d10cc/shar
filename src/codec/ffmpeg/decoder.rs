@@ -85,9 +85,10 @@ fn as_byte(x: i32) -> u8 {
         return 0;
     }
 
-    return x as u8;
+    x as u8
 }
 
+#[allow(clippy::many_single_char_names)]
 fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
     let (ys, yline) = frame.channel(0);
     let (us, uline) = frame.channel(1);
@@ -97,18 +98,18 @@ fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
 
     let mut data: Vec<u8> = Vec::with_capacity(width * height * 4);
 
-    let yi = |x, y| (y * yline + x) as isize;
-    let ui = |x, y| ((y / 2) * uline + x / 2) as isize;
-    let vi = |x, y| ((y / 2) * vline + x / 2) as isize;
+    let yi = |x, y| (y * yline + x) as usize;
+    let ui = |x, y| ((y / 2) * uline + x / 2) as usize;
+    let vi = |x, y| ((y / 2) * vline + x / 2) as usize;
 
     unsafe {
         let dst = data.as_mut_ptr();
         let mut i = 0;
         for line in 0..height {
             for col in 0..width {
-                let y = *ys.offset(yi(col, line));
-                let u = *us.offset(ui(col, line));
-                let v = *vs.offset(vi(col, line));
+                let y = *ys.add(yi(col, line));
+                let u = *us.add(ui(col, line));
+                let v = *vs.add(vi(col, line));
 
                 let c = y as i32 - 16;
                 let d = u as i32 - 128;
@@ -119,10 +120,10 @@ fn to_bgra(frame: Frame) -> (usize, usize, Vec<u8>) {
                 let b = as_byte((298 * c + 516 * d + 128) >> 8);
                 let a = 0xff;
 
-                *dst.offset(i + 0) = b;
-                *dst.offset(i + 1) = g;
-                *dst.offset(i + 2) = r;
-                *dst.offset(i + 3) = a;
+                *dst.add(i) = b;
+                *dst.add(i + 1) = g;
+                *dst.add(i + 2) = r;
+                *dst.add(i + 3) = a;
 
                 i += 4;
             }

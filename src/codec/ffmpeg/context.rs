@@ -42,8 +42,7 @@ impl Context {
                     p = p.offset(1);
                 }
 
-                assert!(false);
-                return ff::AVPixelFormat::AV_PIX_FMT_NONE;
+                ff::AVPixelFormat::AV_PIX_FMT_NONE
             }
 
             (*context).get_format = Some(get_format);

@@ -4,6 +4,7 @@ fn luma(r: u8, g: u8, b: u8) -> u8 {
     (((66 * r as i32 + 129 * g as i32 + 25 * b as i32) >> 8) + 16) as u8
 }
 
+#[allow(clippy::many_single_char_names)]
 unsafe fn to_yuv420(
     bgra: &[u8],
     width: usize,
@@ -14,11 +15,8 @@ unsafe fn to_yuv420(
     let mut buffer = vec![0; ysize + uvsize + uvsize].into_boxed_slice();
 
     let ys = buffer.as_mut_ptr();
-    let us = buffer.as_mut_ptr().offset(ysize as isize);
-    let vs = buffer
-        .as_mut_ptr()
-        .offset(ysize as isize)
-        .offset(uvsize as isize);
+    let us = buffer.as_mut_ptr().add(ysize);
+    let vs = buffer.as_mut_ptr().add(ysize).add(uvsize);
 
     let mut i: usize = 0;
     let mut ui: usize = 0;
@@ -29,26 +27,26 @@ unsafe fn to_yuv420(
             while x < width {
                 let r = *bgra.get_unchecked(4 * i + 2);
                 let g = *bgra.get_unchecked(4 * i + 1);
-                let b = *bgra.get_unchecked(4 * i + 0);
+                let b = *bgra.get_unchecked(4 * i);
 
                 let y = luma(r, g, b);
                 let u = (((-38 * r as i32 + -74 * g as i32 + 112 * b as i32) >> 8) + 128) as u8;
                 let v = (((112 * r as i32 + -94 * g as i32 + -18 * b as i32) >> 8) + 128) as u8;
 
-                *ys.offset(i as isize) = y;
-                *us.offset(ui as isize) = u;
-                *vs.offset(ui as isize) = v;
+                *ys.add(i) = y;
+                *us.add(ui) = u;
+                *vs.add(ui) = v;
 
                 i += 1;
                 ui += 1;
 
                 let r = *bgra.get_unchecked(4 * i + 2);
                 let g = *bgra.get_unchecked(4 * i + 1);
-                let b = *bgra.get_unchecked(4 * i + 0);
+                let b = *bgra.get_unchecked(4 * i);
 
                 let y = luma(r, g, b);
 
-                *ys.offset(i as isize) = y;
+                *ys.add(i) = y;
 
                 i += 1;
 
@@ -58,10 +56,10 @@ unsafe fn to_yuv420(
             for _x in 0..width {
                 let r = *bgra.get_unchecked(4 * i + 2);
                 let g = *bgra.get_unchecked(4 * i + 1);
-                let b = *bgra.get_unchecked(4 * i + 0);
+                let b = *bgra.get_unchecked(4 * i);
 
                 let y = luma(r, g, b);
-                *ys.offset(i as isize) = y;
+                *ys.add(i) = y;
 
                 i += 1;
             }
@@ -101,11 +99,8 @@ impl Frame {
             (*frame).width = width as i32;
 
             (*frame).data[0] = yuv.as_mut_ptr();
-            (*frame).data[1] = yuv.as_mut_ptr().offset(ysize as isize);
-            (*frame).data[2] = yuv
-                .as_mut_ptr()
-                .offset(ysize as isize)
-                .offset(uvsize as isize);
+            (*frame).data[1] = yuv.as_mut_ptr().add(ysize);
+            (*frame).data[2] = yuv.as_mut_ptr().add(ysize).add(uvsize);
 
             (*frame).extended_data = &mut (*frame).data[0] as *mut _;
 
