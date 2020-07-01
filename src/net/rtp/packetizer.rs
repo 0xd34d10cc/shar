@@ -66,18 +66,6 @@ impl<'a> Packetizer<'a> {
         }
     }
 
-    // pub fn set(&mut self, data: BytesMut) {
-    //     self.data = data;
-    //     self.nri = 0;
-    //     self.nal_type = 0;
-    //     self.remaining = 0;
-    //     self.last_packet_was_full_unit = false;
-    // }
-
-    pub fn has_more_fragments(&self) -> bool {
-        !self.data.is_empty() || self.last_packet_was_full_unit
-    }
-
     // move to next nal unit, set |nri|, |nal_type| and |remaining|
     fn next_unit(&mut self) {
         let header_index = match self.data {

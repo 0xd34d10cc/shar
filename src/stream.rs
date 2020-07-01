@@ -29,8 +29,8 @@ where
                     };
 
                     for unit in units.drain(..) {
-                        if let Err(_) = sender.send(unit).await {
-                            break;
+                        if sender.send(unit).await.is_err() {
+                            return;
                         }
                     }
                 }
@@ -54,8 +54,8 @@ where
                     };
 
                     for unit in units.drain(..) {
-                        if let Err(_) = sender.send(unit).await {
-                            break;
+                        if sender.send(unit).await.is_err() {
+                            return;
                         }
                     }
                 }

@@ -85,8 +85,7 @@ impl CaptureDisplay {
                 let displays = Display::all().unwrap();
                 let display = displays
                     .into_iter()
-                    .skip(i)
-                    .next()
+                    .nth(i)
                     .ok_or_else(|| anyhow!("Display index {} is out of range", i))?;
                 Ok(display)
             }

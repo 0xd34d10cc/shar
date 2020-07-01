@@ -97,8 +97,8 @@ where
                     };
 
                     for frame in frames.drain(..) {
-                        if let Err(_) = consumer.send(frame).await {
-                            break;
+                        if consumer.send(frame).await.is_err() {
+                            return;
                         }
                     }
                 }

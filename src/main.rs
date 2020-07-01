@@ -114,9 +114,7 @@ impl Application for App {
             None => Subscription::none(),
             Some(StreamState::Streaming(_)) => {
                 let handles = capture::capture(DisplayID::Primary, 30);
-                let messages = handles.map(Message::UpdateFrame);
-
-                messages
+                handles.map(Message::UpdateFrame)
             }
             Some(StreamState::Viewing(url)) => view(url.clone()).map(Message::UpdateFrame),
         }
