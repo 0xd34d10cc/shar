@@ -2,8 +2,9 @@ use std::hash::{Hash, Hasher};
 
 use anyhow::{anyhow, Result};
 use futures::channel::mpsc::{self, Sender};
+use futures::future;
 use futures::sink::SinkExt;
-use futures::stream::{BoxStream, StreamExt};
+use futures::stream::{BoxStream, Stream, StreamExt};
 use iced::image;
 use iced_native::Subscription;
 use url::Url;
@@ -59,12 +60,62 @@ where
 
     fn stream(self: Box<Self>, _input: BoxStream<'static, I>) -> BoxStream<'static, Self::Output> {
         let (frames, receiver) = mpsc::channel(5);
-        tokio::spawn(receive_from(
+        let (task, handle) = future::abortable(receive_from(
             self.url,
             frames,
             self.decoder_id.build_decoder(),
         ));
-        receiver.boxed()
+        tokio::spawn(task);
+
+        // FIXME: move all these things into separate extension trait
+        use pin_project::pin_project;
+        use std::future::Future;
+        use std::pin::Pin;
+        use std::task::{Context, Poll};
+
+        struct AbortOnDrop(future::AbortHandle);
+
+        impl Drop for AbortOnDrop {
+            fn drop(&mut self) {
+                self.0.abort();
+            }
+        }
+
+        #[pin_project]
+        struct ChainedTask<S> {
+            #[pin]
+            task: S, // could be a future or stream
+
+            handle: AbortOnDrop,
+        }
+
+        impl<T> Future for ChainedTask<T>
+        where
+            T: Future,
+        {
+            type Output = T::Output;
+
+            fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+                self.project().task.poll(cx)
+            }
+        }
+
+        impl<T> Stream for ChainedTask<T>
+        where
+            T: Stream,
+        {
+            type Item = T::Item;
+
+            fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+                self.project().task.poll_next(cx)
+            }
+        }
+
+        ChainedTask {
+            handle: AbortOnDrop(handle),
+            task: receiver,
+        }
+        .boxed()
     }
 }
 
