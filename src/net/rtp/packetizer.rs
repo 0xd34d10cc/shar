@@ -9,7 +9,7 @@ pub struct Packetizer<'a> {
     nri: u8,
     nal_type: u8,
 
-    remaining: usize,
+    remaining: usize, // remaining number of bytes in the current nal unit
     last_packet_was_full_unit: bool,
 }
 
@@ -119,7 +119,15 @@ impl<'a> Packetizer<'a> {
             first = 1;
         }
 
-        let size = std::cmp::min(self.remaining, self.mtu);
+        let size = if self.remaining <= self.mtu {
+            if first == 1 {
+                self.remaining / 2
+            } else {
+                self.remaining
+            }
+        } else {
+            self.mtu
+        };
         self.remaining -= size;
 
         if self.remaining == 0 {
