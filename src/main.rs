@@ -26,7 +26,7 @@ fn background() -> image::Handle {
 
     BACKGROUND
         .get_or_init(|| {
-            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::Png)
+            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::PNG)
                 .unwrap()
                 .to_bgra();
             let (width, height) = background.dimensions();
@@ -147,7 +147,7 @@ impl Application for App {
                     return Command::from(async move {
                         // TODO: unhardcode
                         let config = codec::Config {
-                            bitrate: 5000,
+                            bitrate: 5000 * 1024,
                             fps: 30,
                             gop: 3,
                             width: 1920,

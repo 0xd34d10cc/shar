@@ -28,7 +28,7 @@ impl DecoderId {
                 codec::ffmpeg::Decoder::new(
                     // FIXME: unhardcode
                     codec::Config {
-                        bitrate: 5000,
+                        bitrate: 5000 * 1024,
                         fps: 30,
                         gop: 3,
                         width: 1920,
