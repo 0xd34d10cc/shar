@@ -21,14 +21,13 @@ pub struct Encoder {
 impl Encoder {
     pub fn new(config: codec::Config) -> Result<Self> {
         let priority_list = [
-            //b"h264_nvenc\0"
+            b"h264_nvenc\0"
         ];
 
         let mut codec = None;
         for &name in priority_list.iter() {
             let name = CStr::from_bytes_with_nul(name).unwrap();
             if let Some(c) = Codec::find_encoder(name) {
-                log::info!("Using {} encoder", name.to_string_lossy());
                 codec = Some(c);
                 break;
             }
@@ -39,10 +38,25 @@ impl Encoder {
             .or_else(Codec::default_encoder)
             .ok_or_else(|| anyhow!("Could not find any ffmpeg encoders"))?;
 
+        log::info!("Using {} encoder", codec.name().to_string_lossy());
         let mut context = Context::new(codec, config);
 
         // TODO: allow to customize
+        let options: [(&[u8], &[u8]); 2] = [
+            (b"preset\0", b"medium\0"),
+            (b"tune\0", b"zerolatency\0")
+        ];
+
         let mut opts: *mut ff::AVDictionary = std::ptr::null_mut();
+        for (name, value) in options.iter() {
+            let name = CStr::from_bytes_with_nul(name).unwrap();
+            let value = CStr::from_bytes_with_nul(value).unwrap();
+            let flags = 0;
+            unsafe {
+                ff::av_dict_set(&mut opts, name.as_ptr(), value.as_ptr(), flags);
+            }
+        }
+
         let code =
             unsafe { ff::avcodec_open2(context.as_mut_ptr(), codec.as_mut_ptr(), &mut opts) };
         if code < 0 {

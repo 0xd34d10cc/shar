@@ -10,6 +10,12 @@ unsafe impl Send for Codec {}
 unsafe impl Sync for Codec {}
 
 impl Codec {
+    pub fn name(&self) -> &CStr {
+        unsafe {
+            CStr::from_ptr((*self.0).name)
+        }
+    }
+
     pub fn default_encoder() -> Option<Self> {
         unsafe {
             let ptr = ff::avcodec_find_encoder(ff::AVCodecID::AV_CODEC_ID_H264);

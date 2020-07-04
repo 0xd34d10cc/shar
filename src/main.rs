@@ -147,7 +147,7 @@ impl Application for App {
                     return Command::from(async move {
                         // TODO: unhardcode
                         let config = codec::Config {
-                            bitrate: 5000,
+                            bitrate: 5000 * 1024,
                             fps: 30,
                             gop: 3,
                             width: 1920,
