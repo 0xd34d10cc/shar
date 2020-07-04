@@ -1,8 +1,8 @@
 use std::hash::{Hash, Hasher};
 
 use anyhow::{anyhow, Result};
-use futures::future;
 use futures::channel::mpsc::{self, Sender};
+use futures::future;
 use futures::sink::SinkExt;
 use futures::stream::{BoxStream, Stream, StreamExt};
 use iced::image;
@@ -69,8 +69,8 @@ where
 
         // FIXME: move all these things into separate extension trait
         use pin_project::pin_project;
-        use std::pin::Pin;
         use std::future::Future;
+        use std::pin::Pin;
         use std::task::{Context, Poll};
 
         struct AbortOnDrop(future::AbortHandle);
@@ -89,7 +89,10 @@ where
             handle: AbortOnDrop,
         }
 
-        impl<T> Future for ChainedTask<T> where T: Future {
+        impl<T> Future for ChainedTask<T>
+        where
+            T: Future,
+        {
             type Output = T::Output;
 
             fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
@@ -97,7 +100,10 @@ where
             }
         }
 
-        impl<T> Stream for ChainedTask<T> where T: Stream {
+        impl<T> Stream for ChainedTask<T>
+        where
+            T: Stream,
+        {
             type Item = T::Item;
 
             fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
@@ -107,8 +113,9 @@ where
 
         ChainedTask {
             handle: AbortOnDrop(handle),
-            task: receiver
-        }.boxed()
+            task: receiver,
+        }
+        .boxed()
     }
 }
 
