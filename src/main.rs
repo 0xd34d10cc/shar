@@ -26,7 +26,7 @@ fn background() -> image::Handle {
 
     BACKGROUND
         .get_or_init(|| {
-            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::Png)
+            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::PNG)
                 .unwrap()
                 .to_bgra();
             let (width, height) = background.dimensions();
