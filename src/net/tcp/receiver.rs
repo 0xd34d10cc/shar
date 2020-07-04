@@ -66,7 +66,7 @@ where
                 let unit = U::from_packet(&buffer[0..size]);
                 if self.sink.send(unit).await.is_err() {
                     log::error!("tcp receiver closed: consumer dropped the channel");
-                    break;
+                    return;
                 }
             }
         }
