@@ -20,9 +20,7 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(config: codec::Config) -> Result<Self> {
-        let priority_list = [
-            b"h264_nvenc\0"
-        ];
+        let priority_list = [b"h264_nvenc\0"];
 
         let mut codec = None;
         for &name in priority_list.iter() {
@@ -42,10 +40,8 @@ impl Encoder {
         let mut context = Context::new(codec, config);
 
         // TODO: allow to customize
-        let options: [(&[u8], &[u8]); 2] = [
-            (b"preset\0", b"medium\0"),
-            (b"tune\0", b"zerolatency\0")
-        ];
+        let options: [(&[u8], &[u8]); 2] =
+            [(b"preset\0", b"medium\0"), (b"tune\0", b"zerolatency\0")];
 
         let mut opts: *mut ff::AVDictionary = std::ptr::null_mut();
         for (name, value) in options.iter() {
