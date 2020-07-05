@@ -2,7 +2,7 @@ use ::image::{load_from_memory_with_format, ImageFormat};
 use anyhow::Result;
 use iced::image::{self, Image};
 use iced::{
-    button, executor, text_input, Align, Application, Button, Column, Command, Element, Row,
+    button, executor, text_input, Align, Application, Button, Column, Command, Element, Radio, Row,
     Settings, Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
@@ -57,6 +57,8 @@ struct App {
     current_frame: image::Handle,
     stream_sender: Option<Sender<image::Handle>>,
     url: Option<Url>,
+    num_monitors: usize,
+    selected_monitor: Option<DisplayID>,
 
     ui: UIState,
 }
@@ -67,6 +69,10 @@ impl Default for App {
             state: None,
             current_frame: background(),
             stream_sender: None,
+            num_monitors: scrap::Display::all()
+                .map(|monitors| monitors.len())
+                .unwrap_or(0),
+            selected_monitor: None,
 
             url: None,
             ui: UIState::default(),
@@ -93,6 +99,7 @@ enum Message {
     StreamFinished(Url, Option<String>),
     UpdateUrlText(String),
     UpdateFrame(image::Handle),
+    UpdateMonitor(DisplayID),
 }
 
 impl Application for App {
@@ -113,7 +120,8 @@ impl Application for App {
         match &self.state {
             None => Subscription::none(),
             Some(StreamState::Streaming(_)) => {
-                let handles = capture::capture(DisplayID::Primary, 30);
+                let handles =
+                    capture::capture(self.selected_monitor.unwrap_or(DisplayID::Primary), 30);
                 handles.map(Message::UpdateFrame)
             }
             Some(StreamState::Viewing(url)) => view(url.clone()).map(Message::UpdateFrame),
@@ -191,6 +199,10 @@ impl Application for App {
                 self.current_frame = frame;
                 Command::none()
             }
+            Message::UpdateMonitor(id) => {
+                self.selected_monitor = Some(id);
+                Command::none()
+            }
         }
     }
 
@@ -211,12 +223,28 @@ impl Application for App {
 
         let stream_state = Text::new(format!("{:?}", self.state));
         let video_frame = Image::new(self.current_frame.clone());
+        let mut monitors = Row::new().push(Radio::new(
+            DisplayID::Primary,
+            "Primary",
+            self.selected_monitor,
+            Message::UpdateMonitor,
+        ));
+
+        for i in 0..self.num_monitors {
+            monitors = monitors.push(Radio::new(
+                DisplayID::Index(i),
+                i.to_string(),
+                self.selected_monitor,
+                Message::UpdateMonitor,
+            ));
+        }
 
         let layout = Column::new()
             .align_items(Align::Center)
             .push(buttons)
             .push(url)
             .push(stream_state)
+            .push(monitors)
             .push(video_frame);
         Element::from(layout)
     }
