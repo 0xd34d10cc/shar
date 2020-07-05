@@ -51,13 +51,11 @@ where
 
                 let size = u32::from_le_bytes(packet_len) as usize;
                 if size > 1024 * 1024 * 8 {
-                    // 8 mb
                     log::error!("Packet size is too big: {} total bytes", size);
                     break;
                 }
 
                 buffer.resize(size, 0);
-                assert_eq!(buffer.len(), size);
                 if let Err(e) = stream.read_exact(&mut buffer[0..size]).await {
                     log::error!("Failed to receive entire packet: {}", e);
                     break;

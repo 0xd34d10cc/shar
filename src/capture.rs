@@ -15,9 +15,6 @@ pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DisplayID {
     Primary,
-
-    // TODO: allow to pick monitor to capture
-    #[allow(unused)]
     Index(usize),
 }
 
