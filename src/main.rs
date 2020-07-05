@@ -2,8 +2,8 @@ use ::image::{load_from_memory_with_format, ImageFormat};
 use anyhow::Result;
 use iced::image::{self, Image};
 use iced::{
-    button, executor, text_input, Align, Application, Button, Column, Command, Element, Radio, Row,
-    Settings, Subscription, Text, TextInput,
+    button, executor, text_input, Align, Application, Button, Column, Command, Container, Element,
+    Length, Radio, Row, Settings, Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
 use tokio::sync::mpsc::{self, Sender};
@@ -11,6 +11,7 @@ use url::Url;
 
 use crate::capture::DisplayID;
 use crate::stream::stream;
+use crate::ui::style::Theme;
 use crate::view::view;
 
 mod capture;
@@ -18,6 +19,7 @@ mod codec;
 mod net;
 mod resolve;
 mod stream;
+mod ui;
 mod view;
 
 fn background() -> image::Handle {
@@ -59,6 +61,7 @@ struct App {
     url: Option<Url>,
     num_monitors: usize,
     selected_monitor: Option<DisplayID>,
+    theme: Theme,
 
     ui: UIState,
 }
@@ -73,6 +76,7 @@ impl Default for App {
                 .map(|monitors| monitors.len())
                 .unwrap_or(0),
             selected_monitor: None,
+            theme: Theme::Dark,
 
             url: None,
             ui: UIState::default(),
@@ -100,6 +104,7 @@ enum Message {
     UpdateUrlText(String),
     UpdateFrame(image::Handle),
     UpdateMonitor(DisplayID),
+    UpdateTheme(Theme),
 }
 
 impl Application for App {
@@ -203,14 +208,41 @@ impl Application for App {
                 self.selected_monitor = Some(id);
                 Command::none()
             }
+            Message::UpdateTheme(theme) => {
+                self.theme = theme;
+                Command::none()
+            }
         }
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        let stop = Button::new(&mut self.ui.stop, Text::new("stop")).on_press(Message::Stop);
-        let stream =
-            Button::new(&mut self.ui.stream, Text::new("stream")).on_press(Message::Stream);
-        let view = Button::new(&mut self.ui.view, Text::new("view")).on_press(Message::View);
+        let choose_theme = Theme::ALL.iter().fold(
+            Row::new().push(Text::new("Choose a theme:")),
+            |row, theme| {
+                row.push(
+                    Radio::new(
+                        *theme,
+                        &format!("{:?}", theme),
+                        Some(self.theme),
+                        Message::UpdateTheme,
+                    )
+                    .style(self.theme),
+                )
+            },
+        );
+
+        let stop = Button::new(&mut self.ui.stop, Text::new("stop"))
+            .on_press(Message::Stop)
+            .style(self.theme);
+
+        let stream = Button::new(&mut self.ui.stream, Text::new("stream"))
+            .on_press(Message::Stream)
+            .style(self.theme);
+
+        let view = Button::new(&mut self.ui.view, Text::new("view"))
+            .on_press(Message::View)
+            .style(self.theme);
+
         let buttons = Row::new().push(stop).push(stream).push(view);
 
         let url = TextInput::new(
@@ -218,35 +250,51 @@ impl Application for App {
             "stream url",
             &self.ui.url_text,
             Message::UpdateUrlText,
-        );
+        )
+        .style(self.theme);
         let url = Row::new().push(url);
 
         let stream_state = Text::new(format!("{:?}", self.state));
         let video_frame = Image::new(self.current_frame.clone());
-        let mut monitors = Row::new().push(Radio::new(
-            DisplayID::Primary,
-            "Primary",
-            self.selected_monitor,
-            Message::UpdateMonitor,
-        ));
-
-        for i in 0..self.num_monitors {
-            monitors = monitors.push(Radio::new(
-                DisplayID::Index(i),
-                i.to_string(),
+        let mut monitors = Row::new().push(
+            Radio::new(
+                DisplayID::Primary,
+                "Primary",
                 self.selected_monitor,
                 Message::UpdateMonitor,
-            ));
+            )
+            .style(self.theme),
+        );
+
+        for i in 0..self.num_monitors {
+            monitors = monitors.push(
+                Radio::new(
+                    DisplayID::Index(i),
+                    i.to_string(),
+                    self.selected_monitor,
+                    Message::UpdateMonitor,
+                )
+                .style(self.theme),
+            );
         }
 
         let layout = Column::new()
             .align_items(Align::Center)
+            .push(choose_theme)
             .push(buttons)
             .push(url)
             .push(stream_state)
             .push(monitors)
             .push(video_frame);
-        Element::from(layout)
+
+        let content = Container::new(layout)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y()
+            .style(self.theme);
+
+        Element::from(content)
     }
 }
 
