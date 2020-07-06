@@ -121,7 +121,7 @@ impl<'a> Packetizer<'a> {
 
         let size = if self.remaining <= self.mtu {
             if first == 1 {
-                self.remaining / 2
+                (self.remaining + 1) / 2
             } else {
                 self.remaining
             }
@@ -201,7 +201,7 @@ mod tests {
             Some(Fragment {
                 indicator: PACKET_TYPE_FU_A | (3 << 5),
                 header: FIRST | 7,
-                payload: &[0x42, 0x00, 0x20, 0xe9, 0x00, 0x80, 0x0c, 0x32]
+                payload: &[0x42, 0x00, 0x20, 0xe9]
             })
         );
 
@@ -210,7 +210,7 @@ mod tests {
             Some(Fragment {
                 indicator: PACKET_TYPE_FU_A | (3 << 5),
                 header: LAST | 7,
-                payload: &[]
+                payload: &[0x00, 0x80, 0x0c, 0x32]
             })
         );
 
@@ -220,7 +220,7 @@ mod tests {
             Some(Fragment {
                 indicator: PACKET_TYPE_FU_A | (3 << 5),
                 header: FIRST | 8,
-                payload: &[0xce, 0x3c, 0x80]
+                payload: &[0xce, 0x3c]
             })
         );
 
@@ -229,7 +229,7 @@ mod tests {
             Some(Fragment {
                 indicator: PACKET_TYPE_FU_A | (3 << 5),
                 header: LAST | 8,
-                payload: &[]
+                payload: &[0x80]
             })
         );
 
