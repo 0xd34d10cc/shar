@@ -44,8 +44,8 @@ jobs:
         with:
           command: test
 
-  lints:
-    name: Lints
+  format:
+    name: Check format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
