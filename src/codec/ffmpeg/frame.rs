@@ -12,7 +12,7 @@ unsafe fn to_yuv420(
 ) -> (Box<[u8]>, usize /* ysize */, usize /* uvsize */) {
     let ysize = width * height;
     let uvsize = width * height / 4;
-    let mut buffer = vec![0; ysize + uvsize + uvsize].into_boxed_slice();
+    let mut buffer = vec![0u8; ysize + uvsize + uvsize].into_boxed_slice();
 
     let ys = buffer.as_mut_ptr();
     let us = buffer.as_mut_ptr().add(ysize);
