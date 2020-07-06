@@ -10,7 +10,7 @@ name: CI
 
 jobs:
   check:
-    name: Check
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
       - name: Install ffmpeg libs
@@ -33,6 +33,11 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
