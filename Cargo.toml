@@ -26,3 +26,6 @@ libc = "0.2.71"
 zerocopy = "0.3.0"
 byteorder = "1.3.4"
 pin-project = "0.4.22"
+rtsparse = { git = "https://github.com/pl0q1n/httparse" }
+http = { git = "https://github.com/tataRinaz/http" }
+thiserror = "1.0.20"
