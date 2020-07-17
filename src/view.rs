@@ -10,7 +10,7 @@ use iced_native::Subscription;
 use url::Url;
 
 use crate::codec::{self, Decoder};
-use crate::net::tcp;
+use crate::net::{rtp, tcp};
 use crate::resolve;
 
 // NOTE: assumes zero configuration, i.e. Decoder implements Default
@@ -156,6 +156,33 @@ where
             });
 
             tcp::Receiver::new(sender).receive(address).await;
+            Ok(())
+        }
+        "rtp" => {
+            // FIXME: copy-paste of above
+            let address = resolve::address_of(url.clone()).await?;
+            log::trace!("{} resolved to {}", url, address);
+            let (sender, mut receiver) = mpsc::channel(5);
+            tokio::spawn(async move {
+                let mut frames = Vec::new();
+                while let Some(unit) = receiver.next().await {
+                    if let Err(e) = decoder.decode(unit, &mut frames) {
+                        log::error!("Failed to decode a packet: {}", e);
+                        break;
+                    };
+
+                    for frame in frames.drain(..) {
+                        if consumer.send(frame).await.is_err() {
+                            return;
+                        }
+                    }
+                }
+            });
+
+            if let Err(e) = rtp::Receiver::new(sender).receive(address).await {
+                log::error!("rtp receiver failed: {}", e);
+            }
+
             Ok(())
         }
         scheme => Err(anyhow!("Unsupported receiver protocol: {}", scheme)),
