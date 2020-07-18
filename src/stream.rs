@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 use url::Url;
 
 use crate::codec::Encoder;
-use crate::net::{rtp, tcp};
+use crate::net::{rtp, tcp, rtsp};
 use crate::resolve;
 
 // p2p sender
@@ -62,6 +62,29 @@ where
             });
 
             rtp::Sender::new(receiver).stream_to(address).await?;
+            Ok(())
+        }
+        "rtsp" => {
+            let address = resolve::address_of(url).await?;
+            let (mut sender, receiver) = mpsc::channel(5);
+
+            tokio::spawn(async move {
+                let mut units = Vec::new();
+                while let Some(frame) = frames.next().await {
+                    if let Err(e) = encoder.encode(frame, &mut units) {
+                        log::error!("Failed to encode a frame: {}", e);
+                        break;
+                    };
+
+                    for unit in units.drain(..) {
+                        if sender.send(unit).await.is_err() {
+                            return;
+                        }
+                    }
+                }
+            });
+
+            rtsp::Server::new(receiver).start_accepting(address).await?;
             Ok(())
         }
         scheme => Err(anyhow!("Unsupported sender protocol: {}", scheme)),
