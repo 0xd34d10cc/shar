@@ -23,7 +23,7 @@ mod ui;
 mod view;
 
 fn background() -> image::Handle {
-    const BACKGROUND_IMAGE: &[u8] = include_bytes!("../resources/background.png");
+    const BACKGROUND_IMAGE: &[u8] = include_bytes!("../resources/background_without_semitransparency.png");
     static BACKGROUND: OnceCell<image::Handle> = OnceCell::new();
 
     BACKGROUND
