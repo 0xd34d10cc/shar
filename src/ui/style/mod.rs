@@ -1,7 +1,6 @@
 use iced::{button, checkbox, container, progress_bar, radio, scrollable, slider, text_input};
 
-pub mod dark;
-pub mod light;
+mod dark;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Theme {
@@ -49,7 +48,7 @@ impl From<Theme> for Box<dyn text_input::StyleSheet> {
 impl From<Theme> for Box<dyn button::StyleSheet> {
     fn from(theme: Theme) -> Self {
         match theme {
-            Theme::Light => light::Button.into(),
+            Theme::Light => Default::default(),
             Theme::Dark => dark::Button.into(),
         }
     }
