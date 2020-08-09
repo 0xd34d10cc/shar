@@ -18,8 +18,8 @@ image = { version = "0.22", features = ["png"] }
 url = "2.1.1"
 bytes = "0.5.4"
 once_cell = "1.4.0"
-ffmpeg-sys-next = { git = "https://github.com/0xd34d10cc/rust-ffmpeg-sys", branch = "vcpkg", default-features = false, features = ["static", "avcodec"] }
 num-integer = "0.1.43"
+ffmpeg-sys-next = { version = "4.3.4", default-features = false, features = ["static", "avcodec"] }
 libc = "0.2.71"
 zerocopy = "0.3.0"
 byteorder = "1.3.4"
