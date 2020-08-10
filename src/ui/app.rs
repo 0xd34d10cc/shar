@@ -1,7 +1,7 @@
-use iced::{executor, image, Application, Command, Element, Subscription};
 use iced::pane_grid::{self, Axis, Direction, DragEvent, ResizeEvent};
+use iced::{executor, image, Application, Command, Element, Subscription};
 
-use super::views::{MainView, View, SubMessage};
+use super::views::{MainView, SubMessage, View};
 
 type ViewID = pane_grid::Pane;
 
@@ -20,7 +20,7 @@ pub enum Message {
     Close(ViewID),
     CloseFocused,
 
-    SubMessage(ViewID, SubMessage)
+    SubMessage(ViewID, SubMessage),
 }
 
 impl Application for App {
@@ -90,7 +90,8 @@ impl Application for App {
             Message::SubMessage(view_id, message) => {
                 if let Some(view) = self.views.get_mut(&view_id) {
                     let id = view_id.clone();
-                    return view.update(message)
+                    return view
+                        .update(message)
                         .map(move |message| Message::SubMessage(id, message));
                 }
             }
