@@ -11,8 +11,21 @@ use url::Url;
 use crate::capture::DisplayID;
 use crate::stream::stream;
 use crate::ui::style::Theme;
-use crate::ui::views::SubMessage as Message;
 use crate::view::view;
+
+
+#[derive(Debug, Clone)]
+pub enum Update {
+    Stop,
+    Stream,
+    View,
+
+    StreamFinished(Url, Option<String>),
+    SetUrlText(String),
+    SetCurrentFrame(image::Handle),
+    SetMonitor(DisplayID),
+    SetTheme(Theme),
+}
 
 fn background() -> image::Handle {
     const BACKGROUND_IMAGE: &[u8] = include_bytes!(concat!(
@@ -88,7 +101,7 @@ impl MainView {
         self.ui.url_text = url;
     }
 
-    pub fn subscription(&self) -> Subscription<Message> {
+    pub fn subscription(&self) -> Subscription<Update> {
         match &self.state {
             None => Subscription::none(),
             Some(StreamState::Streaming(_)) => {
@@ -96,28 +109,28 @@ impl MainView {
                     self.selected_monitor.unwrap_or(DisplayID::Primary),
                     30,
                 );
-                handles.map(Message::UpdateFrame)
+                handles.map(Update::SetCurrentFrame)
             }
-            Some(StreamState::Viewing(url)) => view(url.clone()).map(Message::UpdateFrame),
+            Some(StreamState::Viewing(url)) => view(url.clone()).map(Update::SetCurrentFrame),
         }
     }
 
-    pub fn update(&mut self, message: Message) -> Command<Message> {
+    pub fn update(&mut self, message: Update) -> Command<Update> {
         match message {
-            Message::Stop => {
+            Update::Stop => {
                 self.state = None;
                 self.stream_sender.take();
                 log::info!("Stopped");
-                Command::from(async { Message::UpdateFrame(background()) })
+                Command::from(async { Update::SetCurrentFrame(background()) })
             }
-            Message::View => {
+            Update::View => {
                 if let Some(ref url) = self.url {
                     self.state = Some(StreamState::Viewing(url.clone()));
                     log::info!("Start viewing from {}", url);
                 }
                 Command::none()
             }
-            Message::Stream => {
+            Update::Stream => {
                 if let Some(ref url) = self.url {
                     self.state = Some(StreamState::Streaming(url.clone()));
                     log::info!("Start streaming to {}", url);
@@ -138,18 +151,18 @@ impl MainView {
                         match crate::codec::ffmpeg::Encoder::new(config) {
                             Ok(encoder) => {
                                 let status = stream(url.clone(), encoder, receiver).await;
-                                Message::StreamFinished(url, status.err().map(|e| e.to_string()))
+                                Update::StreamFinished(url, status.err().map(|e| e.to_string()))
                             }
                             Err(e) => {
                                 log::error!("Failed to create encoder: {}", e);
-                                Message::StreamFinished(url, Some(e.to_string()))
+                                Update::StreamFinished(url, Some(e.to_string()))
                             }
                         }
                     });
                 }
                 Command::none()
             }
-            Message::StreamFinished(url, status) => {
+            Update::StreamFinished(url, status) => {
                 match status {
                     None => {
                         log::info!("Stream to {} finished successfully", url,);
@@ -160,12 +173,12 @@ impl MainView {
                 }
                 Command::none()
             }
-            Message::UpdateUrlText(url) => {
+            Update::SetUrlText(url) => {
                 self.set_url(url);
                 log::info!("Updated url to {:?}", self.url);
                 Command::none()
             }
-            Message::UpdateFrame(frame) => {
+            Update::SetCurrentFrame(frame) => {
                 if let Some(sender) = self.stream_sender.as_mut() {
                     let _ = sender.try_send(frame.clone());
                 }
@@ -173,18 +186,18 @@ impl MainView {
                 self.current_frame = frame;
                 Command::none()
             }
-            Message::UpdateMonitor(id) => {
+            Update::SetMonitor(id) => {
                 self.selected_monitor = Some(id);
                 Command::none()
             }
-            Message::UpdateTheme(theme) => {
+            Update::SetTheme(theme) => {
                 self.theme = theme;
                 Command::none()
             }
         }
     }
 
-    fn view(&mut self) -> Element<Message> {
+    pub fn view(&mut self) -> Element<Update> {
         let choose_theme = Theme::ALL.iter().fold(
             Row::new().push(Text::new("Choose a theme:")),
             |row, theme| {
@@ -193,7 +206,7 @@ impl MainView {
                         *theme,
                         &format!("{:?}", theme),
                         Some(self.theme),
-                        Message::UpdateTheme,
+                        Update::SetTheme,
                     )
                     .style(self.theme),
                 )
@@ -201,15 +214,15 @@ impl MainView {
         );
 
         let stop = Button::new(&mut self.ui.stop, Text::new("stop"))
-            .on_press(Message::Stop)
+            .on_press(Update::Stop)
             .style(self.theme);
 
         let stream = Button::new(&mut self.ui.stream, Text::new("stream"))
-            .on_press(Message::Stream)
+            .on_press(Update::Stream)
             .style(self.theme);
 
         let view = Button::new(&mut self.ui.view, Text::new("view"))
-            .on_press(Message::View)
+            .on_press(Update::View)
             .style(self.theme);
 
         let buttons = Row::new().push(stop).push(stream).push(view);
@@ -218,7 +231,7 @@ impl MainView {
             &mut self.ui.url,
             "stream url",
             &self.ui.url_text,
-            Message::UpdateUrlText,
+            Update::SetUrlText,
         )
         .style(self.theme);
         let url = Row::new().push(url);
@@ -230,7 +243,7 @@ impl MainView {
                 DisplayID::Primary,
                 "Primary",
                 self.selected_monitor,
-                Message::UpdateMonitor,
+                Update::SetMonitor,
             )
             .style(self.theme),
         );
@@ -241,7 +254,7 @@ impl MainView {
                     DisplayID::Index(i),
                     i.to_string(),
                     self.selected_monitor,
-                    Message::UpdateMonitor,
+                    Update::SetMonitor,
                 )
                 .style(self.theme),
             );
