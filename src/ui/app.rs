@@ -1,5 +1,5 @@
-use iced::pane_grid::{self, Axis, Direction, DragEvent, ResizeEvent, PaneGrid};
-use iced::{executor, Application, Command, Element, Subscription, Container, Length};
+use iced::pane_grid::{self, Axis, Direction, DragEvent, PaneGrid, ResizeEvent};
+use iced::{executor, Application, Command, Container, Element, Length, Subscription};
 
 use super::views::{MainView, View, ViewUpdate};
 
@@ -30,7 +30,7 @@ impl App {
     fn update_views(&mut self, update: ViewsGridUpdate) -> Command<ViewsGridUpdate> {
         match update {
             ViewsGridUpdate::Open(axis) => {
-                if let Some( view_id) = self.views.active() {
+                if let Some(view_id) = self.views.active() {
                     let _ = self
                         .views
                         .split(axis, &view_id, View::Main(MainView::default()));
@@ -79,9 +79,7 @@ impl Application for App {
     fn new(_flags: ()) -> (Self, Command<Self::Message>) {
         let first_view = View::Main(MainView::default());
         let (views, _) = pane_grid::State::new(first_view);
-        let app = App {
-            views,
-        };
+        let app = App { views };
         let startup = Command::none();
         (app, startup)
     }
@@ -116,18 +114,17 @@ impl Application for App {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        let grid = PaneGrid::new(&mut self.views,
-            |id, view, _focus| {
-                // TODO: style differentely depending on |focus|
-                view.view()
-                    .map(move |update| Message::ViewUpdate(id, update))
-            })
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .spacing(5)
-            .on_drag(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Dragged(event)))
-            .on_resize(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Resized(event)))
-            .on_key_press(handle_hotkey);
+        let grid = PaneGrid::new(&mut self.views, |id, view, _focus| {
+            // TODO: style differentely depending on |focus|
+            view.view()
+                .map(move |update| Message::ViewUpdate(id, update))
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .spacing(5)
+        .on_drag(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Dragged(event)))
+        .on_resize(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Resized(event)))
+        .on_key_press(handle_hotkey);
 
         Container::new(grid)
             .width(Length::Fill)
@@ -149,7 +146,7 @@ fn handle_hotkey(event: pane_grid::KeyPressEvent) -> Option<Message> {
         KeyCode::H => Some(ViewsGridUpdate::SplitFocused(Axis::Horizontal)),
         KeyCode::W => Some(ViewsGridUpdate::CloseFocused),
         KeyCode::D => Some(ViewsGridUpdate::Open(Axis::Horizontal)),
-        _ => None
+        _ => None,
     };
 
     update.map(Message::ViewsGridUpdate)

@@ -13,7 +13,6 @@ use crate::stream::stream;
 use crate::ui::style::Theme;
 use crate::view::view;
 
-
 #[derive(Debug, Clone)]
 pub enum Update {
     Stop,

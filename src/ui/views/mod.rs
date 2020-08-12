@@ -1,4 +1,4 @@
-use iced::{Command, Subscription, Element};
+use iced::{Command, Element, Subscription};
 
 mod main;
 
@@ -16,7 +16,7 @@ pub enum View {
 impl View {
     pub fn subscription(&self) -> Subscription<ViewUpdate> {
         match self {
-            View::Main(view) => view.subscription().map(ViewUpdate::Main)
+            View::Main(view) => view.subscription().map(ViewUpdate::Main),
         }
     }
 
@@ -31,7 +31,7 @@ impl View {
 
     pub fn view(&mut self) -> Element<ViewUpdate> {
         match self {
-            View::Main(view) => view.view().map(ViewUpdate::Main)
+            View::Main(view) => view.view().map(ViewUpdate::Main),
         }
     }
 }
