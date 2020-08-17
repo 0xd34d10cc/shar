@@ -92,6 +92,7 @@ where
             } else {
                 in_sequence
             };
+
             if !accept {
                 continue;
             }

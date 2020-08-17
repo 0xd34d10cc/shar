@@ -90,7 +90,7 @@ impl Application for App {
 
     fn subscription(&self) -> Subscription<Self::Message> {
         Subscription::batch(self.views.iter().map(|(id, view)| {
-            let id = id.clone();
+            let id = *id;
             view.subscription()
                 .map(move |update| Message::ViewUpdate(id, update))
         }))
@@ -103,7 +103,7 @@ impl Application for App {
             }
             Message::ViewUpdate(view_id, message) => {
                 if let Some(view) = self.views.get_mut(&view_id) {
-                    let id = view_id.clone();
+                    let id = view_id;
                     view.update(message)
                         .map(move |message| Message::ViewUpdate(id, message))
                 } else {
@@ -138,16 +138,16 @@ fn handle_hotkey(event: pane_grid::KeyPressEvent) -> Option<Message> {
     use iced::keyboard::KeyCode;
 
     let update = match event.key_code {
-        KeyCode::Up => Some(ViewsGridUpdate::FocusAdjacent(Direction::Up)),
-        KeyCode::Down => Some(ViewsGridUpdate::FocusAdjacent(Direction::Down)),
-        KeyCode::Left => Some(ViewsGridUpdate::FocusAdjacent(Direction::Left)),
-        KeyCode::Right => Some(ViewsGridUpdate::FocusAdjacent(Direction::Right)),
-        KeyCode::V => Some(ViewsGridUpdate::SplitFocused(Axis::Vertical)),
-        KeyCode::H => Some(ViewsGridUpdate::SplitFocused(Axis::Horizontal)),
-        KeyCode::W => Some(ViewsGridUpdate::CloseFocused),
-        KeyCode::D => Some(ViewsGridUpdate::Open(Axis::Horizontal)),
-        _ => None,
+        KeyCode::Up => ViewsGridUpdate::FocusAdjacent(Direction::Up),
+        KeyCode::Down => ViewsGridUpdate::FocusAdjacent(Direction::Down),
+        KeyCode::Left => ViewsGridUpdate::FocusAdjacent(Direction::Left),
+        KeyCode::Right => ViewsGridUpdate::FocusAdjacent(Direction::Right),
+        KeyCode::V => ViewsGridUpdate::SplitFocused(Axis::Vertical),
+        KeyCode::H => ViewsGridUpdate::SplitFocused(Axis::Horizontal),
+        KeyCode::W => ViewsGridUpdate::CloseFocused,
+        KeyCode::D => ViewsGridUpdate::Open(Axis::Horizontal),
+        _ => return None,
     };
 
-    update.map(Message::ViewsGridUpdate)
+    Some(Message::ViewsGridUpdate(update))
 }
