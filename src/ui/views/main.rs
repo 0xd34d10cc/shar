@@ -29,7 +29,7 @@ pub enum Update {
 fn background() -> image::Handle {
     const BACKGROUND_IMAGE: &[u8] = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/resources/background_without_semitransparency.png"
+        "/resources/background.png"
     ));
     static BACKGROUND: OnceCell<image::Handle> = OnceCell::new();
 

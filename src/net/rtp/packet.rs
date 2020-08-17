@@ -25,8 +25,8 @@ pub struct Header {
     ssrc: U32<NetworkEndian>,
 }
 
-#[allow(unused)] // TODO: remove after rtp receiver is implemented
 impl Header {
+    #[allow(unused)]
     pub fn version(&self) -> u8 {
         self.flags >> 6
     }
@@ -36,10 +36,12 @@ impl Header {
         self.flags |= version << 6;
     }
 
+    #[allow(unused)]
     pub fn has_padding(&self) -> bool {
         (self.flags & (1 << 5)) != 0
     }
 
+    #[allow(unused)]
     pub fn set_padding(&mut self, pad: bool) {
         if pad {
             self.flags |= 1 << 5;
@@ -48,18 +50,22 @@ impl Header {
         }
     }
 
+    #[allow(unused)]
     pub fn has_extensions(&self) -> bool {
         (self.flags & (1 << 4)) != 0
     }
 
+    #[allow(unused)]
     pub fn contributors_count(&self) -> u8 {
         self.flags & 0b1111
     }
 
+    #[allow(unused)]
     pub fn marked(&self) -> bool {
         (self.payload_type & (1 << 7)) != 0
     }
 
+    #[allow(unused)]
     pub fn payload_type(&self) -> u8 {
         self.payload_type & !(1 << 7)
     }
@@ -85,10 +91,12 @@ impl Header {
         self.timestamp.set(t);
     }
 
+    #[allow(unused)]
     pub fn ssrc(&self) -> u32 {
         self.ssrc.get()
     }
 
+    #[allow(unused)]
     pub fn set_ssrc(&mut self, ssrc: u32) {
         self.ssrc.set(ssrc);
     }
@@ -99,7 +107,6 @@ pub struct Packet<B> {
     payload: B,
 }
 
-#[allow(unused)] // TODO: remove after rtp receiver is implemented
 impl<B> Packet<B>
 where
     B: ByteSlice,
