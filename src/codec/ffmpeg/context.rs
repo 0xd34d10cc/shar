@@ -1,4 +1,4 @@
-use ffmpeg_sys_next as ff;
+use ffmpeg_sys as ff;
 
 use super::codec::Codec;
 use crate::codec;

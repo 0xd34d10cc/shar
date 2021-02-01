@@ -1,4 +1,4 @@
-use ffmpeg_sys_next as ff;
+use ffmpeg_sys as ff;
 
 pub struct Unit {
     inner: *mut ff::AVPacket,

@@ -1,7 +1,7 @@
 use std::ffi::CStr;
 
 use anyhow::{anyhow, Result};
-use ffmpeg_sys_next as ff;
+use ffmpeg_sys as ff;
 use iced::image;
 
 use super::codec::Codec;

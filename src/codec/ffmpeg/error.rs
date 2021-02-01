@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
-use ffmpeg_sys_next as ff;
+use ffmpeg_sys as ff;
 use libc::c_int;
 
 #[derive(Debug, Clone, Copy)]

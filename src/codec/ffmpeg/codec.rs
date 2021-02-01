@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use ffmpeg_sys_next as ff;
+use ffmpeg_sys as ff;
 
 #[derive(Clone, Copy)]
 pub struct Codec(*mut ff::AVCodec);
