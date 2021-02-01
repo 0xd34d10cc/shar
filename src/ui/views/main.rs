@@ -35,9 +35,9 @@ fn background() -> image::Handle {
 
     BACKGROUND
         .get_or_init(|| {
-            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::PNG)
+            let background = load_from_memory_with_format(BACKGROUND_IMAGE, ImageFormat::Png)
                 .unwrap()
-                .to_bgra();
+                .to_bgra8();
             let (width, height) = background.dimensions();
             let pixels = background.into_raw();
             image::Handle::from_pixels(width, height, pixels)
@@ -106,7 +106,8 @@ impl MainView {
             Some(StreamState::Streaming(_)) => {
                 let handles = crate::capture::capture(
                     self.selected_monitor.unwrap_or(DisplayID::Primary),
-                    30,
+                    // FIXME: unhardcode fps
+                    60,
                 );
                 handles.map(Update::SetCurrentFrame)
             }

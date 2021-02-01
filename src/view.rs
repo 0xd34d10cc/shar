@@ -30,7 +30,7 @@ impl DecoderId {
                     // FIXME: unhardcode
                     codec::Config {
                         bitrate: 5000 * 1024,
-                        fps: 30,
+                        fps: 60,
                         gop: 3,
                         width: 1920,
                         height: 1080,
