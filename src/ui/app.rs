@@ -3,12 +3,14 @@ use iced::pane_grid::{self, Axis, Content, Direction, DragEvent, PaneGrid, Resiz
 use iced::{executor, Application, Clipboard, Command, Container, Element, Length, Subscription};
 use iced_native::{subscription, Event};
 
-use super::views::{MainView, View, ViewUpdate};
+use super::config::Config;
+use super::views::{AppConfigView, MainView, View, ViewUpdate};
 
 type ViewID = pane_grid::Pane;
 
 #[derive(Debug)]
 pub enum ViewsGridUpdate {
+    ToggleConfig,
     Open(Axis), // TODO: add params
     SplitFocused(Axis),
     FocusAdjacent(Direction),
@@ -26,35 +28,44 @@ pub enum Message {
 
 pub struct App {
     views: pane_grid::State<View>,
-    active_view: Option<ViewID>,
+    active_view: ViewID,
+    config_view: Option<ViewID>,
+    config: Config,
 }
 
 impl App {
     fn update_views(&mut self, update: ViewsGridUpdate) -> Command<ViewsGridUpdate> {
         match update {
-            ViewsGridUpdate::Open(axis) => {
-                if let Some(view_id) = self.active_view {
+            ViewsGridUpdate::ToggleConfig => {
+                if let Some(id) = self.config_view {
+                    let (_view, adjasent) = self.views.close(&id).unwrap();
+                    if self.active_view == id {
+                        self.active_view = adjasent;
+                    }
+                    self.config_view = None;
+                } else {
+                    let view = View::AppConfig(AppConfigView::new(self.config.clone()));
                     let (id, _split) = self
                         .views
-                        .split(axis, &view_id, View::Main(MainView::default()))
+                        .split(Axis::Horizontal, &self.active_view, view)
                         .unwrap();
-                    self.active_view = Some(id);
+                    self.active_view = id;
+                    self.config_view = Some(id);
                 }
+            }
+            ViewsGridUpdate::Open(axis) => {
+                let view = View::Main(MainView::new(self.config.clone()));
+                let (id, _split) = self.views.split(axis, &self.active_view, view).unwrap();
+                self.active_view = id;
             }
             ViewsGridUpdate::SplitFocused(axis) => {
-                if let Some(view_id) = self.active_view {
-                    let (id, _split) = self
-                        .views
-                        .split(axis, &view_id, View::Main(MainView::default()))
-                        .unwrap();
-                    self.active_view = Some(id);
-                }
+                let view = View::Main(MainView::new(self.config.clone()));
+                let (id, _split) = self.views.split(axis, &self.active_view, view).unwrap();
+                self.active_view = id;
             }
             ViewsGridUpdate::FocusAdjacent(direction) => {
-                if let Some(view_id) = self.active_view {
-                    if let Some(adjacent) = self.views.adjacent(&view_id, direction) {
-                        self.active_view = Some(adjacent);
-                    }
+                if let Some(adjacent) = self.views.adjacent(&self.active_view, direction) {
+                    self.active_view = adjacent;
                 }
             }
             ViewsGridUpdate::Resized(ResizeEvent { split, ratio }) => {
@@ -65,12 +76,12 @@ impl App {
             }
             ViewsGridUpdate::Dragged(_) => {}
             ViewsGridUpdate::Clicked(id) => {
-                self.active_view = Some(id);
+                self.active_view = id;
             }
             ViewsGridUpdate::CloseFocused => {
-                if let Some(view_id) = self.active_view.take() {
-                    let (_view, id) = self.views.close(&view_id).unwrap();
-                    self.active_view = Some(id);
+                if self.views.len() > 1 {
+                    let (_view, id) = self.views.close(&self.active_view).unwrap();
+                    self.active_view = id;
                 }
             }
         }
@@ -85,11 +96,14 @@ impl Application for App {
     type Executor = executor::Default;
 
     fn new(_flags: ()) -> (Self, Command<Self::Message>) {
-        let first_view = View::Main(MainView::default());
+        let config = Config::default();
+        let first_view = View::Main(MainView::new(config.clone()));
         let (views, id) = pane_grid::State::new(first_view);
         let app = App {
-            active_view: Some(id),
             views,
+            active_view: id,
+            config,
+            config_view: None,
         };
         let startup = Command::none();
         (app, startup)
@@ -111,7 +125,7 @@ impl Application for App {
             Event::Keyboard(keyboard::Event::KeyPressed {
                 modifiers,
                 key_code,
-            }) if modifiers.is_command_pressed() => key_to_message(key_code),
+            }) => key_to_message(modifiers, key_code),
             _ => None,
         });
 
@@ -136,6 +150,7 @@ impl Application for App {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
+        let style = self.config.load().theme;
         let grid = PaneGrid::new(&mut self.views, |id, view| {
             let content = view
                 .view()
@@ -143,6 +158,7 @@ impl Application for App {
 
             Content::new(content)
         })
+        // .style(style)
         .width(Length::Fill)
         .height(Length::Fill)
         .spacing(5)
@@ -153,6 +169,7 @@ impl Application for App {
         });
 
         Container::new(grid)
+            .style(style)
             .width(Length::Fill)
             .height(Length::Fill)
             .padding(5)
@@ -160,16 +177,18 @@ impl Application for App {
     }
 }
 
-fn key_to_message(code: KeyCode) -> Option<Message> {
+fn key_to_message(modifiers: keyboard::Modifiers, code: KeyCode) -> Option<Message> {
+    let cmd = modifiers.is_command_pressed();
     let update = match code {
-        KeyCode::Up => ViewsGridUpdate::FocusAdjacent(Direction::Up),
-        KeyCode::Down => ViewsGridUpdate::FocusAdjacent(Direction::Down),
-        KeyCode::Left => ViewsGridUpdate::FocusAdjacent(Direction::Left),
-        KeyCode::Right => ViewsGridUpdate::FocusAdjacent(Direction::Right),
-        KeyCode::V => ViewsGridUpdate::SplitFocused(Axis::Vertical),
-        KeyCode::H => ViewsGridUpdate::SplitFocused(Axis::Horizontal),
-        KeyCode::W => ViewsGridUpdate::CloseFocused,
-        KeyCode::D => ViewsGridUpdate::Open(Axis::Horizontal),
+        KeyCode::Up if cmd => ViewsGridUpdate::FocusAdjacent(Direction::Up),
+        KeyCode::Down if cmd => ViewsGridUpdate::FocusAdjacent(Direction::Down),
+        KeyCode::Left if cmd => ViewsGridUpdate::FocusAdjacent(Direction::Left),
+        KeyCode::Right if cmd => ViewsGridUpdate::FocusAdjacent(Direction::Right),
+        KeyCode::V if cmd => ViewsGridUpdate::SplitFocused(Axis::Vertical),
+        KeyCode::H if cmd => ViewsGridUpdate::SplitFocused(Axis::Horizontal),
+        KeyCode::W if cmd => ViewsGridUpdate::CloseFocused,
+        KeyCode::D if cmd => ViewsGridUpdate::Open(Axis::Horizontal),
+        KeyCode::F1 => ViewsGridUpdate::ToggleConfig,
         _ => return None,
     };
 
