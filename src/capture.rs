@@ -3,8 +3,8 @@ use std::io::ErrorKind;
 use std::time::Duration;
 
 use anyhow::{anyhow, Result};
-use futures::stream::{BoxStream, StreamExt};
 use futures::channel::mpsc;
+use futures::stream::{BoxStream, StreamExt};
 use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 

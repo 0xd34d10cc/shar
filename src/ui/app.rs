@@ -1,5 +1,5 @@
 use iced::keyboard::{self, KeyCode};
-use iced::pane_grid::{self, Content, Axis, Direction, DragEvent, PaneGrid, ResizeEvent};
+use iced::pane_grid::{self, Axis, Content, Direction, DragEvent, PaneGrid, ResizeEvent};
 use iced::{executor, Application, Clipboard, Command, Container, Element, Length, Subscription};
 use iced_native::{subscription, Event};
 
@@ -137,7 +137,8 @@ impl Application for App {
 
     fn view(&mut self) -> Element<Self::Message> {
         let grid = PaneGrid::new(&mut self.views, |id, view| {
-            let content = view.view()
+            let content = view
+                .view()
                 .map(move |update| Message::ViewUpdate(id, update));
 
             Content::new(content)
