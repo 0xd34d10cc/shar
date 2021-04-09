@@ -14,7 +14,7 @@ impl Theme {
 
 impl Default for Theme {
     fn default() -> Theme {
-        Theme::Light
+        Theme::Dark
     }
 }
 
