@@ -5,14 +5,14 @@ authors = ["0xd34d10cc <0xd34d10cc@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-iced = { version = "0.1.1", features = ["image", "tokio"] }
+iced = { version = "0.3", features = ["image", "tokio"] }
 scrap = "0.5.0"
 anyhow = "1.0.31"
-tokio = { version = "0.2", features = ["time", "sync", "stream", "dns", "tcp", "udp", "io-util"] }
+tokio = { version = "1.4", features = ["macros", "time", "sync", "net", "io-util"] }
 log = "0.4.8"
 env_logger = "0.8"
 dotenv = "0.15.0"
-iced_native = "0.2.2"
+iced_native = "0.4"
 futures = "0.3.5"
 image = { version = "0.23", features = ["png"] }
 url = "2.1.1"
@@ -21,7 +21,7 @@ once_cell = "1.4.0"
 num-integer = "0.1.43"
 ffmpeg-sys = { version = "4.2", default-features = false, features = ["static", "avcodec"] }
 libc = "0.2.71"
-zerocopy = "0.3.0"
+zerocopy = "0.4.0"
 byteorder = "1.3.4"
 pin-project = "1.0"
 

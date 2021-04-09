@@ -28,7 +28,7 @@ where
     }
 
     pub async fn receive(&mut self, address: SocketAddr) -> io::Result<()> {
-        let mut socket = UdpSocket::bind(address).await?;
+        let socket = UdpSocket::bind(address).await?;
 
         const MAX_MTU: usize = 2048; // TODO: unhardcode
         let mut buffer = [0u8; MAX_MTU];

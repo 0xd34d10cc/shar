@@ -36,7 +36,7 @@ impl Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         const MAX_SIZE: usize = ff::AV_ERROR_MAX_STRING_SIZE as usize;
-        let mut buffer = [0 as libc::c_char; MAX_SIZE];
+        let mut buffer = [0i8; MAX_SIZE];
         let s = unsafe {
             ff::av_strerror(self.code, buffer.as_mut_ptr(), buffer.len());
             std::ffi::CStr::from_ptr(buffer.as_mut_ptr())

@@ -1,11 +1,11 @@
 use ::image::{load_from_memory_with_format, ImageFormat};
+use futures::channel::mpsc::{self, Sender};
 use iced::image::{self, Image};
 use iced::{
     button, text_input, Align, Button, Column, Command, Container, Element, Length, Radio, Row,
     Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
-use tokio::sync::mpsc::{self, Sender};
 use url::Url;
 
 use crate::capture::DisplayID;

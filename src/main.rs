@@ -14,6 +14,6 @@ use ui::App;
 fn main() -> Result<()> {
     dotenv::dotenv().ok();
     env_logger::init();
-    App::run(Settings::with_flags(()));
+    App::run(Settings::with_flags(()))?;
     Ok(())
 }
