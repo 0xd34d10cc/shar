@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use futures::stream::{BoxStream, StreamExt};
+use futures::channel::mpsc;
 use iced::{image, Subscription};
 use scrap::{Capturer, Display};
-use tokio::sync::mpsc::{self, error::TrySendError};
 
 pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
@@ -59,9 +59,12 @@ impl CaptureDisplay {
 
                 match sender.try_send(handle) {
                     Ok(_) => {}
-                    Err(TrySendError::Closed(_)) => break,
-                    Err(TrySendError::Full(_)) => {
+                    Err(e) if e.is_disconnected() => break,
+                    Err(e) if e.is_full() => {
                         log::warn!("Captured frame drops because consumer could not keep up");
+                    }
+                    Err(e) => {
+                        log::error!("Failed to send frame: {}", e);
                     }
                 }
 

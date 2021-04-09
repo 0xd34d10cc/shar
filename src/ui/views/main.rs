@@ -5,7 +5,7 @@ use iced::{
     Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
-use tokio::sync::mpsc::{self, Sender};
+use futures::channel::mpsc::{self, Sender};
 use url::Url;
 
 use crate::capture::DisplayID;

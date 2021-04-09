@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Result};
 use futures::stream::{Stream, StreamExt};
 use iced::image;
-use tokio::sync::mpsc;
+use futures::channel::mpsc;
+use futures::SinkExt;
 use url::Url;
 
 use crate::codec::Encoder;

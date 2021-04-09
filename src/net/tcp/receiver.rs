@@ -34,7 +34,7 @@ where
                 Ok(stream) => stream,
                 Err(e) => {
                     log::error!("Failed to connect to {}: {}", address, e);
-                    tokio::time::delay_for(Duration::from_secs(1)).await;
+                    tokio::time::sleep(Duration::from_secs(1)).await;
                     continue;
                 }
             };

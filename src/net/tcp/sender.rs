@@ -4,7 +4,6 @@ use std::net::SocketAddr;
 
 use anyhow::Result;
 use futures::future::FutureExt;
-use futures::select;
 use futures::stream::{Stream, StreamExt};
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
@@ -70,19 +69,15 @@ where
     }
 
     pub async fn stream_on(&mut self, address: SocketAddr) -> Result<()> {
-        let mut listener = TcpListener::bind(address).await?;
+        let listener = TcpListener::bind(address).await?;
         loop {
-            select! {
-                client = listener.next().fuse() => {
+            futures::select! {
+                client = listener.accept().fuse() => {
                     match client {
-                        Some(Ok(client)) => self.accept(client),
-                        Some(Err(e)) => {
+                        Ok((client, _address)) => self.accept(client),
+                        Err(e) => {
                             log::error!("tcp accept failed: {}", e);
                             break Err(e.into());
-                        },
-                        None => {
-                            log::warn!("tcp listener closed");
-                            break Ok(())
                         },
                     }
                 },

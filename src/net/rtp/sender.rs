@@ -26,8 +26,7 @@ where
 
     pub async fn stream_to(&mut self, remote: SocketAddr) -> io::Result<()> {
         let local: SocketAddr = ([0, 0, 0, 0], 0).into();
-        // ...why the heck are these async? -_-
-        let mut socket = UdpSocket::bind(local).await?;
+        let socket = UdpSocket::bind(local).await?;
         socket.connect(remote).await?;
 
         let mut npackets = 0usize;
@@ -60,7 +59,7 @@ where
 
                 npackets += 1;
                 if npackets % 128 == 0 {
-                    tokio::time::delay_for(Duration::from_millis(1)).await;
+                    tokio::time::sleep(Duration::from_millis(1)).await;
                 }
             }
         }

@@ -1,5 +1,7 @@
-use iced::pane_grid::{self, Axis, Direction, DragEvent, PaneGrid, ResizeEvent};
-use iced::{executor, Application, Command, Container, Element, Length, Subscription};
+use iced::keyboard::{self, KeyCode};
+use iced::pane_grid::{self, Content, Axis, Direction, DragEvent, PaneGrid, ResizeEvent};
+use iced::{executor, Application, Clipboard, Command, Container, Element, Length, Subscription};
+use iced_native::{subscription, Event};
 
 use super::views::{MainView, View, ViewUpdate};
 
@@ -12,7 +14,7 @@ pub enum ViewsGridUpdate {
     FocusAdjacent(Direction),
     Dragged(DragEvent),
     Resized(ResizeEvent),
-    // Close(ViewID),
+    Clicked(ViewID),
     CloseFocused,
 }
 
@@ -24,29 +26,34 @@ pub enum Message {
 
 pub struct App {
     views: pane_grid::State<View>,
+    active_view: Option<ViewID>,
 }
 
 impl App {
     fn update_views(&mut self, update: ViewsGridUpdate) -> Command<ViewsGridUpdate> {
         match update {
             ViewsGridUpdate::Open(axis) => {
-                if let Some(view_id) = self.views.active() {
-                    let _ = self
+                if let Some(view_id) = self.active_view {
+                    let (id, _split) = self
                         .views
-                        .split(axis, &view_id, View::Main(MainView::default()));
+                        .split(axis, &view_id, View::Main(MainView::default()))
+                        .unwrap();
+                    self.active_view = Some(id);
                 }
             }
             ViewsGridUpdate::SplitFocused(axis) => {
-                if let Some(view_id) = self.views.active() {
-                    let _ = self
+                if let Some(view_id) = self.active_view {
+                    let (id, _split) = self
                         .views
-                        .split(axis, &view_id, View::Main(MainView::default()));
+                        .split(axis, &view_id, View::Main(MainView::default()))
+                        .unwrap();
+                    self.active_view = Some(id);
                 }
             }
             ViewsGridUpdate::FocusAdjacent(direction) => {
-                if let Some(view_id) = self.views.active() {
+                if let Some(view_id) = self.active_view {
                     if let Some(adjacent) = self.views.adjacent(&view_id, direction) {
-                        self.views.focus(&adjacent);
+                        self.active_view = Some(adjacent);
                     }
                 }
             }
@@ -57,12 +64,13 @@ impl App {
                 self.views.swap(&pane, &target);
             }
             ViewsGridUpdate::Dragged(_) => {}
-            // ViewsGridUpdate::Close(view_id) => {
-            //     let _ = self.views.close(&view_id);
-            // }
+            ViewsGridUpdate::Clicked(id) => {
+                self.active_view = Some(id);
+            }
             ViewsGridUpdate::CloseFocused => {
-                if let Some(view_id) = self.views.active() {
-                    let _ = self.views.close(&view_id);
+                if let Some(view_id) = self.active_view.take() {
+                    let (_view, id) = self.views.close(&view_id).unwrap();
+                    self.active_view = Some(id);
                 }
             }
         }
@@ -78,8 +86,11 @@ impl Application for App {
 
     fn new(_flags: ()) -> (Self, Command<Self::Message>) {
         let first_view = View::Main(MainView::default());
-        let (views, _) = pane_grid::State::new(first_view);
-        let app = App { views };
+        let (views, id) = pane_grid::State::new(first_view);
+        let app = App {
+            active_view: Some(id),
+            views,
+        };
         let startup = Command::none();
         (app, startup)
     }
@@ -89,14 +100,25 @@ impl Application for App {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        Subscription::batch(self.views.iter().map(|(id, view)| {
+        let views_events = self.views.iter().map(|(id, view)| {
             let id = *id;
             view.subscription()
-                .map(move |update| Message::ViewUpdate(id, update))
-        }))
+                .with(id)
+                .map(|(id, update)| Message::ViewUpdate(id, update))
+        });
+
+        let keyboard_events = subscription::events_with(|event, _status| match event {
+            Event::Keyboard(keyboard::Event::KeyPressed {
+                modifiers,
+                key_code,
+            }) if modifiers.is_command_pressed() => key_to_message(key_code),
+            _ => None,
+        });
+
+        Subscription::batch(Some(keyboard_events).into_iter().chain(views_events))
     }
 
-    fn update(&mut self, message: Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Message, _clipboard: &mut Clipboard) -> Command<Self::Message> {
         match message {
             Message::ViewsGridUpdate(update) => {
                 self.update_views(update).map(Message::ViewsGridUpdate)
@@ -114,17 +136,20 @@ impl Application for App {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        let grid = PaneGrid::new(&mut self.views, |id, view, _focus| {
-            // TODO: style differentely depending on |focus|
-            view.view()
-                .map(move |update| Message::ViewUpdate(id, update))
+        let grid = PaneGrid::new(&mut self.views, |id, view| {
+            let content = view.view()
+                .map(move |update| Message::ViewUpdate(id, update));
+
+            Content::new(content)
         })
         .width(Length::Fill)
         .height(Length::Fill)
         .spacing(5)
         .on_drag(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Dragged(event)))
-        .on_resize(|event| Message::ViewsGridUpdate(ViewsGridUpdate::Resized(event)))
-        .on_key_press(handle_hotkey);
+        .on_click(|id| Message::ViewsGridUpdate(ViewsGridUpdate::Clicked(id)))
+        .on_resize(10, |event| {
+            Message::ViewsGridUpdate(ViewsGridUpdate::Resized(event))
+        });
 
         Container::new(grid)
             .width(Length::Fill)
@@ -134,10 +159,8 @@ impl Application for App {
     }
 }
 
-fn handle_hotkey(event: pane_grid::KeyPressEvent) -> Option<Message> {
-    use iced::keyboard::KeyCode;
-
-    let update = match event.key_code {
+fn key_to_message(code: KeyCode) -> Option<Message> {
+    let update = match code {
         KeyCode::Up => ViewsGridUpdate::FocusAdjacent(Direction::Up),
         KeyCode::Down => ViewsGridUpdate::FocusAdjacent(Direction::Down),
         KeyCode::Left => ViewsGridUpdate::FocusAdjacent(Direction::Left),

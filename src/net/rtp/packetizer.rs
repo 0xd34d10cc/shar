@@ -169,12 +169,12 @@ mod tests {
 
     #[test]
     fn packetize_full_units() {
-        let mut data = [
+        let data = [
             0x00, 0x00, 0x01, 0x09, 0x10, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x20, 0xe9, 0x00,
             0x80, 0x0c, 0x32, 0x00, 0x00, 0x01, 0x68, 0xce, 0x3c, 0x80,
         ];
 
-        let mut packetizer = Packetizer::with_mtu(20, &mut data);
+        let mut packetizer = Packetizer::with_mtu(20, &data);
 
         // first nal unit
         assert_eq!(
