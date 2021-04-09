@@ -10,7 +10,7 @@ use url::Url;
 
 use crate::capture::DisplayID;
 use crate::stream::stream;
-use crate::ui::style::Theme;
+use crate::ui::config::Config;
 use crate::view::view;
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,6 @@ pub enum Update {
     SetUrlText(String),
     SetCurrentFrame(image::Handle),
     SetMonitor(DisplayID),
-    SetTheme(Theme),
 }
 
 fn background() -> image::Handle {
@@ -68,13 +67,13 @@ pub struct MainView {
     url: Option<Url>,
     num_monitors: usize,
     selected_monitor: Option<DisplayID>,
-    theme: Theme,
+    config: Config,
 
     ui: UIState,
 }
 
-impl Default for MainView {
-    fn default() -> Self {
+impl MainView {
+    pub fn new(config: Config) -> Self {
         let mut app = MainView {
             state: None,
             current_frame: background(),
@@ -83,7 +82,7 @@ impl Default for MainView {
                 .map(|monitors| monitors.len())
                 .unwrap_or(0),
             selected_monitor: None,
-            theme: Theme::Dark,
+            config,
 
             url: None,
             ui: UIState::default(),
@@ -92,9 +91,7 @@ impl Default for MainView {
         app.set_url("tcp://127.0.0.1:1337".into());
         app
     }
-}
 
-impl MainView {
     fn set_url(&mut self, url: String) {
         self.url = url.parse().ok();
         self.ui.url_text = url;
@@ -190,40 +187,23 @@ impl MainView {
                 self.selected_monitor = Some(id);
                 Command::none()
             }
-            Update::SetTheme(theme) => {
-                self.theme = theme;
-                Command::none()
-            }
         }
     }
 
     pub fn view(&mut self) -> Element<Update> {
-        let choose_theme = Theme::ALL.iter().fold(
-            Row::new().push(Text::new("Choose a theme:")),
-            |row, theme| {
-                row.push(
-                    Radio::new(
-                        *theme,
-                        &format!("{:?}", theme),
-                        Some(self.theme),
-                        Update::SetTheme,
-                    )
-                    .style(self.theme),
-                )
-            },
-        );
+        let style = self.config.load().theme;
 
         let stop = Button::new(&mut self.ui.stop, Text::new("stop"))
             .on_press(Update::Stop)
-            .style(self.theme);
+            .style(style);
 
         let stream = Button::new(&mut self.ui.stream, Text::new("stream"))
             .on_press(Update::Stream)
-            .style(self.theme);
+            .style(style);
 
         let view = Button::new(&mut self.ui.view, Text::new("view"))
             .on_press(Update::View)
-            .style(self.theme);
+            .style(style);
 
         let buttons = Row::new().push(stop).push(stream).push(view);
 
@@ -233,7 +213,7 @@ impl MainView {
             &self.ui.url_text,
             Update::SetUrlText,
         )
-        .style(self.theme);
+        .style(style);
         let url = Row::new().push(url);
 
         let stream_state = Text::new(format!("{:?}", self.state));
@@ -245,7 +225,7 @@ impl MainView {
                 self.selected_monitor,
                 Update::SetMonitor,
             )
-            .style(self.theme),
+            .style(style),
         );
 
         for i in 0..self.num_monitors {
@@ -256,13 +236,12 @@ impl MainView {
                     self.selected_monitor,
                     Update::SetMonitor,
                 )
-                .style(self.theme),
+                .style(style),
             );
         }
 
         let layout = Column::new()
             .align_items(Align::Center)
-            .push(choose_theme)
             .push(buttons)
             .push(url)
             .push(stream_state)
@@ -274,7 +253,7 @@ impl MainView {
             .height(Length::Fill)
             .center_x()
             .center_y()
-            .style(self.theme);
+            .style(style);
 
         Element::from(content)
     }
