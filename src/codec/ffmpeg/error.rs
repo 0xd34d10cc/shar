@@ -1,7 +1,7 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
 use ffmpeg_sys as ff;
-use libc::c_int;
+use std::os::raw::c_int;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Error {
