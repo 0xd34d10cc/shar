@@ -2,7 +2,7 @@ use ::image::{load_from_memory_with_format, ImageFormat};
 use futures::channel::mpsc::{self, Sender};
 use iced::image::{self, Image};
 use iced::{
-    button, text_input, Align, Button, Column, Command, Container, Element, Length, Radio, Row,
+    button, pick_list, text_input, Align, Button, Column, Command, Container, Element, Length, Row,
     Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
@@ -52,6 +52,8 @@ struct UIState {
 
     url_text: String,
     url: text_input::State,
+
+    monitors: pick_list::State<DisplayID>,
 }
 
 #[derive(Debug)]
@@ -65,8 +67,8 @@ pub struct MainView {
     current_frame: image::Handle,
     stream_sender: Option<Sender<image::Handle>>,
     url: Option<Url>,
-    num_monitors: usize,
-    selected_monitor: Option<DisplayID>,
+    monitors: Vec<DisplayID>,
+    selected_monitor: DisplayID,
     config: Config,
 
     ui: UIState,
@@ -74,14 +76,19 @@ pub struct MainView {
 
 impl MainView {
     pub fn new(config: Config) -> Self {
+        let n_monitors = scrap::Display::all()
+            .map(|monitors| monitors.len())
+            .unwrap_or(0);
+
         let mut app = MainView {
             state: None,
             current_frame: background(),
             stream_sender: None,
-            num_monitors: scrap::Display::all()
-                .map(|monitors| monitors.len())
-                .unwrap_or(0),
-            selected_monitor: None,
+            monitors: Some(DisplayID::Primary)
+                .into_iter()
+                .chain((0..n_monitors).map(DisplayID::Index))
+                .collect(),
+            selected_monitor: DisplayID::Primary,
             config,
 
             url: None,
@@ -102,7 +109,7 @@ impl MainView {
             None => Subscription::none(),
             Some(StreamState::Streaming(_)) => {
                 let handles = crate::capture::capture(
-                    self.selected_monitor.unwrap_or(DisplayID::Primary),
+                    self.selected_monitor,
                     // FIXME: unhardcode fps
                     60,
                 );
@@ -140,7 +147,7 @@ impl MainView {
                         // TODO: unhardcode
                         let config = crate::codec::Config {
                             bitrate: 5000 * 1024,
-                            fps: 30,
+                            fps: 60,
                             gop: 3,
                             width: 1920,
                             height: 1080,
@@ -184,7 +191,7 @@ impl MainView {
                 Command::none()
             }
             Update::SetMonitor(id) => {
-                self.selected_monitor = Some(id);
+                self.selected_monitor = id;
                 Command::none()
             }
         }
@@ -205,8 +212,6 @@ impl MainView {
             .on_press(Update::View)
             .style(style);
 
-        let buttons = Row::new().push(stop).push(stream).push(view);
-
         let url = TextInput::new(
             &mut self.ui.url,
             "stream url",
@@ -214,45 +219,35 @@ impl MainView {
             Update::SetUrlText,
         )
         .style(style);
-        let url = Row::new().push(url);
+
+        let monitors = pick_list::PickList::new(
+            &mut self.ui.monitors,
+            self.monitors.as_slice(),
+            Some(self.selected_monitor),
+            Update::SetMonitor,
+        )
+        .style(style);
+
+        let url = Row::new()
+            .push(url)
+            .push(monitors)
+            .push(stop)
+            .push(stream)
+            .push(view);
 
         let stream_state = Text::new(format!("{:?}", self.state));
         let video_frame = Image::new(self.current_frame.clone());
-        let mut monitors = Row::new().push(
-            Radio::new(
-                DisplayID::Primary,
-                "Primary",
-                self.selected_monitor,
-                Update::SetMonitor,
-            )
-            .style(style),
-        );
-
-        for i in 0..self.num_monitors {
-            monitors = monitors.push(
-                Radio::new(
-                    DisplayID::Index(i),
-                    i.to_string(),
-                    self.selected_monitor,
-                    Update::SetMonitor,
-                )
-                .style(style),
-            );
-        }
 
         let layout = Column::new()
             .align_items(Align::Center)
-            .push(buttons)
             .push(url)
             .push(stream_state)
-            .push(monitors)
             .push(video_frame);
 
         let content = Container::new(layout)
             .width(Length::Fill)
             .height(Length::Fill)
             .center_x()
-            .center_y()
             .style(style);
 
         Element::from(content)

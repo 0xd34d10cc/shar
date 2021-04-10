@@ -1,3 +1,4 @@
+use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::io::ErrorKind;
 use std::time::Duration;
@@ -16,6 +17,15 @@ pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
 pub enum DisplayID {
     Primary,
     Index(usize),
+}
+
+impl fmt::Display for DisplayID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DisplayID::Primary => write!(f, "Primary display"),
+            DisplayID::Index(i) => write!(f, "Display #{}", i),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Hash)]
