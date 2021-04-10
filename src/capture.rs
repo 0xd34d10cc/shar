@@ -1,7 +1,7 @@
+use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::io::ErrorKind;
 use std::time::Duration;
-use std::fmt;
 
 use anyhow::{anyhow, Result};
 use futures::channel::mpsc;
