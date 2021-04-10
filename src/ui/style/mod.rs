@@ -1,4 +1,6 @@
-use iced::{button, checkbox, container, progress_bar, radio, scrollable, slider, text_input};
+use iced::{
+    button, checkbox, container, progress_bar, radio, rule, scrollable, slider, text_input, pick_list,
+};
 
 mod dark;
 
@@ -86,6 +88,24 @@ impl From<Theme> for Box<dyn checkbox::StyleSheet> {
         match theme {
             Theme::Light => Default::default(),
             Theme::Dark => dark::Checkbox.into(),
+        }
+    }
+}
+
+impl From<Theme> for Box<dyn rule::StyleSheet> {
+    fn from(theme: Theme) -> Self {
+        match theme {
+            Theme::Light => Default::default(),
+            Theme::Dark => dark::Rule.into(),
+        }
+    }
+}
+
+impl From<Theme> for Box<dyn pick_list::StyleSheet> {
+    fn from(theme: Theme) -> Self {
+        match theme {
+            Theme::Light => Default::default(),
+            Theme::Dark => dark::PickList.into(),
         }
     }
 }
