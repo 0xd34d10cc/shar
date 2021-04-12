@@ -101,7 +101,7 @@ pub fn bind_request(id: [u8; 12]) -> [u8; 20] {
     let mut request = Packet::new(&mut packet[..]).unwrap();
     request.header_mut().type_.set(0x1); // request
     request.header_mut().len.set(0);
-    request.header_mut().cookie.set(u32::from_be_bytes(MAGIC));
+    request.header_mut().cookie.set(MAGIC_COOKIE);
     request.header_mut().id = id;
     packet
 }
@@ -239,15 +239,12 @@ mod tests {
         let mut attributes = packet.attributes();
         assert_eq!(
             attributes.next(),
-            Some(Attribute::Unknown(
-                0x20,
-                &[0x00, 0x01, 0x8c, 0x8e, 0xd3, 0x4d, 0x10, 0xcc][..]
-            ))
+            Some(Attribute::XorMappedIpAddr("242.95.180.142:44444".parse().unwrap()))
         );
     }
 
-    #[test]
-    fn send_request() {
+    #[allow(unused)]
+    fn example_request() {
         use std::net::{ToSocketAddrs, UdpSocket};
 
         let addr = "stun.l.google.com:19302"
