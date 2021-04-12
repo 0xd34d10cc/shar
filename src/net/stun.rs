@@ -239,7 +239,9 @@ mod tests {
         let mut attributes = packet.attributes();
         assert_eq!(
             attributes.next(),
-            Some(Attribute::XorMappedIpAddr("242.95.180.142:44444".parse().unwrap()))
+            Some(Attribute::XorMappedIpAddr(
+                "242.95.180.142:44444".parse().unwrap()
+            ))
         );
     }
 
