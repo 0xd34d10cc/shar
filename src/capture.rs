@@ -9,28 +9,28 @@ use futures::stream::{BoxStream, StreamExt};
 use iced::{image, Subscription};
 use scrap::{Capturer, Display};
 
-pub fn capture(id: DisplayID, fps: u32) -> Subscription<image::Handle> {
+pub fn capture(id: DisplayId, fps: u32) -> Subscription<image::Handle> {
     Subscription::from_recipe(CaptureDisplay { id, fps })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DisplayID {
+pub enum DisplayId {
     Primary,
     Index(usize),
 }
 
-impl fmt::Display for DisplayID {
+impl fmt::Display for DisplayId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DisplayID::Primary => write!(f, "Primary display"),
-            DisplayID::Index(i) => write!(f, "Display #{}", i),
+            DisplayId::Primary => write!(f, "Primary display"),
+            DisplayId::Index(i) => write!(f, "Display #{}", i),
         }
     }
 }
 
 #[derive(Debug, Clone, Hash)]
 pub struct CaptureDisplay {
-    pub id: DisplayID,
+    pub id: DisplayId,
     pub fps: u32,
 }
 
@@ -87,11 +87,11 @@ impl CaptureDisplay {
 
     fn display(&self) -> Result<Display> {
         match self.id {
-            DisplayID::Primary => {
+            DisplayId::Primary => {
                 let display = Display::primary()?;
                 Ok(display)
             }
-            DisplayID::Index(i) => {
+            DisplayId::Index(i) => {
                 let displays = Display::all().unwrap();
                 let display = displays
                     .into_iter()

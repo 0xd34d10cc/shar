@@ -1,9 +1,12 @@
+#![allow(unused)]
+
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use byteorder::NetworkEndian;
 use zerocopy::{AsBytes, ByteSlice, ByteSliceMut, FromBytes, LayoutVerified, Unaligned, U16, U32};
 
 const MAGIC: [u8; 4] = [0x21, 0x12, 0xA4, 0x42];
+
 pub const MAGIC_COOKIE: u32 = u32::from_be_bytes(MAGIC);
 
 // STUN message header has the following format:

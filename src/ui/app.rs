@@ -6,7 +6,7 @@ use iced_native::{subscription, Event};
 use super::views::{AppConfigView, MainView, View, ViewUpdate};
 use crate::config::{self, Config};
 
-type ViewID = pane_grid::Pane;
+type ViewId = pane_grid::Pane;
 
 #[derive(Debug)]
 pub enum ViewsGridUpdate {
@@ -16,20 +16,20 @@ pub enum ViewsGridUpdate {
     FocusAdjacent(Direction),
     Dragged(DragEvent),
     Resized(ResizeEvent),
-    Clicked(ViewID),
+    Clicked(ViewId),
     CloseFocused,
 }
 
 #[derive(Debug)]
 pub enum Message {
     ViewsGridUpdate(ViewsGridUpdate),
-    ViewUpdate(ViewID, ViewUpdate),
+    ViewUpdate(ViewId, ViewUpdate),
 }
 
 pub struct App {
     views: pane_grid::State<View>,
-    active_view: ViewID,
-    config_view: Option<ViewID>,
+    active_view: ViewId,
+    config_view: Option<ViewId>,
     config: Config,
 }
 

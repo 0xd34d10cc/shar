@@ -8,7 +8,7 @@ use iced::{
 use once_cell::sync::OnceCell;
 use url::Url;
 
-use crate::capture::DisplayID;
+use crate::capture::DisplayId;
 use crate::config::Config;
 use crate::stream::stream;
 use crate::view::view;
@@ -22,7 +22,7 @@ pub enum Update {
     StreamFinished(Url, Option<String>),
     SetUrlText(String),
     SetCurrentFrame(image::Handle),
-    SetMonitor(DisplayID),
+    SetMonitor(DisplayId),
 }
 
 fn background() -> image::Handle {
@@ -45,7 +45,7 @@ fn background() -> image::Handle {
 }
 
 #[derive(Default)]
-struct UIState {
+struct State {
     stop: button::State,
     stream: button::State,
     view: button::State,
@@ -53,7 +53,7 @@ struct UIState {
     url_text: String,
     url: text_input::State,
 
-    monitors: pick_list::State<DisplayID>,
+    monitors: pick_list::State<DisplayId>,
 }
 
 #[derive(Debug)]
@@ -63,15 +63,15 @@ enum StreamState {
 }
 
 pub struct MainView {
-    state: Option<StreamState>,
+    stream_state: Option<StreamState>,
     current_frame: image::Handle,
     stream_sender: Option<Sender<image::Handle>>,
     url: Option<Url>,
-    monitors: Vec<DisplayID>,
-    selected_monitor: DisplayID,
+    monitors: Vec<DisplayId>,
+    selected_monitor: DisplayId,
     config: Config,
 
-    ui: UIState,
+    ui: State,
 }
 
 impl MainView {
@@ -81,18 +81,18 @@ impl MainView {
             .unwrap_or(0);
 
         let mut app = MainView {
-            state: None,
+            stream_state: None,
             current_frame: background(),
             stream_sender: None,
-            monitors: Some(DisplayID::Primary)
+            monitors: Some(DisplayId::Primary)
                 .into_iter()
-                .chain((0..n_monitors).map(DisplayID::Index))
+                .chain((0..n_monitors).map(DisplayId::Index))
                 .collect(),
-            selected_monitor: DisplayID::Primary,
+            selected_monitor: DisplayId::Primary,
             config,
 
             url: None,
-            ui: UIState::default(),
+            ui: State::default(),
         };
 
         app.set_url("tcp://127.0.0.1:1337".into());
@@ -105,7 +105,7 @@ impl MainView {
     }
 
     pub fn subscription(&self) -> Subscription<Update> {
-        match &self.state {
+        match &self.stream_state {
             None => Subscription::none(),
             Some(StreamState::Streaming(_)) => {
                 let handles = crate::capture::capture(
@@ -122,21 +122,21 @@ impl MainView {
     pub fn update(&mut self, message: Update) -> Command<Update> {
         match message {
             Update::Stop => {
-                self.state = None;
+                self.stream_state = None;
                 self.stream_sender.take();
                 log::info!("Stopped");
                 Command::from(async { Update::SetCurrentFrame(background()) })
             }
             Update::View => {
                 if let Some(ref url) = self.url {
-                    self.state = Some(StreamState::Viewing(url.clone()));
+                    self.stream_state = Some(StreamState::Viewing(url.clone()));
                     log::info!("Start viewing from {}", url);
                 }
                 Command::none()
             }
             Update::Stream => {
                 if let Some(ref url) = self.url {
-                    self.state = Some(StreamState::Streaming(url.clone()));
+                    self.stream_state = Some(StreamState::Streaming(url.clone()));
                     log::info!("Start streaming to {}", url);
 
                     let (sender, receiver) = mpsc::channel(5);
@@ -235,7 +235,7 @@ impl MainView {
             .push(stream)
             .push(view);
 
-        let stream_state = Text::new(format!("{:?}", self.state));
+        let stream_state = Text::new(format!("{:?}", self.stream_state));
         let video_frame = Image::new(self.current_frame.clone());
 
         let layout = Column::new()
