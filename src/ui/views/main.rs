@@ -9,8 +9,8 @@ use once_cell::sync::OnceCell;
 use url::Url;
 
 use crate::capture::DisplayID;
+use crate::config::Config;
 use crate::stream::stream;
-use crate::ui::config::Config;
 use crate::view::view;
 
 #[derive(Debug, Clone)]

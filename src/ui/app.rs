@@ -3,8 +3,8 @@ use iced::pane_grid::{self, Axis, Content, Direction, DragEvent, PaneGrid, Resiz
 use iced::{executor, Application, Clipboard, Command, Container, Element, Length, Subscription};
 use iced_native::{subscription, Event};
 
-use super::config::Config;
 use super::views::{AppConfigView, MainView, View, ViewUpdate};
+use crate::config::{self, Config};
 
 type ViewID = pane_grid::Pane;
 
@@ -31,6 +31,15 @@ pub struct App {
     active_view: ViewID,
     config_view: Option<ViewID>,
     config: Config,
+}
+
+impl Drop for App {
+    fn drop(&mut self) {
+        let c = self.config.load();
+        if let Err(e) = config::save(&*c) {
+            log::error!("Failed to save config file: {}", e);
+        }
+    }
 }
 
 impl App {
@@ -91,12 +100,11 @@ impl App {
 }
 
 impl Application for App {
-    type Flags = ();
+    type Flags = Config;
     type Message = Message;
     type Executor = executor::Default;
 
-    fn new(_flags: ()) -> (Self, Command<Self::Message>) {
-        let config = Config::default();
+    fn new(config: Config) -> (Self, Command<Self::Message>) {
         let first_view = View::Main(MainView::new(config.clone()));
         let (views, id) = pane_grid::State::new(first_view);
         let app = App {

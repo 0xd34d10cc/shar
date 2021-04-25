@@ -1,6 +1,5 @@
 mod app;
-mod config;
-mod style;
+pub mod style;
 mod views;
 
 pub use app::App;

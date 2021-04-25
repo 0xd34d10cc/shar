@@ -2,10 +2,11 @@ use iced::{
     button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
     text_input,
 };
+use serde::{Deserialize, Serialize};
 
 mod dark;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Theme {
     Light,
     Dark,
