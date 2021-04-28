@@ -26,7 +26,7 @@ pub const MAGIC_COOKIE: u32 = u32::from_be_bytes(MAGIC);
 // RFC 5389 Section 6
 #[derive(Debug, FromBytes, AsBytes, Unaligned)]
 #[repr(C, packed)]
-struct Header {
+pub struct Header {
     type_: U16<NetworkEndian>,
     len: U16<NetworkEndian>,
     cookie: U32<NetworkEndian>,
@@ -47,7 +47,7 @@ impl Header {
     }
 }
 
-struct Packet<B> {
+pub struct Packet<B> {
     header: LayoutVerified<B, Header>,
     payload: B,
 }
@@ -94,7 +94,7 @@ where
         &mut self.header
     }
 
-    pub fn payload_mut(&mut self) -> &mut B {
+    pub fn payload_mut(&mut self) -> &mut [u8] {
         &mut self.payload
     }
 }
@@ -209,7 +209,7 @@ where
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum Attribute<B> {
+pub enum Attribute<B> {
     Unknown(u16, B),
     MappedAddress(SocketAddr),
     XorMappedIpAddr(SocketAddr),

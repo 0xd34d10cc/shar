@@ -6,10 +6,11 @@ use iced::{
     Subscription, Text, TextInput,
 };
 use once_cell::sync::OnceCell;
+use std::sync::Arc;
 use url::Url;
 
 use crate::capture::DisplayId;
-use crate::config::Config;
+use crate::state::AppState;
 use crate::stream::stream;
 use crate::view::view;
 
@@ -45,7 +46,7 @@ fn background() -> image::Handle {
 }
 
 #[derive(Default)]
-struct State {
+struct Widgets {
     stop: button::State,
     stream: button::State,
     view: button::State,
@@ -69,13 +70,13 @@ pub struct MainView {
     url: Option<Url>,
     monitors: Vec<DisplayId>,
     selected_monitor: DisplayId,
-    config: Config,
 
-    ui: State,
+    state: Arc<AppState>,
+    ui: Widgets,
 }
 
 impl MainView {
-    pub fn new(config: Config) -> Self {
+    pub fn new(state: Arc<AppState>) -> Self {
         let n_monitors = scrap::Display::all()
             .map(|monitors| monitors.len())
             .unwrap_or(0);
@@ -89,10 +90,10 @@ impl MainView {
                 .chain((0..n_monitors).map(DisplayId::Index))
                 .collect(),
             selected_monitor: DisplayId::Primary,
-            config,
-
             url: None,
-            ui: State::default(),
+
+            state,
+            ui: Widgets::default(),
         };
 
         app.set_url("tcp://127.0.0.1:1337".into());
@@ -198,7 +199,7 @@ impl MainView {
     }
 
     pub fn view(&mut self) -> Element<Update> {
-        let style = self.config.load().theme;
+        let style = self.state.config.load().theme;
 
         let stop = Button::new(&mut self.ui.stop, Text::new("stop"))
             .on_press(Update::Stop)
