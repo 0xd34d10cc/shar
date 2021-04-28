@@ -21,7 +21,7 @@ impl Default for ConfigData {
     fn default() -> Self {
         Self {
             theme: Theme::Dark,
-            selune_server: Url::parse("ws://127.0.0.1:1337/streams").unwrap(),
+            selune_server: Url::parse("ws://127.0.0.1:8088/streams").unwrap(),
             stun_server: vec![
                 "stun1.l.google.com:19302".to_owned(),
                 "stun2.l.google.com:19302".to_owned(),

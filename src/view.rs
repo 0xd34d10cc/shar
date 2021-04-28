@@ -6,6 +6,7 @@ use futures::future;
 use futures::sink::SinkExt;
 use futures::stream::{BoxStream, Stream, StreamExt};
 use iced::image;
+use iced_native::subscription::Recipe;
 use iced_native::Subscription;
 use url::Url;
 
@@ -47,7 +48,7 @@ struct ViewStream {
     decoder_id: DecoderId,
 }
 
-impl<H, I> iced_native::subscription::Recipe<H, I> for ViewStream
+impl<H, I> Recipe<H, I> for ViewStream
 where
     H: Hasher,
 {

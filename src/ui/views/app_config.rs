@@ -1,9 +1,10 @@
 use std::ops::Deref;
+use std::sync::Arc;
 
 use iced::{text_input, Column, Command, Element, Radio, Row, Subscription, Text, TextInput};
 use url::Url;
 
-use crate::config::Config;
+use crate::state::AppState;
 use crate::ui::style::Theme;
 
 #[derive(Debug, Clone)]
@@ -13,32 +14,32 @@ pub enum Update {
 }
 
 #[derive(Default)]
-struct State {
+struct Widgets {
     selune_server: text_input::State,
 }
 
 pub struct AppConfigView {
-    config: Config,
+    state: Arc<AppState>,
     selune_server: String,
-    state: State,
+    ui: Widgets,
 }
 
 impl AppConfigView {
-    pub fn new(config: Config) -> Self {
-        let c = config.load();
+    pub fn new(state: Arc<AppState>) -> Self {
+        let c = state.config.load();
         let selune_server = c.selune_server.as_str().to_owned();
         AppConfigView {
-            config,
+            state,
             selune_server,
 
-            state: State::default(),
+            ui: Widgets::default(),
         }
     }
 
     pub fn update(&mut self, update: Update) -> Command<Update> {
         match update {
             Update::SetTheme(theme) => {
-                self.config.rcu(|c| {
+                self.state.config.rcu(|c| {
                     let mut data = c.deref().clone();
                     data.theme = theme;
                     data
@@ -47,7 +48,7 @@ impl AppConfigView {
             Update::SetSeluneServer(address) => {
                 self.selune_server = address;
                 if let Ok(address) = Url::parse(&self.selune_server) {
-                    self.config.rcu(move |c| {
+                    self.state.config.rcu(move |c| {
                         let mut data = c.deref().clone();
                         data.selune_server = address.clone();
                         data
@@ -64,7 +65,7 @@ impl AppConfigView {
     }
 
     pub fn view(&mut self) -> Element<Update> {
-        let config = self.config.load();
+        let config = self.state.config.load();
         let style = config.theme;
 
         let choose_theme = Theme::ALL.iter().fold(
@@ -84,7 +85,7 @@ impl AppConfigView {
 
         let selune_server = Row::new().push(Text::new("Selune server")).push(
             TextInput::new(
-                &mut self.state.selune_server,
+                &mut self.ui.selune_server,
                 "address",
                 &self.selune_server,
                 Update::SetSeluneServer,
