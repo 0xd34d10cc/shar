@@ -18,6 +18,9 @@ use state::AppState;
 use ui::App;
 
 fn main() -> Result<()> {
+    // Enable logging by default
+    // TODO: remove for release
+    std::env::set_var("RUST_LOG", "shar=debug");
     dotenv::dotenv().ok();
     env_logger::init();
     let config = config::load().unwrap_or_else(|e| {

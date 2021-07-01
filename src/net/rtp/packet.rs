@@ -163,10 +163,10 @@ mod tests {
         let packet = Packet::parse(&data[..]).unwrap();
         let header = packet.header();
         assert_eq!(header.version(), 2);
-        assert_eq!(header.has_padding(), false);
-        assert_eq!(header.has_extensions(), false);
+        assert!(!header.has_padding());
+        assert!(!header.has_extensions());
         assert_eq!(header.contributors_count(), 0);
-        assert_eq!(header.marked(), false);
+        assert!(!header.marked());
         assert_eq!(header.payload_type(), 96);
         assert_eq!(header.sequence(), 12858);
         assert_eq!(header.timestamp(), 55194821);
@@ -192,10 +192,10 @@ mod tests {
 
         let header = packet.header();
         assert_eq!(header.version(), 2);
-        assert_eq!(header.has_padding(), false);
-        assert_eq!(header.has_extensions(), false);
+        assert!(!header.has_padding());
+        assert!(!header.has_extensions());
         assert_eq!(header.contributors_count(), 0);
-        assert_eq!(header.marked(), false);
+        assert!(!header.marked());
         assert_eq!(header.sequence(), 1337);
         assert_eq!(header.timestamp(), 45678);
         assert_eq!(header.ssrc(), 0xd34d10cc);

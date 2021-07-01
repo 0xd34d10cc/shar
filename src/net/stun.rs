@@ -34,6 +34,10 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn id(&self) -> &[u8; 12] {
+        &self.id
+    }
+
     pub fn class(&self) -> u8 {
         let msb = self.type_.as_bytes()[0];
         let lsb = self.type_.as_bytes()[1];

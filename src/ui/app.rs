@@ -22,7 +22,7 @@ pub enum ViewsGridUpdate {
     Resized(ResizeEvent),
     Clicked(ViewId),
     CloseFocused,
-    Connected(Box<SeluneClient>),
+    Connected(Box<(SeluneClient, tokio::sync::mpsc::Receiver<crate::net::selune::NewViewer>)>),
 
     Nop,
 }
@@ -110,11 +110,12 @@ impl App {
                     self.active_view = id;
                 }
             }
-            ViewsGridUpdate::Connected(client) => {
+            ViewsGridUpdate::Connected(b) => {
+                let (client, receiver) = *b;
                 let state = self.state.clone();
                 return Command::from(async move {
                     let mut selune = state.selune.lock().await;
-                    *selune = Some(*client);
+                    *selune = Some((client, receiver));
                     Message::ViewsGridUpdate(ViewsGridUpdate::Nop)
                 });
             }
@@ -141,8 +142,9 @@ impl Application for App {
         };
         let address = app.state.config.load().selune_server.clone();
         let startup = Command::from(async move {
-            let client = SeluneClient::connect(address.as_str()).await.unwrap();
-            Message::ViewsGridUpdate(ViewsGridUpdate::Connected(Box::new(client)))
+            let (sender, receiver) = tokio::sync::mpsc::channel(10);
+            let client = SeluneClient::connect(address.as_str(), sender).await.unwrap();
+            Message::ViewsGridUpdate(ViewsGridUpdate::Connected(Box::new((client, receiver))))
         });
         (app, startup)
     }
