@@ -177,7 +177,7 @@ bool State::handle(SDL_Event *event) {
   } else if (event->type == SDL_MOUSEWHEEL) {
     /* mouse wheel */
     // nk_vec2((float)evt->wheel.x, (float)evt->wheel.y));
-    nk_input_scroll(m_context.get(), static_cast<float>(event->wheel.y));
+    nk_input_scroll(m_context.get(), nk_vec2(0.0, static_cast<float>(event->wheel.y)));
     return true;
   }
 

@@ -1,6 +1,7 @@
 #include "window.hpp"
 
 #include <cstdlib>
+#include <cassert>
 #include <atomic>
 
 #include "disable_warnings_push.hpp"

@@ -8,6 +8,7 @@
 #include "disable_warnings_push.hpp"
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)
 #include <spdlog/sinks/msvc_sink.h>
 #endif
@@ -48,7 +49,7 @@ public:
     if (loglvl != LogLevel::None) {
       auto time = to_string(SystemClock::now());
       auto file_path = location / (fmt::format("shar_{}.log", time));
-      sinks.emplace_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>(file_path.string()));
+      sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_path.string()));
     }
 
 #if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)

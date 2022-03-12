@@ -7,6 +7,7 @@ extern "C" {
 #include <numeric>
 #include <memory>
 #include <optional>
+#include <array>
 
 #include "codec/convert.hpp"
 #include "common/time.hpp"

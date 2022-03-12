@@ -37,6 +37,7 @@ target_include_directories(common
 
 target_link_libraries(common
   PUBLIC ${CONAN_LIBS_FMT}
+  PUBLIC ${CONAN_LIBS_SPDLOG}
   PRIVATE ${CONAN_LIBS_LIBPNG}
   PRIVATE ${CONAN_LIBS_ZLIB}
 )

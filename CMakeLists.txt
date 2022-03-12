@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 project(shar CXX)
 
+add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
+
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
@@ -26,5 +28,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("-- Building in debug mode")
     set(SHAR_COMPILE_DEFINITIONS SHAR_DEBUG_BUILD)
 endif()
+
+
+add_subdirectory(3rdparty/screen_capture_lite)
+set(CONAN_INCLUDE_DIRS_SCREENCAPTURE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/screen_capture_lite/include)
+set(CONAN_LIBS_SCREENCAPTURELITE screen_capture_lite)
 
 add_subdirectory(src)

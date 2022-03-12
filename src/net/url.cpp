@@ -1,4 +1,5 @@
 #include <charconv>
+#include <cassert>
 
 #include "disable_warnings_push.hpp"
 #include <fmt/format.h>
