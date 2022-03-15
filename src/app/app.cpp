@@ -185,7 +185,7 @@ void App::update_title_bar() {
   nk_end(m_ui.context());
 
   if (!active) {
-    if (nk_window_is_closed(m_ui.context(), "shar")) {
+    if (nk_window_is_hidden(m_ui.context(), "shar")) {
       m_running.cancel();
     }
 
@@ -196,8 +196,7 @@ void App::update_title_bar() {
   }
 }
 
-void App::load_background_picture()
-{
+void App::load_background_picture() {
   const auto dir = env::shar_dir();
   if (!dir.has_value()) {
     return;
