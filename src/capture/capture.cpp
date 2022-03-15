@@ -46,9 +46,47 @@ struct FrameHandler {
                         std::shared_ptr<Sender<BGRAFrame>> bgra_sender)
       : m_consumer(std::move(consumer))
       , m_bgra_consumer(std::move(bgra_sender))
+      , m_cursor_data(std::make_shared<CursorData>())
       {}
 
   void operator()(const sc::Image& buffer, const sc::Monitor& /* monitor */) {
+    // TODO: add sync for cursor reading
+    const sc::ImageBGRA* current = sc::StartSrc(buffer);
+    if (m_cursor_data->cursor) {
+      // go to cursor starting location
+      for (auto i = 0; i < m_cursor_data->last_position.y; i++) {
+        current = sc::GotoNextRow(buffer, current);
+      }
+
+      auto y_to_draw = m_cursor_data->height;
+      if (m_cursor_data->last_position.y + m_cursor_data->height >
+          Height(buffer)) {
+        if (m_cursor_data->last_position.y > Height(buffer)) {
+          y_to_draw = 0;
+        } else {
+          y_to_draw = Height(buffer) - m_cursor_data->last_position.y;
+        }       
+      }
+
+      auto x_to_draw = m_cursor_data->width;
+      if (m_cursor_data->last_position.x + m_cursor_data->width >
+          Width(buffer)) {
+        if (m_cursor_data->last_position.x > Width(buffer)) {
+          x_to_draw = 0; 
+        } else {
+          x_to_draw = Width(buffer) - m_cursor_data->last_position.x;
+        }
+      }
+
+      for (auto i = 0; i < y_to_draw; i++) {
+        auto* row_to_change = const_cast<sc::ImageBGRA*>(current);
+        std::memcpy(row_to_change + m_cursor_data->last_position.x,
+                    m_cursor_data->cursor.get() + m_cursor_data->width*i,
+                    x_to_draw);
+        current = sc::GotoNextRow(buffer, current);
+      }
+    }
+     
     Frame frame = convert(buffer);
     frame.set_timestamp(Clock::now());
 
@@ -63,10 +101,45 @@ struct FrameHandler {
     m_consumer->try_send(std::move(frame));
   }
 
+  void operator()(const sc::Image* img, const sc::Point& point) {
+    // TODO: add sync for cursor writing
+    if (img) {
+      const auto width = static_cast<usize>(Width(*img));
+      const auto height = static_cast<usize>(Height(*img));
+      const auto size = width * height;
+      if (!m_cursor_data->cursor) {
+        m_cursor_data->cursor = std::make_unique<sc::ImageBGRA[]>(size);
+      }
+
+      if (size > (m_cursor_data->width * m_cursor_data->height)) {
+        m_cursor_data->cursor = std::make_unique<sc::ImageBGRA[]>(size);
+      }
+
+      m_cursor_data->width = width;
+      m_cursor_data->height = height;
+
+      sc::Extract(*img,
+                  reinterpret_cast<u8*>(m_cursor_data->cursor.get()),
+                  size * NCHANNELS);
+    }
+
+    m_cursor_data->last_position = point;
+  }
+
   // shared_ptr is used here because FrameHandler has to be copyable
   // onNewFrame accepts handler by const reference
   std::shared_ptr<Sender<Frame>> m_consumer;
   std::shared_ptr<Sender<BGRAFrame>> m_bgra_consumer;
+
+  // mouse control block
+  struct CursorData {
+    usize width;
+    usize height;
+    sc::Point last_position;
+    std::unique_ptr<sc::ImageBGRA[]> cursor;
+  };
+
+  std::shared_ptr<CursorData> m_cursor_data;
 };
 
 }
@@ -98,10 +171,13 @@ void Capture::run(Sender<Frame> output,
   auto bgra_sender = bgra_output
     ? std::make_shared<Sender<BGRAFrame>>(std::move(*bgra_output))
     : std::shared_ptr<Sender<BGRAFrame>>();
-
-  m_capture_config->onNewFrame(FrameHandler{std::move(sender),
-                                            std::move(bgra_sender)});
+  
+  auto frame_handler = FrameHandler{std::move(sender), std::move(bgra_sender)};
+  m_capture_config->onNewFrame(frame_handler);
+  m_capture_config->onMouseChanged(frame_handler);
   m_capture = m_capture_config->start_capturing();
+
+  m_capture->setMouseChangeInterval(m_interval);
   m_capture->setFrameChangeInterval(m_interval);
 }
 
