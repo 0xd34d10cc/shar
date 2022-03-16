@@ -6,9 +6,6 @@ if not exist .git (
   exit 1
 )
 
-conan remote add --force d34dpkgs https://api.bintray.com/conan/0xd34d10cc/d34dpkgs
-conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-
 if not exist build (
   mkdir build
 )
@@ -19,7 +16,7 @@ if not exist build\debug (
 )
 
 pushd build\debug
-conan install ..\.. --build=missing -s build_type=Debug
+conan install ..\.. --build=missing -s build_type=Debug -s compiler.runtime=MDd
 popd
 
 rem Release
@@ -32,10 +29,10 @@ conan install ..\.. --build=missing -s build_type=Release
 popd
 
 rem Profile (release with debug info)
-if not exist build\profile (
-  mkdir build\profile
-)
+rem if not exist build\profile (
+rem  mkdir build\profile
+rem )
 
-pushd build\profile
-conan install ..\.. --build=missing -s build_type=RelWithDebInfo
-popd
+rem pushd build\profile
+rem conan install ..\.. --build=missing -s build_type=RelWithDebInfo
+rem popd

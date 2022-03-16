@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 project(shar CXX)
 
-add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
-
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
