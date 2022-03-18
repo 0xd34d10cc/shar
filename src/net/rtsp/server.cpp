@@ -145,7 +145,9 @@ void Server::receive_request(ClientPos pos) {
             Headers{client.m_headers.data(), client.m_headers.size()}};
 
         auto request_size = request.parse(
-            BytesRef{client.m_in.data(), client.m_received_bytes});
+          BytesRef{client.m_in.data(), client.m_received_bytes}
+        );
+
         if (auto e = request_size.err()) {
           // incomplete parse, receive more data
           if (e == make_error_code(Error::NotEnoughData)) {

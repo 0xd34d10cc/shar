@@ -8,6 +8,7 @@
 #include "disable_warnings_push.hpp"
 #include <asio/io_context.hpp>
 #include <asio/ip/address.hpp>
+#include <asio/ip/host_name.hpp>
 #include <asio/steady_timer.hpp>
 #include <asio/buffer.hpp>
 #include <asio/ip/udp.hpp>
@@ -27,6 +28,10 @@ using Port = u16;
 
 using IOContext = asio::io_context;
 using Timer = asio::steady_timer;
+
+inline auto host_name(ErrorCode& ec) {
+  return asio::ip::host_name(ec);
+}
 
 inline auto span(const void* data, usize size) { return asio::buffer(data, size); }
 inline auto span(void* data, usize size) { return asio::buffer(data, size); }
