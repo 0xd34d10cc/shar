@@ -238,6 +238,23 @@ void App::update_metrics() {
   background_style = old_bg;
 }
 
+void App::update_settings_window() {
+  const float settings_width = 150.0f;
+  const float settings_height = 300.0f;
+
+  const auto window_size = m_window.size();
+  const float x_offset = (window_size.width() / 2) - (settings_width / 2);
+  const float y_offset = (window_size.height() / 2) - (settings_height / 2);
+  if (nk_begin(m_ui.context(),
+               "settings",
+               nk_rect(x_offset, y_offset, settings_width, settings_height),
+               NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE | NK_WINDOW_MOVABLE)) {
+  }
+
+  nk_end(m_ui.context());
+
+}
+
 std::optional<StreamState> App::update_config() {
   std::optional<StreamState> new_state;
   bool display_error = !m_last_error.empty();
@@ -276,9 +293,19 @@ std::optional<StreamState> App::update_config() {
       }
     }();
 
-    nk_layout_row_static(m_ui.context(), 20, 70, 2);
+    nk_layout_row_dynamic(m_ui.context(), 20, 3);
     nk_label(m_ui.context(), "state: ", NK_TEXT_LEFT);
     nk_label(m_ui.context(), state, NK_TEXT_LEFT);
+
+    // TODO: add gear icon to the settings button
+    bool is_settings = !!nk_button_symbol_label(m_ui.context(),
+                           NK_SYMBOL_NONE,
+                           "settings",
+                           NK_TEXT_RIGHT);
+
+    if (is_settings) {
+      m_settings_enabled = !m_settings_enabled;
+    }
 
     if (display_error) {
       nk_layout_row_dynamic(m_ui.context(), 40, 1);
@@ -423,7 +450,11 @@ void App::update_gui() {
         switch_to(*new_state);
         m_last_error.clear();
       }
+      if (m_settings_enabled) {
+        update_settings_window();
+      }
     }
+
   } catch (const std::exception& e) {
     m_last_error = e.what();
 

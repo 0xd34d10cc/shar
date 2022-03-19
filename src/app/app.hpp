@@ -37,6 +37,7 @@ private:
   void update_metrics();
   void update_title_bar();
   void load_background_picture();
+  void update_settings_window();
   // update config window
   std::optional<StreamState> update_config();
   void render_background();
@@ -61,6 +62,7 @@ private:
 
   bool m_gui_enabled{true};
   bool m_render_metrics{false};
+  bool m_settings_enabled{false};
 
   ui::Window m_window;
   ui::Renderer m_renderer;
