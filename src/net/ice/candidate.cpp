@@ -43,7 +43,7 @@ static Candidate get_external_candidate(udp::Socket& socket) {
   }
 
 
-  return Candidate{CandidateType::Punched,
+  return Candidate{CandidateType::ServerReflexive,
                    endpoint->address(),
                    endpoint->port()};
 }
@@ -65,12 +65,11 @@ std::vector<Candidate> gather_candidates(udp::Socket& socket, Logger& logger, Er
   }
 
   for (const auto& addr : *local_addresses) {
-    candidates.push_back(
-        Candidate{CandidateType::Local, addr, local_port});
+    candidates.push_back(Candidate{CandidateType::Local, addr, local_port});
   }
 
   // forwarded candidates
-  // TODO: remvoe exceptions from forward_port()
+  // TODO: remove exceptions from forward_port()
   bool forward_success = true;
   IpAddress wan_address;
   try {

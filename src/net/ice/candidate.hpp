@@ -7,11 +7,43 @@
 
 namespace shar::net::ice {
 
+//
+//   To Internet
+//        |
+//        |  /------------  Relayed
+//        | /               Address
+//    +--------+
+//    |        |
+//    |  TURN  |
+//    | Server |
+//    |        |
+//    +--------+
+//        |
+//        | /------------  Server
+//        |/               Reflexive
+//  +------------+         Address
+//  | outer NAT  |
+//  +------------+
+//        |
+//        | /-------------- Forwarded
+//        |/                Address
+//  +------------+
+//  | inner NAT  |
+//  +------------+
+//        |
+//        | /------------  Local
+//        |/               Address
+//    +--------+
+//    |        |
+//    | Agent  |
+//    |        |
+//    +--------+
+//
 enum class CandidateType {
-	Local,     // local network address
-	Forwarded, // port forwarding
-	Punched,   // udp hole punching
-	Proxy      // proxy address (e.g. TURN)
+	Local,           // port on local network interface
+	Forwarded,       // port forwarded via IGD
+	ServerReflexive, // NAT allocated port (obtained via STUN)
+	Relayed          // TURN allocated address
 };
 
 struct Candidate {
