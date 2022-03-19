@@ -4,7 +4,7 @@
 
 namespace shar::net::dns {
 
-ErrorOr<IpAddress> resolve(std::string_view host, Port port) {
+ErrorOr<std::vector<IpAddress>> resolve_all(std::string_view host, Port port) {
   IOContext context;
   udp::Resolver resolver{context};
 
@@ -21,12 +21,29 @@ ErrorOr<IpAddress> resolve(std::string_view host, Port port) {
     return ec;
   }
 
+
+  std::vector<IpAddress> addresses;
   for (const auto &entry : entries) {
     if (entry.endpoint().address().is_v4()) {
-      return entry.endpoint().address();
+      addresses.emplace_back(entry.endpoint().address());
     }
   }
 
-  FAIL(std::errc::address_family_not_supported);
+  if (addresses.empty()) {
+    FAIL(std::errc::address_family_not_supported);
+  }
+
+  return addresses;
 }
+
+ErrorOr<IpAddress> resolve(std::string_view host, Port port) {
+  auto addresses = resolve_all(host, port);
+  if (auto e = addresses.err()) {
+    return e;
+  }
+  return addresses->front();
+}
+
+
+
 } // namespace shar::net::dns

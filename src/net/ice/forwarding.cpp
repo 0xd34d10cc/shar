@@ -1,17 +1,17 @@
 #include <stdexcept>
 
 #include "disable_warnings_push.hpp"
-#include <miniupnpc.h>
-#include <upnpcommands.h>
+#include <miniupnpc/miniupnpc.h>
+#include <miniupnpc/upnpcommands.h>
 #include "disable_warnings_pop.hpp"
 
 #include "forwarding.hpp"
 
 
-namespace shar::net::tcp {
+namespace shar::net::ice {
 
 // TODO: extract port forwarding to a class
-void forward_port(Port local, Port remote, Logger& logger) {
+IpAddress forward_port(Port local, Port remote, Logger& logger, bool is_tcp) {
   int           error      = 0;
   //get a list of upnp devices (asks on the broadcast address and returns the responses)
   struct UPNPDev* upnp_dev = upnpDiscover(1000,     //timeout in milliseconds
@@ -35,7 +35,7 @@ void forward_port(Port local, Port remote, Logger& logger) {
   error = UPNP_GetValidIGD(upnp_dev, &upnp_urls, &upnp_data, lan_address, sizeof(lan_address));
 
   //there are more status codes in minupnpc.c but 1 is success all others are different failures
-  if (error != 1) {
+  if (error != 1 && error != 2) {
     FreeUPNPUrls(&upnp_urls);
     freeUPNPDevlist(upnp_dev);
     throw std::runtime_error("No valid Internet Gateway Device could be connected to");
@@ -61,8 +61,8 @@ void forward_port(Port local, Port remote, Logger& logger) {
       remote_port.c_str(),  // external (WAN) port requested
       local_port.c_str(),  // internal (LAN) port to which packets will be redirected
       lan_address, // internal (LAN) address to which packets will be redirected
-      "Share server", // text description to indicate why or who is responsible for the port mapping
-      "TCP", // protocol must be either TCP or UDP
+      "shar", // text description to indicate why or who is responsible for the port mapping
+      (is_tcp ? "TCP" : "UDP"), // protocol must be either TCP or UDP
       nullptr, // remote (peer) host address or nullptr for no restriction
       "86400"); // port map lease duration (in seconds) or zero for "as long as possible"
 
@@ -76,6 +76,7 @@ void forward_port(Port local, Port remote, Logger& logger) {
 
   FreeUPNPUrls(&upnp_urls);
   freeUPNPDevlist(upnp_dev);
+  return IpAddress::from_string(wan_address);
 }
 
 }

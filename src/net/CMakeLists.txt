@@ -73,6 +73,11 @@ add_library(net
     stun/error.hpp
     stun/request.hpp
     stun/request.cpp
+
+    ice/candidate.hpp
+    ice/candidate.cpp
+    ice/forwarding.hpp
+    ice/forwarding.cpp
 )
 
 target_include_directories(net
@@ -80,7 +85,8 @@ target_include_directories(net
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
 )
 
-target_link_libraries(net PUBLIC common)
+target_link_libraries(net PUBLIC common
+                          PUBLIC ${CONAN_LIBS_MINIUPNPC})
 
 if (WIN32)
   target_link_libraries(net
