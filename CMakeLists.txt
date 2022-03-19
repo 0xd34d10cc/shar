@@ -28,6 +28,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 
+set(BUILD_EXAMPLE OFF)
 add_subdirectory(3rdparty/screen_capture_lite)
 set(CONAN_INCLUDE_DIRS_SCREENCAPTURE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/screen_capture_lite/include)
 set(CONAN_LIBS_SCREENCAPTURELITE screen_capture_lite_static)
