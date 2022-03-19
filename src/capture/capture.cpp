@@ -50,9 +50,10 @@ struct FrameHandler {
       {}
 
   void operator()(const sc::Image& buffer, const sc::Monitor& /* monitor */) {
-    // TODO: add sync for cursor reading
     const sc::ImageBGRA* current = sc::StartSrc(buffer);
     if (m_cursor_data->cursor) {
+      std::lock_guard<std::mutex> lock(m_cursor_data->mtx);
+
       // go to cursor starting location
       for (auto i = 0; i < m_cursor_data->last_position.y; i++) {
         current = sc::GotoNextRow(buffer, current);
@@ -101,8 +102,9 @@ struct FrameHandler {
     m_consumer->try_send(std::move(frame));
   }
 
-  void operator()(const sc::Image* img, const sc::Point& point) {
-    // TODO: add sync for cursor writing
+  void operator()(const sc::Image* img, const sc::MousePoint& point) {
+    std::lock_guard<std::mutex> lock(m_cursor_data->mtx);
+
     if (img) {
       const auto width = static_cast<usize>(Width(*img));
       const auto height = static_cast<usize>(Height(*img));
@@ -123,7 +125,7 @@ struct FrameHandler {
                   size * NCHANNELS);
     }
 
-    m_cursor_data->last_position = point;
+    m_cursor_data->last_position = point.Position;
   }
 
   // shared_ptr is used here because FrameHandler has to be copyable
@@ -133,10 +135,11 @@ struct FrameHandler {
 
   // mouse control block
   struct CursorData {
-    usize width;
-    usize height;
-    sc::Point last_position;
+    usize width = 0;
+    usize height = 0;
+    sc::Point last_position = {0, 0};
     std::unique_ptr<sc::ImageBGRA[]> cursor;
+    std::mutex mtx;
   };
 
   std::shared_ptr<CursorData> m_cursor_data;

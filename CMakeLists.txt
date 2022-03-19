@@ -30,6 +30,6 @@ endif()
 
 add_subdirectory(3rdparty/screen_capture_lite)
 set(CONAN_INCLUDE_DIRS_SCREENCAPTURE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/screen_capture_lite/include)
-set(CONAN_LIBS_SCREENCAPTURELITE screen_capture_lite)
+set(CONAN_LIBS_SCREENCAPTURELITE screen_capture_lite_static)
 
 add_subdirectory(src)
