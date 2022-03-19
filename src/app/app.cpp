@@ -44,11 +44,11 @@ static Context make_context(Config c) {
           "logs_location parameter should point to a directory");
     }
   }
-
-  auto logger = Logger(config->logs_location, shar_loglvl);
+  
+  g_logger = Logger(config->logs_location, shar_loglvl);
   auto metrics = std::make_shared<Metrics>(20);
 
-  return Context{std::move(config), std::move(logger), std::move(metrics)};
+  return Context{std::move(config), std::move(metrics)};
 }
 
 static Size main_monitor_size() {
@@ -78,7 +78,7 @@ App::App(Config config)
   load_background_picture();
   m_stream = Empty(m_background_picture);
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
-  ui::Renderer::init_log(m_context.m_logger);
+  ui::Renderer::init_log(g_logger);
 
   m_url.set_text(m_context.m_config->url);
 
@@ -203,7 +203,7 @@ void App::load_background_picture() {
   }
 
   const auto path = dir.value() / "background.png";
-  PNGImage image(path, m_context.m_logger);
+  PNGImage image(path);
   if (!image.valid()) {
     return;
   }

@@ -9,7 +9,7 @@ namespace shar {
 
 class PNGImage {
 public:
-  PNGImage(std::filesystem::path image_path, Logger& logger);
+  PNGImage(std::filesystem::path image_path);
 
   std::unique_ptr<std::uint8_t[]> extract_data() noexcept;
 

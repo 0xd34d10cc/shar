@@ -83,7 +83,7 @@ void PacketSender::send() {
     m_socket.send_to(span(packet), m_endpoint, 0, ec);
 
     if (ec) {
-      m_logger.error("Failed to send rtp packet: {}", ec.message());
+      g_logger.error("Failed to send rtp packet: {}", ec.message());
     }
 
   }

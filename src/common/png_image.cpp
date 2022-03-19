@@ -8,7 +8,7 @@
 
 namespace shar {
 
-PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
+PNGImage::PNGImage(std::filesystem::path path) {
   assert(!path.empty());
 
   using FilePtr = std::unique_ptr<FILE, decltype(&std::fclose)>;
@@ -17,7 +17,7 @@ PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
       &std::fclose
   );
   if (!fp) {
-    logger.error("Failed to open png file: {}", path.string());
+    g_logger.error("Failed to open png file: {}", path.string());
     return;
   }
 
@@ -31,7 +31,7 @@ PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
   );
 
   if (!png) {
-    logger.error("Cannot create png read struct");
+    g_logger.error("Cannot create png read struct");
     return;
   }
 
@@ -42,12 +42,12 @@ PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
   const auto info = PngInfoPtr(png_create_info_struct(png.get()), free_info);
 
   if (!info) {
-    logger.error("Can not create png info struct");
+    g_logger.error("Can not create png info struct");
     return;
   }
 
   if (setjmp(png_jmpbuf(png.get()))) {
-    logger.error("Internal error while parsing png file");
+    g_logger.error("Internal error while parsing png file");
     // TODO: check if destructors are actually invoked in this case
     //       see C4611 msvc warning. Most likely all objects constructed
     //       below this if statement leak.
@@ -93,7 +93,7 @@ PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
 
   // After all our hacks with image we should have RGBA image
   if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) {
-    logger.error("Can't convert png to RGBA image");
+    g_logger.error("Can't convert png to RGBA image");
     return;
   }
 
@@ -104,7 +104,7 @@ PNGImage::PNGImage(std::filesystem::path path, Logger& logger) {
 
   const auto actual_rowbytes = png_get_rowbytes(png.get(), info.get());
   if (bytes_in_row != actual_rowbytes) {
-    logger.error("Unexpected number of bytes in row of png image"
+    g_logger.error("Unexpected number of bytes in row of png image"
                  " (expected {}, got {})",
                  bytes_in_row,
                  actual_rowbytes);

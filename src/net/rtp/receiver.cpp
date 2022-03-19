@@ -36,7 +36,7 @@ void Receiver::run(Output units) {
 
     const auto now = Clock::now();
     if (last_report_time + Seconds(1) < now) {
-      m_logger.info("RTP receiver: rate {}kb/s dropped {} bytes",
+      g_logger.info("RTP receiver: rate {}kb/s dropped {} bytes",
                     m_received/1024, m_dropped);
 
       total_received += m_received;
@@ -49,7 +49,7 @@ void Receiver::run(Output units) {
     }
   }
 
-  m_logger.info("RTP receiver: total={}kb dropped={}kb",
+  g_logger.info("RTP receiver: total={}kb dropped={}kb",
                 total_received/1024, total_dropped/1024);
 
   shutdown();
@@ -76,7 +76,7 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
   bool in_sequence = packet.sequence() == m_sequence + 1;
   if (!in_sequence && !m_drop) {
     m_drop = true;
-    m_logger.warning("Dropped a packet. NAL type: {}", fragment.nal_type());
+    g_logger.warning("Dropped a packet. NAL type: {}", fragment.nal_type());
   }
 
   bool flush = m_timestamp != packet.timestamp();
@@ -98,7 +98,7 @@ std::optional<Unit> Receiver::accept(const Packet& packet, const Fragment& fragm
 
   if (m_drop) {
     m_depacketizer.reset();
-    m_logger.debug("Recovered from drop. NAL type: {}", fragment.nal_type());
+    g_logger.debug("Recovered from drop. NAL type: {}", fragment.nal_type());
   }
 
   m_drop = false;
@@ -120,7 +120,7 @@ std::optional<Unit> Receiver::receive() {
   );
 
   if (ec) {
-    m_logger.error("Failed to receive rtp packet: {}", ec.message());
+    g_logger.error("Failed to receive rtp packet: {}", ec.message());
     return std::nullopt;
   }
 
@@ -131,10 +131,10 @@ std::optional<Unit> Receiver::receive() {
 
     if (m_sender) {
       assert(false);
-      m_logger.warning("Switching stream from: {} to {}", str(*m_sender), str(endpoint));
+      g_logger.warning("Switching stream from: {} to {}", str(*m_sender), str(endpoint));
     }
     else {
-      m_logger.info("Started receiving stream from: {}", str(endpoint));
+      g_logger.info("Started receiving stream from: {}", str(endpoint));
     }
 
     // sender address has changed, reset state

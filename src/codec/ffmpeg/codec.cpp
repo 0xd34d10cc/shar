@@ -115,7 +115,7 @@ Codec::Codec(Context context, Size frame_size, usize fps)
   , m_frame_counter(0) {
 
   if (!cb_logger) {
-    setup_logging(m_config, m_logger);
+    setup_logging(m_config, g_logger);
   }
 
   open(frame_size, fps);
@@ -125,7 +125,7 @@ void Codec::open(Size frame_size, usize fps) {
   ffmpeg::Options opts{};
   for (const auto& [key, value] : m_config->options) {
     if (!opts.set(key.c_str(), value.c_str())) {
-      m_logger.error("Failed to set {} codec option to {}. Ignoring",
+      g_logger.error("Failed to set {} codec option to {}. Ignoring",
                      key,
                      value);
     }
@@ -139,7 +139,7 @@ void Codec::open(Size frame_size, usize fps) {
 
   // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
-    m_logger.warning("Following {} options were not found: {}",
+    g_logger.warning("Following {} options were not found: {}",
                      opts.count(),
                      opts.to_string());
   }
@@ -153,7 +153,7 @@ std::vector<Unit> Codec::encode(Frame image) {
   const bool resized = width_changed || height_changed;
 
   if (resized) {
-    m_logger.warning(
+    g_logger.warning(
         "The stream resolution have been changed from {}x{} to {}x{}",
         context->width,
         context->height,
@@ -279,16 +279,16 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
   if (!codec_name.empty()) {
     if (auto* codec = find_codec_by_name(codec_name.c_str())) {
 
-      m_logger.info("Using {} codec from config", codec_name);
+      g_logger.info("Using {} codec from config", codec_name);
       auto context = create_context(kbits, codec, frame_size, fps);
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-        m_logger.info("Using {} codec", codec_name);
+        g_logger.info("Using {} codec", codec_name);
         m_context = std::move(context);
         return codec;
       }
     }
 
-    m_logger.warning("Codec {} requested but not found", codec_name);
+    g_logger.warning("Codec {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 4> codecs = {
@@ -306,14 +306,14 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
       auto context = create_context(kbits, codec, frame_size, fps);
 
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-        m_logger.info("Using {} codec", name);
+        g_logger.info("Using {} codec", name);
         m_context = std::move(context);
         return codec;
       }
     }
   }
 
-  m_logger.warning("None of hardware accelerated codecs available. Using default h264 codec");
+  g_logger.warning("None of hardware accelerated codecs available. Using default h264 codec");
   auto* codec = find_codec_by_id(AV_CODEC_ID_H264);
   m_context = create_context(kbits, codec, frame_size, fps);
 
@@ -331,7 +331,7 @@ void Codec::report_error(int code) {
 
   char message[1024];
   av_strerror(code, message, sizeof(message));
-  m_logger.error("Codec failure: {}", message);
+  g_logger.error("Codec failure: {}", message);
 }
 
 }

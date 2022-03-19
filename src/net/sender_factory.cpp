@@ -16,7 +16,7 @@ std::unique_ptr<IPacketSender> create_sender(Context context, Url url) {
     throw std::runtime_error("Failed to resolve " + url.host() + ": " + e.message());
   }
 
-  context.m_logger.info("Resolved {} to {}",
+  g_logger.info("Resolved {} to {}",
                         url.host(), address->to_string());
 
   switch (url.protocol()) {

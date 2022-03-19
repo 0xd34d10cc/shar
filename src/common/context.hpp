@@ -13,7 +13,6 @@ using ConfigPtr = std::shared_ptr<Config>;
 
 struct Context {
   ConfigPtr m_config;
-  Logger m_logger;
   MetricsPtr m_metrics;
 };
 
