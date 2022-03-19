@@ -2,9 +2,6 @@
 #include "app.hpp"
 #include "ui/controls/message_box.hpp"
 
-#include "net/ice/candidate.hpp"
-#include "common/error_or.hpp"
-
 #include "disable_warnings_push.hpp"
 #include <fmt/format.h>
 #include <SDL2/SDL_main.h>
