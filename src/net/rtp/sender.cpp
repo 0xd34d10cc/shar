@@ -1,5 +1,7 @@
 #include "sender.hpp"
-#include "net/rtp/packet.hpp"
+
+#include "packet.hpp"
+#include "time.hpp"
 
 
 namespace shar::net::rtp {
@@ -53,7 +55,6 @@ void PacketSender::set_packet(Unit packet) {
 
 void PacketSender::send() {
   static const usize HEADER_SIZE = rtp::Packet::MIN_SIZE;
-
   std::array<u8, MTU + HEADER_SIZE> buffer;
 
   while (auto fragment = m_packetizer.next()) {
@@ -83,7 +84,7 @@ void PacketSender::send() {
     m_socket.send_to(span(packet), m_endpoint, 0, ec);
 
     if (ec) {
-      g_logger.error("Failed to send rtp packet: {}", ec.message());
+      LOG_ERROR("Failed to send rtp packet: {}", ec.message());
     }
 
   }

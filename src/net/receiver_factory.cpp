@@ -14,9 +14,7 @@ std::unique_ptr<IPacketReceiver> create_receiver(Context context, Url url) {
     throw std::runtime_error("Failed to resolve " + url.host() + ": " + e.message());
   }
 
-  g_logger.info("Resolved {} to {}",
-                        url.host(), address->to_string());
-
+  LOG_INFO("Resolved {} to {}", url.host(), address->to_string());
   switch (url.protocol()) {
     case Protocol::TCP:
       return std::make_unique<tcp::PacketReceiver>(std::move(context),

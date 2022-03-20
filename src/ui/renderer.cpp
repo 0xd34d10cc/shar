@@ -7,16 +7,16 @@
 #include "texture.hpp"
 #include "window.hpp"
 
-#include <cassert>
-#include <cstddef>
-#include <cstdlib> // memset
-#include <optional>
-
 // clang-format off
 #include "disable_warnings_push.hpp"
 #include <SDL2/SDL_opengl_glext.h>
 #include "disable_warnings_pop.hpp"
 // clang-format on
+
+#include <cassert>
+#include <cstddef>
+#include <cstdlib> // memset
+#include <optional>
 
 
 static const nk_size MAX_VERTEX_MEMORY = 512 * 1024;
@@ -29,7 +29,7 @@ static const nk_size MAX_ELEMENT_MEMORY = 128 * 1024;
 #endif
 
 #ifdef SHAR_DEBUG_BUILD
-static std::optional<shar::Logger> gl_logger;
+static bool logger_enabled = false;
 
 static const char *type_to_str(GLenum type) {
   switch (type) {
@@ -63,13 +63,13 @@ static void GLAPIENTRY opengl_error_callback(GLenum /*source*/,
                                              GLsizei /*length */,
                                              const GLchar *message,
                                              const void * /*userParam */) {
-  if (gl_logger) {
+  if (logger_enabled) {
     auto *t = type_to_str(type);
     switch (severity) {
       case GL_DEBUG_SEVERITY_LOW:
       case GL_DEBUG_SEVERITY_MEDIUM:
       case GL_DEBUG_SEVERITY_HIGH:
-        gl_logger->error("[GL] [{}] {}", t, message);
+        LOG_ERROR("[GL] [{}] {}", t, message);
         break;
       case GL_DEBUG_SEVERITY_NOTIFICATION:
       default:
@@ -99,11 +99,9 @@ struct Vertex {
   nk_byte color[4];
 };
 
-void Renderer::init_log(const Logger &logger) {
+void Renderer::init_log() {
 #ifdef SHAR_DEBUG_BUILD
-  gl_logger = logger;
-#else
-  (void)logger;
+  logger_enabled = true;
 #endif
 }
 
@@ -482,7 +480,7 @@ void Renderer::render(Texture& texture,
     m_gl.glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
-  else 
+  else
   {
     glDisable(GL_BLEND);
   }

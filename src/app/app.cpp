@@ -7,17 +7,18 @@
 #include "ui/nk.hpp"
 #include "png_image.hpp"
 
+// clang-format off
+#include "disable_warnings_push.hpp"
+#include <SDL2/SDL_events.h>
+#include "disable_warnings_pop.hpp"
+// clang-format on
+
 #include <numeric>
 #include <filesystem>
 #include <fstream>
 #include <thread>
 #include <type_traits>
 
-// clang-format off
-#include "disable_warnings_push.hpp"
-#include <SDL2/SDL_events.h>
-#include "disable_warnings_pop.hpp"
-// clang-format on
 
 namespace shar {
 
@@ -44,8 +45,8 @@ static Context make_context(Config c) {
           "logs_location parameter should point to a directory");
     }
   }
-  
-  g_logger = Logger(config->logs_location, shar_loglvl);
+
+  init_log(config->logs_location, shar_loglvl);
   auto metrics = std::make_shared<Metrics>(20);
 
   return Context{std::move(config), std::move(metrics)};
@@ -78,7 +79,7 @@ App::App(Config config)
   load_background_picture();
   m_stream = Empty(m_background_picture);
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
-  ui::Renderer::init_log(g_logger);
+  ui::Renderer::init_log();
 
   m_url.set_text(m_context.m_config->url);
 

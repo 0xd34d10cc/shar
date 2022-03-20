@@ -1,7 +1,7 @@
-#include <fstream>
-
 #include "broadcast.hpp"
 #include "net/sender_factory.hpp"
+
+#include <fstream>
 
 
 namespace shar {
@@ -17,7 +17,8 @@ static sc::Monitor select_monitor(const Context& context) {
         monitor.Index, monitor.Name,
         monitor.Width, monitor.Height);
     }
-    g_logger.info("Available monitors:\n{}", monitors_list);
+
+    LOG_INFO("Available monitors:\n{}", monitors_list);
     throw std::runtime_error(fmt::format("Selected (#{}) monitor is unavailable", i));
   }
 
@@ -29,8 +30,7 @@ static Capture create_capture(Context context, sc::Monitor monitor) {
   const auto fps = context.m_config->fps;
   const auto interval = 1000ms / fps;
 
-  g_logger.info("Capturing {} {}x{}",
-    monitor.Name, monitor.Width, monitor.Height);
+  LOG_INFO("Capturing {} {}x{}", monitor.Name, monitor.Width, monitor.Height);
   return Capture{ std::move(context), interval, std::move(monitor) };
 }
 

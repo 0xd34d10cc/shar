@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
-
 #include "net/types.hpp"
 #include "common/logger.hpp"
+
+#include <vector>
+
 
 namespace shar::net::ice {
 
@@ -52,6 +53,6 @@ struct Candidate {
   Port port;
 };
 
-std::vector<Candidate> gather_candidates(udp::Socket& socket, Logger& logger, ErrorCode& ec);
+std::vector<Candidate> gather_candidates(udp::Socket& socket, ErrorCode& ec);
 
 }

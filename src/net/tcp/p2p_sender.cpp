@@ -67,7 +67,7 @@ void P2PSender::schedule_send(Unit packet) {
       m_overflown_count += 1;
       client.second.m_overflown = true;
 
-      g_logger.warning("Client {}: packets queue overflow", client.first);
+      LOG_WARN("Client {}: packets queue overflow", client.first);
     }
 
     if (!client.second.is_running()) {
@@ -79,7 +79,7 @@ void P2PSender::schedule_send(Unit packet) {
 void P2PSender::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
-      g_logger.error("Acceptor failed!");
+      LOG_ERROR("Acceptor failed!");
       if (m_clients.empty()) {
         shutdown();
       }
@@ -87,7 +87,7 @@ void P2PSender::start_accepting() {
     }
 
     const auto id = static_cast<ClientId>(m_current_socket.native_handle());
-    g_logger.info("Client {}: connected", id);
+    LOG_INFO("Client {}: connected", id);
 
     m_clients.emplace(id, std::move(m_current_socket));
     m_current_socket = Socket {m_context};
@@ -134,7 +134,7 @@ void P2PSender::run_client(ClientId id) {
                          client.m_length.size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, usize bytes_sent) {
         if (ec) {
-          g_logger.error("Client {}: failed to send packet length ({})", id, ec.message());
+          LOG_ERROR("Client {}: failed to send packet length ({})", id, ec.message());
           reset_overflown_state(id);
           m_clients.erase(id);
           return;
@@ -150,7 +150,7 @@ void P2PSender::run_client(ClientId id) {
                          packet->size() - client.m_bytes_sent);
       client.m_socket.async_send(buffer, [this, id](const ErrorCode& ec, usize bytes_sent) {
         if (ec) {
-          g_logger.error("Client {}: failed to send packet ({})", id, ec.message());
+          LOG_ERROR("Client {}: failed to send packet ({})", id, ec.message());
           reset_overflown_state(id);
           m_clients.erase(id);
           return;

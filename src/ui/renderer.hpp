@@ -1,10 +1,10 @@
 #pragma once
 
-#include <memory>
-
 #include "size.hpp"
 #include "point.hpp"
 #include "gl_vtable.hpp"
+
+#include <memory>
 
 
 struct nk_font_atlas;
@@ -46,7 +46,7 @@ struct Shader {
 
 class Renderer {
 public:
-  static void init_log(const Logger& logger);
+  static void init_log();
 
   Renderer(OpenGLVTable table);
   ~Renderer();

@@ -1,11 +1,12 @@
 #include "candidate.hpp"
 
-#include <stdexcept>
-
 #include "net/dns.hpp"
 #include "net/stun/message.hpp"
 #include "net/stun/request.hpp"
 #include "forwarding.hpp"
+
+#include <stdexcept>
+
 
 namespace shar::net::ice {
 
@@ -48,7 +49,7 @@ static Candidate get_external_candidate(udp::Socket& socket) {
                    endpoint->port()};
 }
 
-std::vector<Candidate> gather_candidates(udp::Socket& socket, Logger& logger, ErrorCode& ec) {
+std::vector<Candidate> gather_candidates(udp::Socket& socket, ErrorCode& ec) {
   std::vector<Candidate> candidates;
 
   // local candidates
@@ -74,7 +75,7 @@ std::vector<Candidate> gather_candidates(udp::Socket& socket, Logger& logger, Er
   IpAddress wan_address;
   try {
     bool is_tcp = false;
-    wan_address = forward_port(local_port, local_port, logger, is_tcp);
+    wan_address = forward_port(local_port, local_port, is_tcp);
   } catch (const std::runtime_error& e) {
     forward_success = false;
     // logged in forward_port()

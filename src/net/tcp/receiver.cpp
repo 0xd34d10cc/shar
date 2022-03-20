@@ -46,7 +46,7 @@ void PacketReceiver::start_read() {
       span(m_buffer.data(), m_buffer.size()),
       [this](const ErrorCode& ec, usize received) {
         if (ec) {
-          g_logger.error("Receiver failed: {}", ec.message());
+          LOG_ERROR("Receiver failed: {}", ec.message());
           shutdown();
           return;
         }

@@ -1,3 +1,8 @@
+#include "codec.hpp"
+
+#include "codec/convert.hpp"
+#include "common/time.hpp"
+
 #include "disable_warnings_push.hpp"
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -9,61 +14,54 @@ extern "C" {
 #include <optional>
 #include <array>
 
-#include "codec/convert.hpp"
-#include "common/time.hpp"
-#include "codec.hpp"
-
 
 static const int buf_size = 250;
 static const int prefix_length = 9;
 static const char log_prefix[prefix_length + 1] = "[ffmpeg] "; // +1 for /0
-static std::optional<shar::Logger> cb_logger;
+static bool logger_enabled = false;
 
-static void avlog_callback(void * /* ptr */, int level, const char * fmt, va_list args) {
-  if (level > av_log_get_level()) {
+static void avlog_callback(void* /* ptr */, int level, const char* fmt, va_list args) {
+  if (!logger_enabled || level > av_log_get_level()) {
     return;
   }
 
-  if (cb_logger) {
-    char buf[buf_size];
-    std::memcpy(buf, log_prefix, prefix_length);
-    int n = std::vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
-    if (buf[prefix_length + n - 1] == '\n') {
-      buf[prefix_length + n - 1] = '\0';
-    }
+  char buf[buf_size];
+  std::memcpy(buf, log_prefix, prefix_length);
+  int n = std::vsnprintf(buf + prefix_length, buf_size - prefix_length, fmt, args);
 
-    switch (level) {
+  if (buf[prefix_length + n - 1] == '\n') {
+    buf[prefix_length + n - 1] = '\0';
+  }
+
+  switch (level) {
     case AV_LOG_TRACE:
-      cb_logger->trace(buf);
+      LOG_TRACE(buf);
       break;
     case AV_LOG_DEBUG:
     case AV_LOG_VERBOSE:
-      cb_logger->debug(buf);
+      LOG_DEBUG(buf);
       break;
     case AV_LOG_INFO:
-      cb_logger->info(buf);
+      LOG_INFO(buf);
       break;
     case AV_LOG_WARNING:
-      cb_logger->warning(buf);
+      LOG_WARN(buf);
       break;
     case AV_LOG_ERROR:
-      cb_logger->error(buf);
+      LOG_ERROR(buf);
       break;
     case AV_LOG_FATAL:
     case AV_LOG_PANIC:
-      cb_logger->critical(buf);
+      LOG_FATAL(buf);
       break;
     default:
       assert(false);
       break;
-    }
   }
 }
 
-static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
+static void setup_logging(const shar::ConfigPtr& config) {
   using shar::LogLevel;
-
-  cb_logger = logger;
 
   const auto log_level_to_ffmpeg = [](LogLevel level) {
     switch (level) {
@@ -86,6 +84,7 @@ static void setup_logging(const shar::ConfigPtr& config, shar::Logger& logger) {
     }
   };
 
+  logger_enabled = true;
   av_log_set_level(log_level_to_ffmpeg(config->encoder_log_level));
   av_log_set_callback(avlog_callback);
 }
@@ -98,8 +97,8 @@ static AVPixelFormat get_format(AVCodecContext* /*ctx*/, const enum AVPixelForma
     }
   }
 
-  if (cb_logger) {
-    cb_logger->error("YUV420 pixel format is not supported for this decoder");
+  if (logger_enabled) {
+    LOG_ERROR("YUV420 pixel format is not supported for this decoder");
   }
 
   return AV_PIX_FMT_NONE;
@@ -114,8 +113,8 @@ Codec::Codec(Context context, Size frame_size, usize fps)
   : Context(std::move(context))
   , m_frame_counter(0) {
 
-  if (!cb_logger) {
-    setup_logging(m_config, g_logger);
+  if (!logger_enabled) {
+    setup_logging(m_config);
   }
 
   open(frame_size, fps);
@@ -125,23 +124,18 @@ void Codec::open(Size frame_size, usize fps) {
   ffmpeg::Options opts{};
   for (const auto& [key, value] : m_config->options) {
     if (!opts.set(key.c_str(), value.c_str())) {
-      g_logger.error("Failed to set {} codec option to {}. Ignoring",
-                     key,
-                     value);
+      LOG_ERROR("Failed to set {} codec option to {}. Ignoring", key, value);
     }
   }
 
   m_context.reset();
-
   m_codec = select_codec(opts, frame_size, fps);
   assert(m_context.get());
   assert(m_codec);
 
   // ffmpeg will leave all invalid options inside opts
   if (opts.count() != 0) {
-    g_logger.warning("Following {} options were not found: {}",
-                     opts.count(),
-                     opts.to_string());
+    LOG_WARN("Following {} options were not found: {}", opts.count(), opts.to_string());
   }
 }
 
@@ -153,7 +147,7 @@ std::vector<Unit> Codec::encode(Frame image) {
   const bool resized = width_changed || height_changed;
 
   if (resized) {
-    g_logger.warning(
+    LOG_WARN(
         "The stream resolution have been changed from {}x{} to {}x{}",
         context->width,
         context->height,
@@ -279,16 +273,16 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
   if (!codec_name.empty()) {
     if (auto* codec = find_codec_by_name(codec_name.c_str())) {
 
-      g_logger.info("Using {} codec from config", codec_name);
+      LOG_INFO("Using {} codec from config", codec_name);
       auto context = create_context(kbits, codec, frame_size, fps);
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-        g_logger.info("Using {} codec", codec_name);
+        LOG_INFO("Using {} codec", codec_name);
         m_context = std::move(context);
         return codec;
       }
     }
 
-    g_logger.warning("Codec {} requested but not found", codec_name);
+    LOG_WARN("Codec {} requested but not found", codec_name);
   }
 
   static std::array<const char*, 4> codecs = {
@@ -306,14 +300,14 @@ AVCodec* Codec::select_codec(ffmpeg::Options& opts,
       auto context = create_context(kbits, codec, frame_size, fps);
 
       if (avcodec_open2(context.get(), codec, &opts.get_ptr()) >= 0) {
-        g_logger.info("Using {} codec", name);
+        LOG_INFO("Using {} codec", name);
         m_context = std::move(context);
         return codec;
       }
     }
   }
 
-  g_logger.warning("None of hardware accelerated codecs available. Using default h264 codec");
+  LOG_WARN("None of hardware accelerated codecs available. Using default h264 codec");
   auto* codec = find_codec_by_id(AV_CODEC_ID_H264);
   m_context = create_context(kbits, codec, frame_size, fps);
 
@@ -331,7 +325,7 @@ void Codec::report_error(int code) {
 
   char message[1024];
   av_strerror(code, message, sizeof(message));
-  g_logger.error("Codec failure: {}", message);
+  LOG_ERROR("Codec failure: {}", message);
 }
 
 }

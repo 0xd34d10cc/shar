@@ -17,7 +17,7 @@ PNGImage::PNGImage(std::filesystem::path path) {
       &std::fclose
   );
   if (!fp) {
-    g_logger.error("Failed to open png file: {}", path.string());
+    LOG_ERROR("Failed to open png file: {}", path.string());
     return;
   }
 
@@ -31,7 +31,7 @@ PNGImage::PNGImage(std::filesystem::path path) {
   );
 
   if (!png) {
-    g_logger.error("Cannot create png read struct");
+    LOG_ERROR("Cannot create png read struct");
     return;
   }
 
@@ -42,12 +42,12 @@ PNGImage::PNGImage(std::filesystem::path path) {
   const auto info = PngInfoPtr(png_create_info_struct(png.get()), free_info);
 
   if (!info) {
-    g_logger.error("Can not create png info struct");
+    LOG_ERROR("Can not create png info struct");
     return;
   }
 
   if (setjmp(png_jmpbuf(png.get()))) {
-    g_logger.error("Internal error while parsing png file");
+    LOG_ERROR("Internal error while parsing png file");
     // TODO: check if destructors are actually invoked in this case
     //       see C4611 msvc warning. Most likely all objects constructed
     //       below this if statement leak.
@@ -93,7 +93,7 @@ PNGImage::PNGImage(std::filesystem::path path) {
 
   // After all our hacks with image we should have RGBA image
   if (color_type != PNG_COLOR_TYPE_RGB_ALPHA) {
-    g_logger.error("Can't convert png to RGBA image");
+    LOG_ERROR("Can't convert png to RGBA image");
     return;
   }
 
@@ -104,10 +104,8 @@ PNGImage::PNGImage(std::filesystem::path path) {
 
   const auto actual_rowbytes = png_get_rowbytes(png.get(), info.get());
   if (bytes_in_row != actual_rowbytes) {
-    g_logger.error("Unexpected number of bytes in row of png image"
-                 " (expected {}, got {})",
-                 bytes_in_row,
-                 actual_rowbytes);
+    LOG_ERROR("Unexpected number of bytes in row of png image"
+              " (expected {}, got {})", bytes_in_row, actual_rowbytes);
     return;
   }
 

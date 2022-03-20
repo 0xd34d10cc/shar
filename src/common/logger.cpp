@@ -1,9 +1,19 @@
 #include "logger.hpp"
 
+#include "time.hpp"
+
+#include "disable_warnings_push.hpp"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)
+#include <spdlog/sinks/msvc_sink.h>
+#endif
+#include "disable_warnings_pop.hpp"
+
 
 namespace shar {
 
-Logger::Logger(const std::filesystem::path& location, LogLevel loglvl) {
+void init_log(const std::filesystem::path& location, LogLevel level) {
   const auto log_level_to_spd = [](LogLevel level) {
     switch (level) {
       case LogLevel::Trace:
@@ -26,7 +36,7 @@ Logger::Logger(const std::filesystem::path& location, LogLevel loglvl) {
   };
 
   std::vector<spdlog::sink_ptr> sinks;
-  if (loglvl != LogLevel::None) {
+  if (level != LogLevel::None) {
     auto time = to_string(SystemClock::now());
     auto file_path = location / (fmt::format("shar_{}.log", time));
     sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(
@@ -38,14 +48,13 @@ Logger::Logger(const std::filesystem::path& location, LogLevel loglvl) {
 #endif
 
   // TODO: add custom GUI-based sink
-  m_logger =
-      std::make_shared<spdlog::logger>("shar", sinks.begin(), sinks.end());
-  m_logger->set_level(log_level_to_spd(loglvl));
-  m_logger->set_pattern("[%D %T] [%n] %v");
-  spdlog::register_logger(m_logger);
-  m_logger->info("Logger has been initialized");
+  g_logger = spdlog::logger("shar", sinks.begin(), sinks.end());
+  g_logger.set_level(log_level_to_spd(level));
+  g_logger.set_pattern("[%D %T] [%n] %v");
+  // spdlog::register_logger(m_logger);
+  g_logger.info("Logger has been initialized");
 }
 
-Logger g_logger{};
+spdlog::logger g_logger{"uninitialized"};
 
 }

@@ -3,8 +3,10 @@
 #include "bufwriter.hpp"
 #include "error.hpp"
 #include "int.hpp"
+#include "time.hpp"
 
 #include <charconv>
+
 
 namespace shar::net::rtsp {
 
@@ -59,7 +61,9 @@ void Server::run(Receiver<Unit> packets) {
 
   while (!m_running.expired()) {
     while (auto unit = packets.try_receive()) {
+      // TODO: handle
     }
+
     m_context.run_for(Milliseconds(50));
   }
 }
@@ -71,14 +75,14 @@ void Server::shutdown() {
 void Server::start_accepting() {
   m_acceptor.async_accept(m_current_socket, [this](const ErrorCode& ec) {
     if (ec) {
-      g_logger.error("Acceptor error: {}", ec.message());
+      LOG_ERROR("Acceptor error: {}", ec.message());
       if (m_clients.empty()) {
         shutdown();
       }
       return;
     }
     auto client_id = static_cast<usize>(m_current_socket.native_handle());
-    g_logger.info("Client {} connected.", client_id);
+    LOG_INFO("Client {} connected.", client_id);
 
     auto [client_pos, is_emplaced] =
         m_clients.emplace(client_id, std::move(m_current_socket));
@@ -86,11 +90,10 @@ void Server::start_accepting() {
       receive_request(client_pos);
     } else {
       assert(false);
-      g_logger.error("Client {} wasn't added into server's map", client_id);
+      LOG_ERROR("Client {} wasn't added into server's map", client_id);
     }
 
     m_current_socket = tcp::Socket(m_context);
-
     start_accepting();
   });
 }
@@ -116,7 +119,7 @@ void Server::receive_request(ClientPos pos) {
   auto& [id, client] = *pos;
 
   if (client.m_received_bytes == client.m_in.size()) {
-    g_logger.info("Client {}: buffer overflow", id);
+    LOG_INFO("Client {}: buffer overflow", id);
     disconnect(pos);
     return;
   }
@@ -133,7 +136,7 @@ void Server::receive_request(ClientPos pos) {
         }
 
         if (ec) {
-          g_logger.error("Socket read error (Client {}): {}", id, ec.message());
+          LOG_ERROR("Socket read error (Client {}): {}", id, ec.message());
           disconnect(pos);
           return;
         }
@@ -157,9 +160,7 @@ void Server::receive_request(ClientPos pos) {
 
           // invalid request, disconnect
           // FIXME: respond with 400 Bad Request instead
-          g_logger.warning("Client {} request parsing error: {}",
-                           id,
-                           e.message());
+          LOG_WARN("Client {} request parsing error: {}", id, e.message());
           disconnect(pos);
           return;
         }
@@ -172,9 +173,7 @@ void Server::receive_request(ClientPos pos) {
         auto response_size =
             response.serialize(client.m_out.data(), client.m_out.size());
         if (auto e = response_size.err()) {
-          g_logger.warning("Client {} response serialization error: {}",
-                           id,
-                           e.message());
+          LOG_WARN("Client {} response serialization error: {}", id, e.message());
           disconnect(pos);
           return;
         }
@@ -197,12 +196,12 @@ void Server::send_response(ClientPos client_pos) {
       [this, id](const ErrorCode& ec, const usize size) {
         auto pos = m_clients.find(id);
         if (pos == m_clients.end()) {
-          g_logger.info("Client {} not found", id);
+          LOG_INFO("Client {} not found", id);
           return;
         }
 
         if (ec) {
-          g_logger.error("Socket send error (Client {}): {}", id, ec.message());
+          LOG_ERROR("Socket send error (Client {}): {}", id, ec.message());
           disconnect(pos);
           return;
         }
@@ -227,7 +226,7 @@ Response Server::process_request(ClientPos pos, Request request) {
   // NOTE: references |m_in| buffer
   auto cseq = request.m_headers.get("CSeq");
   if (!cseq) {
-    g_logger.warning("CSeq header wasn't found. Client {}", id);
+    LOG_WARN("CSeq header wasn't found. Client {}", id);
     return response(headers)
         .with_status(400, "Bad Request")
         .with_header("Reason", "No CSeq header");

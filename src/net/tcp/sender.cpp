@@ -78,12 +78,12 @@ void PacketSender::connect() {
   Endpoint endpoint{ m_ip, m_port };
   m_socket.async_connect(endpoint, [this](const ErrorCode& ec) {
     if (ec) {
-      g_logger.error("Reconnect failed: {}", ec.message());
+      LOG_ERROR("Reconnect failed: {}", ec.message());
 
       m_timer.expires_from_now(std::chrono::seconds(1));
       m_timer.async_wait([this](const ErrorCode& code) {
         if (code) {
-          g_logger.error("Timer failed: {}", code.message());
+          LOG_ERROR("Timer failed: {}", code.message());
         }
 
         schedule();
@@ -91,7 +91,7 @@ void PacketSender::connect() {
       return;
     }
 
-    g_logger.info("Connection restored");
+    LOG_INFO("Connection restored");
     // start sending packets
     m_state = State::SendingLength;
     set_packet(std::move(m_current_packet));
@@ -101,10 +101,9 @@ void PacketSender::connect() {
 
 void PacketSender::on_connection_close(const ErrorCode& ec) {
   if (ec) {
-    g_logger.error("Connection aborted due to error: {}", ec.message());
-  }
-  else {
-    g_logger.info("Connection closed");
+    LOG_ERROR("Connection aborted due to error: {}", ec.message());
+  } else {
+    LOG_INFO("Connection closed");
   }
 
   m_socket.shutdown(Socket::shutdown_both);

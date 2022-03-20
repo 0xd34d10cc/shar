@@ -29,19 +29,18 @@ elseif (WIN32)
 endif (APPLE)
 
 
-
 target_include_directories(shar
-                           PRIVATE ..
-                           PRIVATE ../common
-                           )
+  PRIVATE ..
+  PRIVATE ../common
+)
 
 target_link_libraries(shar
-                      PRIVATE capture
-                      PRIVATE codec
-                      PRIVATE net
-                      PRIVATE ui
-                      PRIVATE common
-                      )
+  PRIVATE capture
+  PRIVATE codec
+  PRIVATE net
+  PRIVATE ui
+  PRIVATE common
+)
 
 target_compile_definitions(shar PRIVATE ${SHAR_COMPILE_DEFINITIONS})
 target_compile_options(shar PRIVATE ${SHAR_COMPILE_OPTIONS})

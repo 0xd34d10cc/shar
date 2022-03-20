@@ -1,17 +1,18 @@
-#include <stdexcept>
+#include "forwarding.hpp"
+
+#include "logger.hpp"
 
 #include "disable_warnings_push.hpp"
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/upnpcommands.h>
 #include "disable_warnings_pop.hpp"
 
-#include "forwarding.hpp"
-
+#include <stdexcept>
 
 namespace shar::net::ice {
 
 // TODO: extract port forwarding to a class
-IpAddress forward_port(Port local, Port remote, Logger& logger, bool is_tcp) {
+IpAddress forward_port(Port local, Port remote, bool is_tcp) {
   int           error      = 0;
   //get a list of upnp devices (asks on the broadcast address and returns the responses)
   struct UPNPDev* upnp_dev = upnpDiscover(1000,     //timeout in milliseconds
@@ -49,7 +50,7 @@ IpAddress forward_port(Port local, Port remote, Logger& logger, bool is_tcp) {
     throw std::runtime_error("Could not get external IP address");
   }
 
-  logger.info("External IP: {}", wan_address);
+  LOG_INFO("External IP: {}", wan_address);
 
   std::string remote_port = std::to_string(remote);
   std::string local_port = std::to_string(local);
@@ -72,7 +73,7 @@ IpAddress forward_port(Port local, Port remote, Logger& logger, bool is_tcp) {
     throw std::runtime_error("Failed to map ports");
   }
 
-  logger.info("Successfully mapped port {} (local) to {} (remote)", local, remote);
+  LOG_INFO("Successfully mapped port {} (local) to {} (remote)", local, remote);
 
   FreeUPNPUrls(&upnp_urls);
   freeUPNPDevlist(upnp_dev);
