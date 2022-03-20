@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package selune;
+
+message ClientMessage {
+  uint32 request_id = 1;
+
+  oneof message {
+    Open open = 2;
+    Close close = 3;
+    Connect connect = 4;
+    List list = 5;
+  }
+}
+
+message ServerMessage {
+  uint32 request_id = 1;
+
+  oneof message {
+    OpenResponse open = 2;
+    CloseResponse close = 3;
+    Connect connect = 4;
+    ListResponse list = 5;
+  }
+}
+
+// Open a new session
+message Open {
+  string name = 1;
+}
+
+message OpenResponse {
+  bool success = 1;
+  string id = 2;
+}
+
+// Close existing session
+message Close {
+  string id = 1;
+}
+
+message CloseResponse {
+  bool success = 1;
+  string id = 2;
+}
+
+// Attempt to connect to existing session
+message Connect {
+  string id = 1;
+  string address = 2;
+}
+
+// Request list of open sessions
+message List {}
+
+message ListResponse {
+  repeated Description sessions = 1;
+}
+
+message Description {
+  string name = 1;
+  string id = 2;
+}

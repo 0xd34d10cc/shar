@@ -85,8 +85,11 @@ target_include_directories(net
     PUBLIC SYSTEM ${CONAN_INCLUDE_DIRS_ASIO}
 )
 
-target_link_libraries(net PUBLIC common
-                          PUBLIC ${CONAN_LIBS_MINIUPNPC})
+target_link_libraries(net
+  PUBLIC common
+  PUBLIC proto
+  PUBLIC ${CONAN_LIBS_MINIUPNPC}
+)
 
 if (WIN32)
   target_link_libraries(net

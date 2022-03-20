@@ -5,16 +5,17 @@ class Shar(ConanFile):
     settings = "os",  "compiler",  "build_type"
 
     requires = (
-        "asio/1.16.1",            # network
+        "asio/1.16.1",            # netcode
         "ffmpeg/4.2.1",           # encoder
-        "sdl/2.0.20",             # window, input, OpenGL
+        "sdl/2.0.20",             # window, input, OpenGL loader
         "spdlog/1.9.2",           # logs
         "gtest/1.8.1",            # UTs
-        "jsonformoderncpp/3.7.0", # config
+        "jsonformoderncpp/3.7.0", # config deserialization
         "cli11/1.9.1",            # command line options
-        "nuklear/4.06.1",         # ui
+        "nuklear/4.06.1",         # gui
         "libpng/1.6.37",          # png
-        "miniupnpc/2.2.2"         # port forwarding
+        "miniupnpc/2.2.2",        # port forwarding
+        "protobuf/3.19.2"         # serialization
     )
 
     generators = "cmake"

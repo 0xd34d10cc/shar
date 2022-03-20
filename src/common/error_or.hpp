@@ -49,7 +49,7 @@ public:
   }
 
   const T& operator*() const {
-    assert(m_value.has_valud());
+    assert(m_value.has_value());
     return *m_value;
   }
 
