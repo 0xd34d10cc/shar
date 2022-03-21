@@ -1,12 +1,12 @@
 #pragma once
 
-#include <filesystem>
+#include "config.hpp"
 
 #include "disable_warnings_push.hpp"
 #include <spdlog/logger.h>
 #include "disable_warnings_pop.hpp"
 
-#include "config.hpp"
+#include <filesystem>
 
 
 namespace shar {

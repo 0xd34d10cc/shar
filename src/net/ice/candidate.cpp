@@ -76,7 +76,7 @@ std::vector<Candidate> gather_candidates(udp::Socket& socket, ErrorCode& ec) {
   try {
     bool is_tcp = false;
     wan_address = forward_port(local_port, local_port, is_tcp);
-  } catch (const std::runtime_error& e) {
+  } catch (const std::runtime_error&) {
     forward_success = false;
     // logged in forward_port()
   }

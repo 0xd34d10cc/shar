@@ -46,7 +46,11 @@ PNGImage::PNGImage(std::filesystem::path path) {
     return;
   }
 
+  // FIXME: don't use setjmp
+  #include "disable_warnings_push.hpp"
   if (setjmp(png_jmpbuf(png.get()))) {
+  #include "disable_warnings_pop.hpp"
+
     LOG_ERROR("Internal error while parsing png file");
     // TODO: check if destructors are actually invoked in this case
     //       see C4611 msvc warning. Most likely all objects constructed

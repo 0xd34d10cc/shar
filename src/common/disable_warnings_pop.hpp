@@ -1,7 +1,7 @@
-#ifdef __clang__
+#if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
 
-#if _MSC_VER && !__INTEL_COMPILER
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #pragma warning( pop )
 #endif

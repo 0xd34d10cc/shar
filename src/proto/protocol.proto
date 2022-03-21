@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package selune;
+package proto;
 
 message ClientMessage {
   uint32 request_id = 1;
