@@ -34,11 +34,14 @@ struct HitTestData {
 
 struct SDLHandle {
   SDLHandle() {
+    // Enable high dpi rendering, if available
     SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
     // NOTE: this hacky flag should help with "borderless flag makes window
     //       fuillscreen if size of window is equal to size of screen"
     //       problem, but it doesn't
     SDL_SetHint("SDL_BORDERLESS_WINDOWED_STYLE", "1");
+    // Allow to resize borderlsss window
+    SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "1");
     m_code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
   }
 
@@ -121,16 +124,13 @@ static SDL_HitTestResult hittest_callback(SDL_Window* /*win*/, const SDL_Point* 
     return top    ? SDL_HITTEST_RESIZE_TOPRIGHT :
            bottom ? SDL_HITTEST_RESIZE_BOTTOMRIGHT:
                     SDL_HITTEST_RESIZE_RIGHT;
-  }
-  else if (left) {
+  } else if (left) {
     return top    ? SDL_HITTEST_RESIZE_TOPLEFT :
            bottom ? SDL_HITTEST_RESIZE_BOTTOMLEFT :
                     SDL_HITTEST_RESIZE_LEFT;
-  }
-  else if (top) {
+  } else if (top) {
     return SDL_HITTEST_RESIZE_TOP;
-  }
-  else if (bottom) {
+  } else if (bottom) {
     return SDL_HITTEST_RESIZE_BOTTOM;
   }
 
@@ -161,14 +161,12 @@ static int handle_event([[maybe_unused]] void* user_data, SDL_Event* event) {
       data->active = SetTimer((HWND)data->handle, data->timer_id,
                               16 /* ms, ~60 fps, FIXME: should be controlled by callback */,
                               nullptr);
-    }
-    else if ((winMessage.msg == WM_EXITSIZEMOVE
+    } else if ((winMessage.msg == WM_EXITSIZEMOVE
            || winMessage.msg == WM_CAPTURECHANGED) && data->active) {
       assert(data->active);
       KillTimer((HWND)data->handle, data->timer_id);
       data->active = false;
-    }
-    else if (winMessage.msg == WM_TIMER && data->active) {
+    } else if (winMessage.msg == WM_TIMER && data->active) {
       if (winMessage.wParam == data->timer_id) {
         if (data->on_move) {
           data->on_move();
