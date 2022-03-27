@@ -1,11 +1,12 @@
 #include "app.hpp"
 
 #include "env.hpp"
+#include "png_image.hpp"
 #include "size.hpp"
 #include "time.hpp"
 #include "ui/gl_vtable.hpp"
 #include "ui/nk.hpp"
-#include "png_image.hpp"
+#include "codec/ffmpeg/codec.hpp"
 
 // clang-format off
 #include "disable_warnings_push.hpp"
@@ -13,12 +14,13 @@
 #include "disable_warnings_pop.hpp"
 // clang-format on
 
-#include <numeric>
+#include <array>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
+#include <numeric>
 #include <thread>
 #include <type_traits>
-
 
 namespace shar {
 
@@ -65,7 +67,8 @@ App::App(Config config)
     , m_window("shar", Size{768 + HEADER_SIZE, 1366})
     , m_renderer(ui::OpenGLVTable::load().value())
     , m_ui()
-    // NOTE: If it will not match with the stream size the texture will be lazily resized, see Texture::update.
+    // NOTE: If it will not match with the stream size the texture will be
+    // lazily resized, see Texture::update.
     , m_background(main_monitor_size())
     , m_stop_button("stop")
     , m_stream_button("stream")
@@ -74,14 +77,22 @@ App::App(Config config)
     , m_ticks(m_context.m_metrics, "ticks", Metrics::Format::Count)
     , m_fps(m_context.m_metrics, "fps", Metrics::Format::Count)
     , m_metrics_data{std::vector<std::string>(), Clock::now(), Seconds(1)}
-    , m_stream(Empty(std::nullopt))
-{
+    , m_stream(Empty(std::nullopt)) {
   load_background_picture();
   m_stream = Empty(m_background_picture);
   nk_style_set_font(m_ui.context(), m_renderer.default_font_handle());
   ui::Renderer::init_log();
 
   m_url.set_text(m_context.m_config->url);
+
+  auto sc_monitors = sc::GetMonitors();
+  for (const auto& monitor : sc_monitors) {
+    m_monitors.push_back(fmt::format("{}) {} : {}x{}",
+                monitor.Id,
+                monitor.Name,
+                monitor.Width,
+                monitor.Height));
+  }
 
   m_window.set_header(HEADER_SIZE);
   m_window.set_border(false);
@@ -146,7 +157,8 @@ bool App::process_input() {
         // Change title bar state
         m_window.set_header(was_fullscreen ? HEADER_SIZE : 0);
 
-        // NOTE: SDL does not allow to change resizable state of fullscreen window
+        // NOTE: SDL does not allow to change resizable state of fullscreen
+        // window
         if (was_fullscreen) {
           m_window.set_fullscreen(false);
           m_window.set_resizable(true);
@@ -240,20 +252,104 @@ void App::update_metrics() {
 }
 
 void App::update_settings_window() {
-  const float settings_width = 150.0f;
+  const float settings_width = 300.0f;
   const float settings_height = 300.0f;
+  const float combo_layout_width = 150.0f;
 
   const auto window_size = m_window.size();
   const float x_offset = (window_size.width() / 2) - (settings_width / 2);
   const float y_offset = (window_size.height() / 2) - (settings_height / 2);
+
+
   if (nk_begin(m_ui.context(),
                "settings",
                nk_rect(x_offset, y_offset, settings_width, settings_height),
-               NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE | NK_WINDOW_MOVABLE)) {
+               NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE |
+                   NK_WINDOW_MOVABLE)) {
+
+    // Log Level
+    const char* log_levels[] =
+        {"Trace", "Debug", "Info", "Warning", "Error", "Critical", "None"};
+    nk_layout_row_dynamic(m_ui.context(), 25, 2);
+    nk_label(m_ui.context(), "Log Level: ", NK_TEXT_ALIGN_LEFT);
+    auto prev_level = m_context.m_config->log_level;
+
+    m_context.m_config->log_level =
+        static_cast<LogLevel>(nk_combo(m_ui.context(),
+                 log_levels,
+                 NK_LEN(log_levels),
+                 static_cast<int>(m_context.m_config->log_level),
+                 25,
+                 nk_vec2(combo_layout_width, 210)));
+
+    if (prev_level != m_context.m_config->log_level) {
+      update_log_level(m_context.m_config->log_level);
+    }
+
+    // Encoder Log Level
+    nk_layout_row_dynamic(m_ui.context(), 25, 2);
+    nk_label(m_ui.context(), "Encoder Log Level: ", NK_TEXT_ALIGN_LEFT);
+    auto prev_encoder_level = m_context.m_config->encoder_log_level;
+    m_context.m_config->encoder_log_level = static_cast<LogLevel>(
+        nk_combo(m_ui.context(),
+                 log_levels,
+                 NK_LEN(log_levels),
+                 static_cast<int>(m_context.m_config->encoder_log_level),
+                 25,
+                 nk_vec2(combo_layout_width, 210)));
+    if (prev_encoder_level != m_context.m_config->encoder_log_level) {
+      codec::ffmpeg::Codec::set_log_level(
+          m_context.m_config->encoder_log_level);
+    }
+
+
+    // Display
+    nk_layout_row_dynamic(m_ui.context(), 25, 2);
+    nk_label(m_ui.context(), "Display: ", NK_TEXT_ALIGN_LEFT);
+    std::array<const char*, 10> monitors;
+    assert(m_monitors.size() <= monitors.size());
+
+    for (auto i = 0; i < m_monitors.size(); i++) {
+      monitors[i] = m_monitors[i].c_str();
+    }
+
+    auto display = nk_combo(m_ui.context(),
+                            monitors.data(),
+                            m_monitors.size(),
+                            static_cast<int>(m_context.m_config->monitor),
+                            25,
+                            nk_vec2(250, 210));
+    if (display != m_context.m_config->monitor) {
+      // TODO: actually change monitors
+      m_context.m_config->monitor = display;
+    }
+
+
+    // Bitrate
+    auto bitrate_str = std::to_string(m_context.m_config->bitrate);
+    static char bitrate[64];
+    strncpy(bitrate, bitrate_str.c_str(), sizeof(bitrate)-1);
+    int bitrate_len = strlen(bitrate);
+
+    nk_layout_row_dynamic(m_ui.context(), 25, 2);
+    nk_label(m_ui.context(), "Bitrate: ", NK_TEXT_ALIGN_LEFT);
+    nk_edit_string(m_ui.context(),
+                       NK_EDIT_FIELD,
+                       bitrate, &bitrate_len,
+                       64,
+                       nk_filter_decimal);
+    int new_value;
+    std::from_chars(bitrate, bitrate + bitrate_len, new_value);
+
+    if (new_value != m_context.m_config->bitrate) {
+      m_context.m_config->bitrate = new_value;
+    }
+
+
+    // TODO: Add options for ffmpeg
   }
 
   nk_end(m_ui.context());
-
 }
 
 std::optional<StreamState> App::update_config() {
@@ -261,8 +357,11 @@ std::optional<StreamState> App::update_config() {
   bool display_error = !m_last_error.empty();
   if (nk_begin(m_ui.context(),
                "config",
-               nk_rect(0.0f, static_cast<float>(m_window.is_fullscreen() ? 0 : HEADER_SIZE),
-                       300.0f, display_error ? 130.0f : 90.0f),
+               nk_rect(0.0f,
+                       static_cast<float>(
+                           m_window.is_fullscreen() ? 0 : HEADER_SIZE),
+                       300.0f,
+                       display_error ? 130.0f : 90.0f),
                NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)) {
 
     nk_layout_row_dynamic(m_ui.context(), 30, 3);
@@ -300,9 +399,9 @@ std::optional<StreamState> App::update_config() {
 
     // TODO: add gear icon to the settings button
     bool is_settings = !!nk_button_symbol_label(m_ui.context(),
-                           NK_SYMBOL_NONE,
-                           "settings",
-                           NK_TEXT_RIGHT);
+                                                NK_SYMBOL_NONE,
+                                                "settings",
+                                                NK_TEXT_RIGHT);
 
     if (is_settings) {
       m_settings_enabled = !m_settings_enabled;
@@ -327,7 +426,8 @@ void App::render_background() {
   const usize divisor = std::gcd(frame_size.height(), frame_size.width());
   const usize width_ratio = frame_size.width() / divisor;
   const usize height_ratio = frame_size.height() / divisor;
-  const usize max_height = win_size.height() - (m_window.is_fullscreen() ? 0 : HEADER_SIZE);
+  const usize max_height =
+      win_size.height() - (m_window.is_fullscreen() ? 0 : HEADER_SIZE);
 
   usize w = win_size.width();
   usize h = (w * height_ratio / width_ratio);
@@ -351,7 +451,12 @@ void App::render_background() {
     at.y += y_offset;
   }
   bool enable_transparency = state() == StreamState::None;
-  m_renderer.render(m_background, m_window, at, x_offset, y_offset, enable_transparency);
+  m_renderer.render(m_background,
+                    m_window,
+                    at,
+                    x_offset,
+                    y_offset,
+                    enable_transparency);
 }
 
 void App::render() {

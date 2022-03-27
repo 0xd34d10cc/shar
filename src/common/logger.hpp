@@ -12,6 +12,7 @@
 namespace shar {
 
 void init_log(const std::filesystem::path& location, LogLevel level);
+void update_log_level(LogLevel level);
 
 extern spdlog::logger g_logger;
 

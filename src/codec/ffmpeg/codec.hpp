@@ -33,6 +33,7 @@ public:
 
   std::vector<Unit> encode(Frame image);
   std::optional<Frame> decode(Unit unit);
+  static void set_log_level(LogLevel level);
 
 private:
   int next_pts();

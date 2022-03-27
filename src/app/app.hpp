@@ -64,6 +64,8 @@ private:
   bool m_render_metrics{false};
   bool m_settings_enabled{false};
 
+  std::vector<std::string> m_monitors;
+
   ui::Window m_window;
   ui::Renderer m_renderer;
   ui::State m_ui;

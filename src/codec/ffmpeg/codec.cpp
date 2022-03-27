@@ -60,30 +60,29 @@ static void avlog_callback(void* /* ptr */, int level, const char* fmt, va_list 
   }
 }
 
-static void setup_logging(const shar::ConfigPtr& config) {
+static int log_level_to_ffmpeg(shar::LogLevel level) {
   using shar::LogLevel;
+  switch (level) {
+    case LogLevel::Trace:
+      return AV_LOG_TRACE;
+    case LogLevel::Debug:
+      return AV_LOG_DEBUG;
+    case LogLevel::Info:
+      return AV_LOG_INFO;
+    case LogLevel::Warning:
+      return AV_LOG_WARNING;
+    case LogLevel::Critical:
+      return AV_LOG_FATAL;
+    case LogLevel::Error:
+      return AV_LOG_ERROR;
+    case LogLevel::None:
+      return AV_LOG_QUIET;
+    default:
+      throw std::runtime_error("Unknown log level");
+  }
+}
 
-  const auto log_level_to_ffmpeg = [](LogLevel level) {
-    switch (level) {
-      case LogLevel::Trace:
-        return AV_LOG_TRACE;
-      case LogLevel::Debug:
-        return AV_LOG_DEBUG;
-      case LogLevel::Info:
-        return AV_LOG_INFO;
-      case LogLevel::Warning:
-        return AV_LOG_WARNING;
-      case LogLevel::Critical:
-        return AV_LOG_FATAL;
-      case LogLevel::Error:
-        return AV_LOG_ERROR;
-      case LogLevel::None:
-        return AV_LOG_QUIET;
-      default:
-        throw std::runtime_error("Unknown log level");
-    }
-  };
-
+static void setup_logging(const shar::ConfigPtr& config) {
   logger_enabled = true;
   av_log_set_level(log_level_to_ffmpeg(config->encoder_log_level));
   av_log_set_callback(avlog_callback);
@@ -211,6 +210,10 @@ std::optional<Frame> Codec::decode(Unit unit) {
 
   assert(frame.raw()->format == AV_PIX_FMT_YUV420P);
   return std::move(frame);
+}
+
+void Codec::set_log_level(LogLevel level) {
+  av_log_set_level(log_level_to_ffmpeg(level));
 }
 
 int Codec::next_pts() {
