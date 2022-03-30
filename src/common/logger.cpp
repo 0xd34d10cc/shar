@@ -4,13 +4,14 @@
 #include "time.hpp"
 
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 #if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)
 #include <spdlog/sinks/msvc_sink.h>
 #endif
 #include "disable_warnings_pop.hpp"
 
-spdlog::level::level_enum log_level_to_spd(shar::LogLevel level) {
+static spdlog::level::level_enum log_level_to_spd(shar::LogLevel level) {
   using shar::LogLevel;
   switch (level) {
     case LogLevel::Trace:
@@ -45,6 +46,7 @@ void init_log(const std::filesystem::path& location, LogLevel level) {
 
 #if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)
   sinks.emplace_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+  sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
 #endif
 
   // TODO: add custom GUI-based sink

@@ -31,6 +31,29 @@ u8x8 to_big_endian(u64 val) {
   };
 }
 
+void write_u16_le(u8* bytes, u16 value) {
+  bytes[0] = (value >> 0) & 0xff;
+  bytes[1] = (value >> 8) & 0xff;
+}
+
+void write_u32_le(u8* bytes, u32 value) {
+  bytes[0] = (value >> 0) & 0xff;
+  bytes[1] = (value >> 8) & 0xff;
+  bytes[2] = (value >> 16) & 0xff;
+  bytes[3] = (value >> 24) & 0xff;
+}
+
+void write_u64_le(u8* bytes, u64 value) {
+  bytes[0] = (value >> 0) & 0xff;
+  bytes[1] = (value >> 8) & 0xff;
+  bytes[2] = (value >> 16) & 0xff;
+  bytes[3] = (value >> 24) & 0xff;
+  bytes[4] = (value >> 32) & 0xff;
+  bytes[5] = (value >> 40) & 0xff;
+  bytes[6] = (value >> 48) & 0xff;
+  bytes[7] = (value >> 56) & 0xff;
+}
+
 u16 read_u16_big_endian(const u8* bytes) {
   return static_cast<u16>(
     u16{bytes[0]} << static_cast<u16>(8) |

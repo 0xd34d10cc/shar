@@ -6,6 +6,7 @@
 #include "channel.hpp"
 #include "context.hpp"
 #include "net/sender.hpp"
+#include "net/ice/client.hpp"
 #include "net/types.hpp"
 #include "codec/ffmpeg/unit.hpp"
 #include "packetizer.hpp"
@@ -34,6 +35,8 @@ private:
     void set_packet(Unit packet);
     void send();
 
+    void connect();
+
     Cancellation m_running;
 
     udp::Endpoint m_endpoint;
@@ -47,6 +50,8 @@ private:
 
     usize m_bytes_sent;
     usize m_fragments_sent;
+
+    ice::Client m_client;
 };
 
 }

@@ -78,6 +78,8 @@ add_library(net
     ice/candidate.cpp
     ice/forwarding.hpp
     ice/forwarding.cpp
+    ice/client.hpp
+    ice/client.cpp
 )
 
 target_include_directories(net
@@ -87,6 +89,7 @@ target_include_directories(net
 
 target_link_libraries(net
   PUBLIC common
+  PUBLIC proto
   PUBLIC ${CONAN_LIBS_MINIUPNPC}
 )
 

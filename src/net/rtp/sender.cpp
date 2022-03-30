@@ -17,29 +17,82 @@ PacketSender::PacketSender(Context context, IpAddress ip, Port port)
     , m_sequence(0)
     , m_bytes_sent(0)
     , m_fragments_sent(0)
+    , m_client(m_context)
     {}
 
-void PacketSender::run(Receiver<Unit> packets) {
-    m_socket.open(udp::v4());
-
-    // TODO: use port range instead of constant
-    auto ip = IpAddress(IPv4({ 0, 0, 0, 0 }));
-    auto endpoint = udp::Endpoint(ip, Port{44444});
-    m_socket.bind(endpoint);
-
-    auto sent = Metric(m_metrics, "bytes sent", Metrics::Format::Bytes);
-    while (auto packet = packets.receive()) {
-      if (m_running.expired()) {
-        break;
+void PacketSender::connect() {
+  // 1. Connect to shar server
+  // 2. Create session
+  // 3. Wait for connection notification
+  // 4. ICE
+  //
+  // set ip = client ip
+  // and monitor connectivity
+  m_client.connect(
+    IpAddress::from_string("127.0.0.1"), 1337,
+    [](ErrorCode ec) {
+      if (!ec) {
+        LOG_INFO("Successfully connected to ICE server");
+      }
+      else {
+        LOG_ERROR("Failed to connect to ICE server: {}", ec.message());
       }
 
-      sent += packet->size();
-      set_packet(std::move(*packet));
-      send();
+      // TODO: push continuation task on m_context
+    }
+  );
+
+  m_context.run_for(Seconds(3));
+  if (!m_client.connected()) {
+    // TODO: retry
+    // TODO: notify GUI thread about connection issues
+    throw std::runtime_error("Connection to ICE server timed out");
+  }
+
+  bool created = false;
+  m_client.open_session(
+    "kekus",
+    [&created](ice::SessionID session) {
+      LOG_INFO("Session created. ID: {}", session);
+      created = true;
+    },
+    [](ice::ConnectionInfo info) {
+      LOG_INFO("Client connection notification received: {}", info);
+
+      // FIXME: gather candidates and serialize
+      return ice::ConnectionInfo{};
+    }
+    );
+  m_context.run_for(Seconds(3));
+
+  if (!created) {
+    throw std::runtime_error("CreateSession request timed out");
+  }
+}
+
+void PacketSender::run(Receiver<Unit> packets) {
+  connect();
+
+  m_socket.open(udp::v4());
+
+  // TODO: use port range instead of constant
+  auto ip = IpAddress(IPv4({ 0, 0, 0, 0 }));
+  auto endpoint = udp::Endpoint(ip, Port{44444});
+  m_socket.bind(endpoint);
+
+  auto sent = Metric(m_metrics, "bytes sent", Metrics::Format::Bytes);
+  while (auto packet = packets.receive()) {
+    if (m_running.expired()) {
+      break;
     }
 
-    shutdown();
-    m_socket.close();
+    sent += packet->size();
+    set_packet(std::move(*packet));
+    send();
+  }
+
+  shutdown();
+  m_socket.close();
 }
 
 void PacketSender::shutdown() {
