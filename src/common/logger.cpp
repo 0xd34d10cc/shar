@@ -1,13 +1,13 @@
 #include "logger.hpp"
 
-#include "disable_warnings_push.hpp"
 #include "time.hpp"
 
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_sinks.h>
+#include "disable_warnings_push.hpp"
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #if defined(_MSC_VER) && defined(SHAR_DEBUG_BUILD)
 #include <spdlog/sinks/msvc_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #endif
 #include "disable_warnings_pop.hpp"
 
@@ -54,7 +54,6 @@ void init_log(const std::filesystem::path& location, LogLevel level) {
   g_logger.set_level(log_level_to_spd(level));
   g_logger.set_pattern("[%D %T] [%n] %v");
   // spdlog::register_logger(m_logger);
-  g_logger.info("Logger has been initialized");
 }
 
 void update_log_level(LogLevel level) {

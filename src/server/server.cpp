@@ -58,20 +58,17 @@ void Server::on_accept(ErrorCode ec) {
     return;
   }
 
-  LOG_INFO(
-    "[{}:{}] New client connected",
-    m_next_client_address.address().to_string(),
-    m_next_client_address.port()
-  );
-
+  auto& addr = m_next_client_address;
   auto [it, _] = m_clients.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(m_next_client_id++),
     std::forward_as_tuple(
-      std::move(m_next_client_address),
+      fmt::format("{}:{}", addr.address().to_string(), addr.port()),
       std::move(m_next_client)
     )
   );
+
+  LOG_INFO("[{}] New client connected", it->second.address);
   start_read(it);
   start_accept();
 }
@@ -106,7 +103,10 @@ void Server::on_read(ClientIter it, ErrorCode ec, usize n) {
   client.received += n;
   while (auto message_size = client.message_size()) {
     if (*message_size >= MAX_MESSAGE_SIZE) {
-      LOG_ERROR("Client request size exceeds max allowed message size: {}", *message_size);
+      LOG_ERROR(
+        "[{}] Client request size ({}) exceeds max allowed message size ({})",
+        client.address, *message_size, MAX_MESSAGE_SIZE
+      );
       on_close(it, ec);
       return;
     }
@@ -119,7 +119,7 @@ void Server::on_read(ClientIter it, ErrorCode ec, usize n) {
     proto::ClientMessage message;
     auto* p = client.recv_buffer.data() + sizeof(u32);
     if (!message.ParseFromArray(p, *message_size)) {
-      LOG_ERROR("Client request is invalid");
+      LOG_ERROR("[{}] Client request is invalid", client.address);
       on_close(it, ec);
       return;
     }
@@ -138,16 +138,9 @@ void Server::on_read(ClientIter it, ErrorCode ec, usize n) {
 void Server::on_close(ClientIter it, ErrorCode ec) {
   auto& client = it->second;
   if (ec) {
-    LOG_ERROR("[{}:{}] Closing connection due to error: {}",
-      client.address.address().to_string(),
-      client.address.port(),
-      ec.message()
-    );
+    LOG_ERROR("[{}] Closing connection due to error: {}", client.address, ec.message());
   } else {
-    LOG_INFO("[{}:{}] Closing connection",
-      client.address.address().to_string(),
-      client.address.port()
-    );
+    LOG_INFO("[{}] Closing connection", client.address);
   }
 
   client.socket.shutdown(net::tcp::Socket::shutdown_both);
@@ -156,8 +149,20 @@ void Server::on_close(ClientIter it, ErrorCode ec) {
 }
 
 void Server::on_message(ClientIter it, const proto::ClientMessage& message) {
-  LOG_INFO("received: {}", message.DebugString());
-  // TODO
+  auto& client = it->second;
+  LOG_INFO("[{}] Received: {}", client.address, message.DebugString());
+
+  if (message.has_open()) {
+
+  } else if (message.has_connect()) {
+
+  } else if (message.has_close()) {
+
+  } else if (message.has_list()) {
+
+  } else {
+    // send error
+  }
 }
 
 } // namespace shar

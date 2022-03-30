@@ -23,12 +23,12 @@ private:
 
   using ClientID = usize;
   struct Client {
-    Client(net::tcp::Endpoint addr, net::tcp::Socket s)
+    Client(std::string addr, net::tcp::Socket s)
       : address(std::move(addr))
       , socket(std::move(s))
     {}
 
-    net::tcp::Endpoint address;
+    std::string address;
     net::tcp::Socket socket;
 
     using Buffer = std::array<u8, MAX_MESSAGE_SIZE>;
